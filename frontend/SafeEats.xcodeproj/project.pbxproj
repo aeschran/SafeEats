@@ -29,9 +29,25 @@
 		E088C0832D59049100689B05 /* SafeEatsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SafeEatsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		E6F1D30F2D5A99AF00245741 /* Exceptions for "SafeEats" folder in "SafeEats" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Networking/.gitkeep,
+				Services/.gitkeep,
+				ViewModels/.gitkeep,
+				Views/.gitkeep,
+			);
+			target = E088C0682D59049000689B05 /* SafeEats */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		E088C06B2D59049000689B05 /* SafeEats */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				E6F1D30F2D5A99AF00245741 /* Exceptions for "SafeEats" folder in "SafeEats" target */,
+			);
 			path = SafeEats;
 			sourceTree = "<group>";
 		};
