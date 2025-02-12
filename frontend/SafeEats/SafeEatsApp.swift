@@ -11,7 +11,8 @@ import SwiftUI
 struct SafeEatsApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+//            ContentView()
+            AuthView()
             
         }
     }
