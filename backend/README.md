@@ -4,20 +4,29 @@
 1. Create a virtual env (conda, venv, virtualenv) with python 3.12
 2. Install these dependencies:
     * mongodb driver -> pip install "pymongo[srv]"==3.12
+        * This is the mongodb driver
     * motor -> pip install motor
-        * this is an async mongodb driver
+        * This is an async mongodb driver
     * fastapi -> pip install fastapi
+        * This is the ASGI that will handle our backend needs
     * uvicorn -> pip install uvicorn
+        * This is what fastapi is built on as a sort of driver
     * pydantic -> pip install pydantic
+        * This is an ORM and schema generate for sending data to and from Swift and Mongo
     * pydantic_settings -> pip install pydantic_settings
+        * This is used to control our config settings
     * pydantic email validator -> pip install "pydantic[email]"
+        * This is an even smaller package specific to validating email strings
     * bcrypt -> pip install bcrypt
+        * This handles our hashing
 
 ## Start the Server
 1. run 'uvicorn main:app --reload' in SafeEats/backend
 From here, you can go to http://localhost:8000 in which the server is listening
 
 ## SafeEats backend structure
+
+**NOTE:** This could be subject to change as time goes on
 
 SafeEats/
 │── backend/
