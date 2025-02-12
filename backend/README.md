@@ -19,8 +19,8 @@ From here, you can go to http://localhost:8000 in which the server is listening
 
 ## SafeEats backend structure
 
-fastapi_app/
-│── app/
+SafeEats/
+│── backend/
 │   ├── api/                 # API Routes
 │   │   ├── endpoints/   # Individual route files
 │   │   │   ├── users.py
@@ -53,6 +53,28 @@ fastapi_app/
 │   │   ├── test_items.py
 │   ├── main.py              # Entry point for FastAPI app
 │── .env                     # Environment variables (secrets, DB URL, etc.)
-│── requirements.txt         # Dependencies
-│── gunicorn_conf.py         # Gunicorn configuration
 │── README.md                # Project documentation
+
+### api
+This is where all the routes will be defined. 
+
+### core 
+This is where all core and backend-wide functionalities will be stored.
+
+### models
+These are the database models.
+
+### schemas
+These are the schemas that will be used to send and receive data to and from the frontend.
+
+### services
+These control the business logic of the server. Create methods here that will be called by the endpoints.
+
+### db
+This is where database functions will exist. 
+
+### middlewares
+This is for middlewares. Currently the only middleware is logging.
+
+### dependencies
+These will be for dependency injection

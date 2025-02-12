@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from core.utils import PyObjectId
+from utils.pyobjectid import PyObjectId
 
 class UserCreate(BaseModel):
     name: str

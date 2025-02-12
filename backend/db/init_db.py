@@ -8,7 +8,7 @@ def connect_db():
     global client
     if client is None:
         client = AsyncIOMotorClient(settings.MONGODB_URI)
-    return client[settings.MONGO_DB_NAME] if client else None
+    return client[settings.MONGODB_NAME] if client else None
 
 async def close_db():
     """Close the database connection properly."""

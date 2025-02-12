@@ -30,3 +30,10 @@ async def get_user_by_email(email: str):
     if user:
         return user
     return None
+
+async def get_users():
+    # Fetch all users from the database
+    db = connect_db()
+    users = await db.users.find().to_list(100)
+    users = [UserResponse(**user) for user in users]
+    return users
