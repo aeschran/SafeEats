@@ -1,11 +1,17 @@
 # SafeEats Backend
 
 ## Pre-requirements
-1. Create a virtual env (conda, venv, virtualenv) with python 3.11
+1. Create a virtual env (conda, venv, virtualenv) with python 3.12
 2. Install these dependencies:
-    * mongodb driver -> pip install "pymongo[srv]"==3.11
+    * mongodb driver -> pip install "pymongo[srv]"==3.12
+    * motor -> pip install motor
+        * this is an async mongodb driver
     * fastapi -> pip install fastapi
     * uvicorn -> pip install uvicorn
+    * pydantic -> pip install pydantic
+    * pydantic_settings -> pip install pydantic_settings
+    * pydantic email validator -> pip install "pydantic[email]"
+    * bcrypt -> pip install bcrypt
 
 ## Start the Server
 1. run 'uvicorn main:app --reload' in SafeEats/backend
