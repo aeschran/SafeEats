@@ -1,17 +1,20 @@
 from fastapi import FastAPI
 from api.endpoints import users
 from core.config import settings
-from db.init_db import connect_db, close_db
+from db.init_db import connect_db, close_db, db
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if connect_db() == None:
+    await connect_db()
+    if db is None:
         raise Exception("Database connection failed.")
     try:
+        print("Opening database connection.")
         yield
     finally:
+        print("Closing database connection.")
         await close_db()
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
