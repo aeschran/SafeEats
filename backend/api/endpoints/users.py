@@ -18,3 +18,8 @@ async def create_user_endpoint(user: UserCreate):
 @router.get("/{email}")
 async def get_user_endpoint(email: str):
     return await user_service.get_user_by_email(email)
+
+@router.delete("/{_id}")
+async def delete_user_endpoint(_id: str):
+    return await user_service.delete_user(_id)
+    
