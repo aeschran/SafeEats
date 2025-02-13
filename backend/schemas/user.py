@@ -9,3 +9,4 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     name: str
     email: EmailStr
+

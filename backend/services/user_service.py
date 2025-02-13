@@ -4,6 +4,7 @@ from models.user import User
 from schemas.user import UserResponse, UserCreate
 from db.init_db import db
 
+
 def hash_password(password: str) -> str:
     # Generate a salt and hash the password
     salt = bcrypt.gensalt()

@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from api.endpoints import users
+from api.endpoints import users, profile
 from core.config import settings
 from db.init_db import connect_db, close_db, db
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,6 +29,7 @@ app.add_middleware(
 
 # Include API routers
 app.include_router(users.router, prefix="/users", tags=["Users"])
+app.include_router(profile.router, prefix="/profile", tags=["Profile"])
 
 # Health check
 @app.get("/health")
