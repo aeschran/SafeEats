@@ -11,7 +11,3 @@ class PyObjectId(str):
         if not ObjectId.is_valid(v):
             raise ValueError("Invalid ObjectId")
         return str(v)
-    
-    def str_to_object(cls, v):
-        if type(v) is str:
-            return ObjectId(v)
