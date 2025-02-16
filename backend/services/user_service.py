@@ -1,14 +1,15 @@
 # app/services/user_service.py
 import bcrypt
+from bson import ObjectId
 from models.user import User
 from schemas.user import UserResponse, UserCreate
+from utils.pyobjectid import PyObjectId
 from db.init_db import db
 
 from fastapi import Depends, HTTPException, status
 from services.jwttoken import verify_token
 from fastapi.security import OAuth2PasswordBearer
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
-
 
 def hash_password(password: str) -> str:
     # Generate a salt and hash the password
@@ -34,6 +35,13 @@ class UserService:
             user_create.password), username=user_create.username)
         result = await self.db.users.insert_one(user.to_dict())
         return {**user.to_dict(), "id": str(result.inserted_id)}
+    
+    async def delete_user(self, _id: str) -> bool:
+        # Delete a user from database by email
+        PyObjectId.validate(_id)
+        
+        result = await self.db.users.delete_one({"_id": ObjectId(_id)})
+        return result.deleted_count == 1
 
     async def get_user_by_email(self, email: str):
         # Fetch a user from the database by user_id
