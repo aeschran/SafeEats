@@ -12,7 +12,16 @@ enum AuthType {
     case register
 }
 
+enum AccountType {
+    case userAccount
+    case businessOwnerAccount
+}
+
 struct AuthView: View {
+    
+    @StateObject private var viewModel = AuthViewModel()
+
+    
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var phoneNumber: String = ""
@@ -25,94 +34,160 @@ struct AuthView: View {
     
     @State private var showPassword = false
     @State private var authType: AuthType = .login
+    @State private var accountType: AccountType = .userAccount
+    @State private var navigateToLanding = false
+    
+    
     
     var body: some View {
-        ZStack {
-            Rectangle()
-                .fill(LinearGradient(colors: [.white, .mainGreen], startPoint: UnitPoint(x: 0.5, y: 0.4), endPoint: .bottom))
-                .cornerRadius(20)
-                .ignoresSafeArea()
-            
-            VStack {
-                TopView()
-                SegmentedView(authType: $authType)
+    
+        NavigationStack {
+            ZStack {
+                let gradientColors: [Color] = accountType == .userAccount ? [.white, .mainGreen] : [.white, .mainGray]
+                let padding = accountType == .userAccount ? 100 : 80
+                Rectangle()
+                    .fill(LinearGradient(colors: gradientColors, startPoint: UnitPoint(x: 0.5, y: 0.4), endPoint: .bottom))
+                    .cornerRadius(20)
+                    .ignoresSafeArea()
                 
-                VStack(spacing: 15) {
-                    TextField(text: $email) {
-                        Text(authType == .login ? "Username" : "Email")
-                    }
-                    .padding(.horizontal, 10)
-                    .focused($isEmailFocused)
-                    .textFieldStyle(AuthTextFieldStyle(isFocused: $isEmailFocused))
+                VStack {
+                    TopView(accountType: accountType)
+                    SegmentedView(authType: $authType)
                     
-                    if authType == .register { TextField("Username", text: $username) .padding(.horizontal, 10) .focused($isUsernameFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isUsernameFocused)) }
-                    
-                    if authType == .register { TextField("Phone Number", text: $phoneNumber) .padding(.horizontal, 10) .focused($isPhoneNumberFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isPhoneNumberFocused)) }
-                    
-                    ZStack {
-                        TextField(text: $password) {
-                            Text("Password")
+                    VStack(spacing: 15) {
+                        TextField(text: $viewModel.email) {
+                            Text(authType == .login ? "Username" : "Email")
                         }
                         .padding(.horizontal, 10)
-                        .focused($isPasswordFocused)
-                        .textFieldStyle(AuthTextFieldStyle(isFocused: $isPasswordFocused))
-                        .opacity(showPassword ? 1 : 0)
-                        .zIndex(showPassword ? 1 : 0)
-                        .overlay(alignment: .trailing) {
-                            Button {
-                                withAnimation {
-                                    showPassword.toggle()
+                        .focused($isEmailFocused)
+                        .textFieldStyle(AuthTextFieldStyle(isFocused: $isEmailFocused))
+                        
+                        if authType == .register { TextField("Username", text: $viewModel.username) .padding(.horizontal, 10) .focused($isUsernameFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isUsernameFocused)) }
+                        
+                        if authType == .register { TextField("Phone Number", text: $viewModel.phoneNumber) .padding(.horizontal, 10) .focused($isPhoneNumberFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isPhoneNumberFocused)) }
+                        
+                        ZStack {
+                            TextField(text: $viewModel.password) {
+                                Text("Password")
+                            }
+                            .padding(.horizontal, 10)
+                            .focused($isPasswordFocused)
+                            .textFieldStyle(AuthTextFieldStyle(isFocused: $isPasswordFocused))
+                            .opacity(showPassword ? 1 : 0)
+                            .zIndex(showPassword ? 1 : 0)
+                            .overlay(alignment: .trailing) {
+                                Button {
+                                    withAnimation {
+                                        showPassword.toggle()
+                                    }
+                                } label: {
+                                    Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
+                                        .padding(.horizontal, 25)
+                                        .foregroundStyle(Color(UIColor.lightGray))
                                 }
-                            } label: {
-                                Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
-                                    .padding(.horizontal, 25)
-                                    .foregroundStyle(Color(UIColor.lightGray))
+                            }
+                            
+                            SecureField(text: $viewModel.password) {
+                                Text("Password")
+                            }
+                            .padding(.horizontal, 10)
+                            .focused($isPasswordFocused)
+                            .textFieldStyle(AuthTextFieldStyle(isFocused: $isPasswordFocused))
+                            .opacity(showPassword ? 0 : 1)
+                            .zIndex(showPassword ? 0 : 1)
+                            .overlay(alignment: .trailing) {
+                                Button {
+                                    withAnimation {
+                                        showPassword.toggle()
+                                    }
+                                } label: {
+                                    Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
+                                        .padding(.horizontal, 25)
+                                        .foregroundStyle(Color(UIColor.lightGray))
+                                }
                             }
                         }
                         
-                        SecureField(text: $password) {
-                            Text("Password")
-                        }
-                        .padding(.horizontal, 10)
-                        .focused($isPasswordFocused)
-                        .textFieldStyle(AuthTextFieldStyle(isFocused: $isPasswordFocused))
-                        .opacity(showPassword ? 0 : 1)
-                        .zIndex(showPassword ? 0 : 1)
-                        .overlay(alignment: .trailing) {
-                            Button {
-                                withAnimation {
-                                    showPassword.toggle()
-                                }
-                            } label: {
-                                Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
-                                    .padding(.horizontal, 25)
-                                    .foregroundStyle(Color(UIColor.lightGray))
-                            }
-                        }
                     }
                     
-                }
-                
-                Button {
+                    if viewModel.errorMessage != nil {
+                                        Text(viewModel.errorMessage!)
+                                            .foregroundColor(.red)
+                                    }
                     
-                } label: {
-                    Text(authType == .login ? "Login" : "Register")
+                    Button {
+                        Task {
+                            if authType == .login && accountType == .businessOwnerAccount {
+                                await viewModel.busines_owner_login()
+                            } else if authType == .register && accountType == .businessOwnerAccount {
+                                await viewModel.business_owner_register()
+                            }
+                            // TODO: Add conditions for user login
+                            
+                            if viewModel.isAuthenticated == true {
+                                navigateToLanding = true
+                            }
+                            
+                        }
+                    } label: {
+                        Text(authType == .login ? "Login" : "Register")
+                    }
+                    .buttonStyle(AuthButtonType())
+                    
+                    
+                    
+                    BottomView(authType: $authType)
+                    
+                    Spacer()
+                    Button {
+                        //navigateToBusinessAuth = true
+                        accountType = (accountType == .userAccount) ? .businessOwnerAccount : .userAccount
+                    } label: {
+                        Text(accountType == .userAccount ? "I'm a Business" : "Return to User Login")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.gray.opacity(0.5))
+                            .foregroundColor(.white)
+                            .cornerRadius(15)
+                            .padding(.horizontal, 20)
+                    }
+                    
+                    NavigationLink("", destination: LandingPage(), isActive: $navigateToLanding)
+                        .navigationBarBackButtonHidden(true)
                 }
-                .buttonStyle(AuthButtonType())
-                
-                BottomView(authType: $authType)
+                .padding(.top, CGFloat(padding))
+                .padding()
+                .gesture(TapGesture()
+                    .onEnded({
+                        isEmailFocused = false
+                        isPasswordFocused = false
+                        isPhoneNumberFocused = false
+                        isUsernameFocused = false
+                    })
+                )
             }
-            .padding(.top, -120)
-            .padding()
-            .gesture(TapGesture()
-                .onEnded({
-                    isEmailFocused = false
-                    isPasswordFocused = false
-                    isPhoneNumberFocused = false
-                    isUsernameFocused = false
-                })
-            )
         }
+        .navigationBarBackButtonHidden(true)
+    }
+    
+    /*
+     * Functions to verify user input
+     */
+    func isValidEmail() -> Bool {
+        let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        let emailTest = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
+        
+        return emailTest.evaluate(with: email)
+    }
+    
+
+    func isValidPhoneNumber() -> Bool {
+        return phoneNumber.contains(/^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$/)
+    }
+    
+    func isValidPassword() -> Bool {
+        let passwordRegex = #"^(?=.*[a-z])(?=.*[A-Z])(?:(?=.*\d)|(?=.*[\W_])).{8,}$"#
+        return NSPredicate(format: "SELF MATCHES %@", passwordRegex).evaluate(with: password)
     }
 }
                              
@@ -132,6 +207,7 @@ struct AuthButtonType: ButtonStyle {
     }
                     
 }
+
 
 struct AuthTextFieldStyle: TextFieldStyle {
     
@@ -159,6 +235,8 @@ struct AuthTextFieldStyle: TextFieldStyle {
 }
 
 struct TopView: View {
+    var accountType: AccountType
+    
     var body: some View {
         VStack(alignment: .center) {
             Image("SafeEats-logo")
@@ -166,6 +244,13 @@ struct TopView: View {
                             .aspectRatio(contentMode: .fit)
                             .frame(width: 250)
                             .padding(.top, -40)
+            if accountType == .businessOwnerAccount {
+                Text("SafeEats Business")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.gray)
+                    .padding(.top, 5)
+            }
         }
         
     }
@@ -235,6 +320,8 @@ struct SegmentedView: View {
     }
 }
 
+
+
 struct BottomView: View {
     @Binding var authType: AuthType
     
@@ -262,6 +349,8 @@ struct BottomView: View {
         }
     }
 }
+
+
 
 #Preview {
     AuthView()
