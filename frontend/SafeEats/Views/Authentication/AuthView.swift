@@ -18,6 +18,10 @@ enum AccountType {
 }
 
 struct AuthView: View {
+    
+    @StateObject private var viewModel = AuthViewModel()
+
+    
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var phoneNumber: String = ""
@@ -31,7 +35,9 @@ struct AuthView: View {
     @State private var showPassword = false
     @State private var authType: AuthType = .login
     @State private var accountType: AccountType = .userAccount
-    @State private var navigateToBusinessAuth = false
+    @State private var navigateToLanding = false
+    
+    
     
     var body: some View {
     
@@ -49,19 +55,19 @@ struct AuthView: View {
                     SegmentedView(authType: $authType)
                     
                     VStack(spacing: 15) {
-                        TextField(text: $email) {
+                        TextField(text: $viewModel.email) {
                             Text(authType == .login ? "Username" : "Email")
                         }
                         .padding(.horizontal, 10)
                         .focused($isEmailFocused)
                         .textFieldStyle(AuthTextFieldStyle(isFocused: $isEmailFocused))
                         
-                        if authType == .register { TextField("Username", text: $username) .padding(.horizontal, 10) .focused($isUsernameFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isUsernameFocused)) }
+                        if authType == .register { TextField("Username", text: $viewModel.username) .padding(.horizontal, 10) .focused($isUsernameFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isUsernameFocused)) }
                         
-                        if authType == .register { TextField("Phone Number", text: $phoneNumber) .padding(.horizontal, 10) .focused($isPhoneNumberFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isPhoneNumberFocused)) }
+                        if authType == .register { TextField("Phone Number", text: $viewModel.phoneNumber) .padding(.horizontal, 10) .focused($isPhoneNumberFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isPhoneNumberFocused)) }
                         
                         ZStack {
-                            TextField(text: $password) {
+                            TextField(text: $viewModel.password) {
                                 Text("Password")
                             }
                             .padding(.horizontal, 10)
@@ -81,7 +87,7 @@ struct AuthView: View {
                                 }
                             }
                             
-                            SecureField(text: $password) {
+                            SecureField(text: $viewModel.password) {
                                 Text("Password")
                             }
                             .padding(.horizontal, 10)
@@ -104,8 +110,25 @@ struct AuthView: View {
                         
                     }
                     
+                    if viewModel.errorMessage != nil {
+                                        Text(viewModel.errorMessage!)
+                                            .foregroundColor(.red)
+                                    }
+                    
                     Button {
-                        
+                        Task {
+                            if authType == .login && accountType == .businessOwnerAccount {
+                                await viewModel.busines_owner_login()
+                            } else if authType == .register && accountType == .businessOwnerAccount {
+                                await viewModel.business_owner_register()
+                            }
+                            // TODO: Add conditions for user login
+                            
+                            if viewModel.isAuthenticated == true {
+                                navigateToLanding = true
+                            }
+                            
+                        }
                     } label: {
                         Text(authType == .login ? "Login" : "Register")
                     }
@@ -128,6 +151,9 @@ struct AuthView: View {
                             .cornerRadius(15)
                             .padding(.horizontal, 20)
                     }
+                    
+                    NavigationLink("", destination: LandingPage(), isActive: $navigateToLanding)
+                        .navigationBarBackButtonHidden(true)
                 }
                 .padding(.top, CGFloat(padding))
                 .padding()
@@ -142,6 +168,26 @@ struct AuthView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+    }
+    
+    /*
+     * Functions to verify user input
+     */
+    func isValidEmail() -> Bool {
+        let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        let emailTest = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
+        
+        return emailTest.evaluate(with: email)
+    }
+    
+
+    func isValidPhoneNumber() -> Bool {
+        return phoneNumber.contains(/^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$/)
+    }
+    
+    func isValidPassword() -> Bool {
+        let passwordRegex = #"^(?=.*[a-z])(?=.*[A-Z])(?:(?=.*\d)|(?=.*[\W_])).{8,}$"#
+        return NSPredicate(format: "SELF MATCHES %@", passwordRegex).evaluate(with: password)
     }
 }
                              
