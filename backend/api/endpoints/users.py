@@ -36,4 +36,4 @@ async def get_user_endpoint(email: str,
 @router.delete("/{_id}")
 async def delete_user_endpoint(_id: str):
     return await user_service.delete_user(_id)
-    
+

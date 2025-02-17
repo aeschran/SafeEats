@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+
 from api.endpoints import users, profile, business_owners, auth, business_auth
 from core.config import settings
 from db.init_db import connect_db, close_db, db
