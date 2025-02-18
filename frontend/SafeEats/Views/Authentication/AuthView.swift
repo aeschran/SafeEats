@@ -12,7 +12,13 @@ enum AuthType {
     case register
 }
 
+enum AccountType {
+    case userAccount
+    case businessOwnerAccount
+}
+
 struct AuthView: View {
+
     @StateObject private var viewModel = AuthViewModel()
     @State private var email: String = ""
     @State private var password: String = ""
@@ -28,12 +34,18 @@ struct AuthView: View {
     
     @State private var showPassword = false
     @State private var authType: AuthType = .login
+    @State private var accountType: AccountType = .userAccount
+    @State private var navigateToLanding = false
     
-    var body: some View {
+    
+    
+    var body: some View {    
         NavigationStack {
             ZStack {
+                let gradientColors: [Color] = accountType == .userAccount ? [.white, .mainGreen] : [.white, .mainGray]
+                let padding = accountType == .userAccount ? 100 : 80
                 Rectangle()
-                    .fill(LinearGradient(colors: [.white, .mainGreen], startPoint: UnitPoint(x: 0.5, y: 0.4), endPoint: .bottom))
+                    .fill(LinearGradient(colors: gradientColors, startPoint: UnitPoint(x: 0.5, y: 0.4), endPoint: .bottom))
                     .cornerRadius(20)
                     .ignoresSafeArea()
                 
@@ -74,7 +86,7 @@ struct AuthView: View {
                                             .foregroundStyle(Color(UIColor.lightGray))
                                     }
                                 }
-                            
+                          
                             SecureField(text: $viewModel.password) {
                                 Text("Password")
                             }
@@ -105,28 +117,44 @@ struct AuthView: View {
                     
                     Button {
                         Task {
-                            if authType == .login {
+                            if authType == .login && accountType == .businessOwnerAccount {
+                                await viewModel.busines_owner_login()
+                            } else if authType == .register && accountType == .businessOwnerAccount {
+                                await viewModel.business_owner_register()
+                            } else if authType == .login && accountType == .userAccount{
                                 await viewModel.user_login()
                             }
+          
+                            if viewModel.isAuthenticated == true {
+                                navigateToLanding = true
+                            }
+                            
                         }
                     } label: {
                         Text(authType == .login ? "Login" : "Register")
                     }
                     .buttonStyle(AuthButtonType())
-                    .onChange(of: viewModel.isAuthenticated) {
-                        navigateToLanding = viewModel.isAuthenticated
-                    }
-                    
                     
                     BottomView(authType: $authType)
                     
-//                        .navigationDestination(isPresented: $navigateToLanding) {
-//                            LandingPage().navigationBarBackButtonHidden(true)
-//                        }
+                    Spacer()
+                    Button {
+                        //navigateToBusinessAuth = true
+                        accountType = (accountType == .userAccount) ? .businessOwnerAccount : .userAccount
+                    } label: {
+                        Text(accountType == .userAccount ? "I'm a Business" : "Return to User Login")
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.gray.opacity(0.5))
+                            .foregroundColor(.white)
+                            .cornerRadius(15)
+                            .padding(.horizontal, 20)
+                    }
                     
-                    
+                    NavigationLink("", destination: LandingPage(), isActive: $navigateToLanding)
+                        .navigationBarBackButtonHidden(true)
                 }
-                .padding(.top, -120)
+                .padding(.top, CGFloat(padding))
                 .padding()
                 .gesture(TapGesture()
                     .onEnded({
@@ -138,156 +166,185 @@ struct AuthView: View {
                 )
             }
         }
+        .navigationBarBackButtonHidden(true)
     }
     
-    
-    struct AuthButtonType: ButtonStyle {
-        func makeBody(configuration: Configuration) -> some View {
-            configuration.label
-                .frame(maxWidth: 345)
-                .padding(.vertical)
-                .foregroundStyle(.white)
-                .foregroundColor(.white)
-                .font(.system(size: 20, weight: .bold))
-                .background(Color.mainGreen)
-                .cornerRadius(15)
-                .brightness(configuration.isPressed ? 0.05 : 0)
-                .opacity(configuration.isPressed ? 0.5 : 1)
-                .padding(.vertical, 12)
-        }
+    /*
+     * Functions to verify user input
+     */
+    func isValidEmail() -> Bool {
+        let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
+        let emailTest = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
         
+        return emailTest.evaluate(with: email)
     }
     
-    struct AuthTextFieldStyle: TextFieldStyle {
-        
-        let isFocused: FocusState<Bool>.Binding
-        
-        func _body(configuration: TextField<Self._Label>) -> some View {
-            configuration
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
-                .font(.system(size: 20))
-                .background(
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(isFocused.wrappedValue ? Color.mainGreen :
-                                        Color.gray.opacity(0.5), lineWidth: 2)
-                            .zIndex(1)
-                        
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color(.white))
-                            .zIndex(0)
-                    }
-                )
-                .animation(.easeInOut(duration: 0.2), value: isFocused.wrappedValue)
-        }
+
+    func isValidPhoneNumber() -> Bool {
+        return phoneNumber.contains(/^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$/)
     }
     
-    struct TopView: View {
-        var body: some View {
-            VStack(alignment: .center) {
-                Image("SafeEats-logo")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 250)
-                    .padding(.top, -40)
+    func isValidPassword() -> Bool {
+        let passwordRegex = #"^(?=.*[a-z])(?=.*[A-Z])(?:(?=.*\d)|(?=.*[\W_])).{8,}$"#
+        return NSPredicate(format: "SELF MATCHES %@", passwordRegex).evaluate(with: password)
+    }
+}
+                             
+struct AuthButtonType: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .frame(maxWidth: 345)
+            .padding(.vertical)
+            .foregroundStyle(.white)
+            .foregroundColor(.white)
+            .font(.system(size: 20, weight: .bold))
+            .background(Color.mainGreen)
+            .cornerRadius(15)
+            .brightness(configuration.isPressed ? 0.05 : 0)
+            .opacity(configuration.isPressed ? 0.5 : 1)
+            .padding(.vertical, 12)
+    }
+                    
+}
+
+
+struct AuthTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .font(.system(size: 20))
+            .background(
+                ZStack {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(isFocused.wrappedValue ? Color.mainGreen :
+                                    Color.gray.opacity(0.5), lineWidth: 2)
+                        .zIndex(1)
+                    
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(.white))
+                        .zIndex(0)
+                }
+            )
+            .animation(.easeInOut(duration: 0.2), value: isFocused.wrappedValue)
+    }
+}
+
+struct TopView: View {
+    var accountType: AccountType
+    
+    var body: some View {
+        VStack(alignment: .center) {
+            Image("SafeEats-logo")
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 250)
+                            .padding(.top, -40)
+            if accountType == .businessOwnerAccount {
+                Text("SafeEats Business")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.gray)
+                    .padding(.top, 5)
             }
-            
         }
+      
     }
+}
     
-    struct SegmentedView: View {
-        @Binding var authType: AuthType
-        let lightGray = Color(white: 0.9)
-        
-        var body: some View {
-            HStack(spacing: 0) {
-                Button {
-                    withAnimation {
-                        authType = .login
-                    }
-                } label: {
-                    Text("Login")
-                        .fontWeight(authType == .login ? .semibold : .regular)
-                        .foregroundStyle(authType == .login ? .white : .gray)
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, authType == .login ? 60 : 30)
-                        .background(
-                            ZStack {
-                                if authType == .login {
-                                    RoundedRectangle(cornerRadius: 15)
-                                        .stroke(Color.mainGreen.opacity(0.3), lineWidth: 0.5)
-                                        .zIndex(1)
-                                }
+struct SegmentedView: View {
+    @Binding var authType: AuthType
+    let lightGray = Color(white: 0.9)
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Button {
+                withAnimation {
+                    authType = .login
+                }
+            } label: {
+                Text("Login")
+                    .fontWeight(authType == .login ? .semibold : .regular)
+                    .foregroundStyle(authType == .login ? .white : .gray)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, authType == .login ? 60 : 30)
+                    .background(
+                        ZStack {
+                            if authType == .login {
                                 RoundedRectangle(cornerRadius: 15)
-                                    .fill(authType == .login ? Color.mainGreen : lightGray)
+                                    .stroke(Color.mainGreen.opacity(0.3), lineWidth: 0.5)
                                     .zIndex(1)
                             }
-                        )
-                        .animation(.spring(duration: 0.4), value: authType)
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(authType == .login ? Color.mainGreen : lightGray)
+                                .zIndex(1)
+                        }
+                    )
+                    .animation(.spring(duration: 0.4), value: authType)
+            }
+            Button {
+                withAnimation {
+                    authType = .register
                 }
-                Button {
+            } label: {
+                Text("Register")
+                    .fontWeight(authType == .register ? .semibold : .regular)
+                    .foregroundStyle(authType == .register ? .white : .gray)
+                    .padding(.vertical, 12)
+                    .padding(.horizontal, authType == .register ? 50 : 20)
+                    .background(
+                        ZStack {
+                            if authType == .register {
+                                RoundedRectangle(cornerRadius: 15)
+                                    .stroke(Color.mainGreen.opacity(0.3), lineWidth: 0.5)
+                                    .zIndex(1)
+                            }
+                            RoundedRectangle(cornerRadius: 15)
+                                .fill(authType == .register ? Color.mainGreen : lightGray)
+                                .zIndex(1)
+                        }
+                    )
+            }
+        }
+        .background(
+            lightGray
+        )
+        .cornerRadius(15)
+        .padding(.horizontal, 20)
+        .padding(.bottom, 10)
+        .frame(maxWidth: .infinity)
+    }
+}
+
+struct BottomView: View {
+    @Binding var authType: AuthType
+        
+    var body: some View {
+        HStack(spacing: 3) {
+            Text(authType == .login ? "Don't have an account?" : "Already have an account?")
+                .font(.system(size: 15, weight: .medium))
+
+            Button {
+                if authType == .login {
                     withAnimation {
                         authType = .register
                     }
-                } label: {
-                    Text("Register")
-                        .fontWeight(authType == .register ? .semibold : .regular)
-                        .foregroundStyle(authType == .register ? .white : .gray)
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, authType == .register ? 50 : 20)
-                        .background(
-                            ZStack {
-                                if authType == .register {
-                                    RoundedRectangle(cornerRadius: 15)
-                                        .stroke(Color.mainGreen.opacity(0.3), lineWidth: 0.5)
-                                        .zIndex(1)
-                                }
-                                RoundedRectangle(cornerRadius: 15)
-                                    .fill(authType == .register ? Color.mainGreen : lightGray)
-                                    .zIndex(1)
-                            }
-                        )
                 }
-            }
-            .background(
-                lightGray
-            )
-            .cornerRadius(15)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 10)
-            .frame(maxWidth: .infinity)
-        }
-    }
-    
-    struct BottomView: View {
-        @Binding var authType: AuthType
-        
-        var body: some View {
-            HStack(spacing: 3) {
-                Text(authType == .login ? "Don't have an account?" : "Already have an account?")
+                else {
+                    withAnimation {
+                        authType = .login
+                    }
+                }
+            } label: {
+                Text(authType == .login ? "Register" : "Login")
                     .font(.system(size: 15, weight: .medium))
-                
-                Button {
-                    if authType == .login {
-                        withAnimation {
-                            authType = .register
-                        }
-                    }
-                    else {
-                        withAnimation {
-                            authType = .login
-                        }
-                    }
-                } label: {
-                    Text(authType == .login ? "Register" : "Login")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(.blue)
-                }
+                    .foregroundColor(.blue)
             }
         }
     }
 }
+
+
 
 #Preview {
     AuthView()

@@ -11,6 +11,7 @@ from services.jwttoken import verify_token
 from fastapi.security import OAuth2PasswordBearer
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
+
 def hash_password(password: str) -> str:
     # Generate a salt and hash the password
     salt = bcrypt.gensalt()

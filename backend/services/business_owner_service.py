@@ -7,6 +7,11 @@ from utils.pyobjectid import PyObjectId
 from db.init_db import db
 
 
+from fastapi import Depends, HTTPException, status
+from services.jwttoken import verify_token
+from fastapi.security import OAuth2PasswordBearer
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
 def hash_password(password: str) -> str:
     # Generate a salt and hash the password
     salt = bcrypt.gensalt()
@@ -25,6 +30,12 @@ class BusinessOwnerService:
     async def create_new_business_owner(self, business_owner_create: BusinessOwnerCreate):
         # Create a new business owner in the database
         # Default not validated as a business owner
+        existing_owner = await self.db.business_owners.find_one({"email": business_owner_create.email})
+        if existing_owner:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
         business_owner = BusinessOwner(name=business_owner_create.name, email=business_owner_create.email, password=hash_password(business_owner_create.password), isVerified=business_owner_create.isVerified)
         result = await self.db.business_owners.insert_one(business_owner.to_dict())
         return {**business_owner.to_dict(), "id": str(result.inserted_id)}
@@ -38,8 +49,8 @@ class BusinessOwnerService:
 
     async def get_business_owner_by_email(self, email: str):
         # Fetch a business owner from the database by business owner
-        business_owner_data = await self.db.business_owners.find_one({"email": email})
-        business_owner = BusinessOwnerResponse(**business_owner_data)
+        business_owner = await self.db.business_owners.find_one({"email": email})
+        #business_owner = BusinessOwnerResponse(**business_owner_data)
         if business_owner:
             return business_owner
         return None
