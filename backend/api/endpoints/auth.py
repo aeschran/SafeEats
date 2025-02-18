@@ -22,8 +22,11 @@ async def get_username_endpoint(username: str, token: str = Depends(get_token),
 async def login(request:OAuth2PasswordRequestForm = Depends()):
     user = await user_service.get_user_by_username(request.username) 
 
-    if not user or not verify_password(request.password, user["password"]):
-        raise HTTPException(status_code=400, detail="Invalid credentials")
+    if not user:
+        raise HTTPException(status_code=400, detail="User does not exist")
+        
+    if not verify_password(request.password, user["password"]):
+        raise HTTPException(status_code=400, detail="Wrong password")
     
     access_token = create_access_token(data={"sub": user["username"] })
 

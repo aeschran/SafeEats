@@ -18,19 +18,19 @@ enum AccountType {
 }
 
 struct AuthView: View {
-    
-    @StateObject private var viewModel = AuthViewModel()
 
-    
+    @StateObject private var viewModel = AuthViewModel()
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var phoneNumber: String = ""
     @State private var username: String = ""
     
+    
     @FocusState private var isEmailFocused: Bool
     @FocusState private var isPasswordFocused: Bool
     @FocusState private var isPhoneNumberFocused: Bool
     @FocusState private var isUsernameFocused: Bool
+    @State private var navigateToLanding = false
     
     @State private var showPassword = false
     @State private var authType: AuthType = .login
@@ -39,8 +39,7 @@ struct AuthView: View {
     
     
     
-    var body: some View {
-    
+    var body: some View {    
         NavigationStack {
             ZStack {
                 let gradientColors: [Color] = accountType == .userAccount ? [.white, .mainGreen] : [.white, .mainGray]
@@ -51,42 +50,43 @@ struct AuthView: View {
                     .ignoresSafeArea()
                 
                 VStack {
-                    TopView(accountType: accountType)
+                    TopView()
                     SegmentedView(authType: $authType)
                     
                     VStack(spacing: 15) {
-                        TextField(text: $viewModel.email) {
-                            Text(authType == .login ? "Username" : "Email")
-                        }
-                        .padding(.horizontal, 10)
-                        .focused($isEmailFocused)
-                        .textFieldStyle(AuthTextFieldStyle(isFocused: $isEmailFocused))
-                        
-                        if authType == .register { TextField("Username", text: $viewModel.username) .padding(.horizontal, 10) .focused($isUsernameFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isUsernameFocused)) }
-                        
-                        if authType == .register { TextField("Phone Number", text: $viewModel.phoneNumber) .padding(.horizontal, 10) .focused($isPhoneNumberFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isPhoneNumberFocused)) }
-                        
-                        ZStack {
-                            TextField(text: $viewModel.password) {
-                                Text("Password")
+                        if authType == .register {
+                            TextField(text: $email) {
+                                Text("Email")
                             }
                             .padding(.horizontal, 10)
-                            .focused($isPasswordFocused)
-                            .textFieldStyle(AuthTextFieldStyle(isFocused: $isPasswordFocused))
-                            .opacity(showPassword ? 1 : 0)
-                            .zIndex(showPassword ? 1 : 0)
-                            .overlay(alignment: .trailing) {
-                                Button {
-                                    withAnimation {
-                                        showPassword.toggle()
+                            .focused($isEmailFocused)
+                            .textFieldStyle(AuthTextFieldStyle(isFocused: $isEmailFocused))}
+                        
+                        TextField("Username", text: $viewModel.username) .padding(.horizontal, 10) .focused($isUsernameFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isUsernameFocused))
+                            .autocapitalization(.none)
+                        
+                        if authType == .register { TextField("Phone Number", text: $phoneNumber) .padding(.horizontal, 10) .focused($isPhoneNumberFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isPhoneNumberFocused)) }
+                        
+                        ZStack {
+                            TextField("Password", text: $viewModel.password)
+                                .padding(.horizontal, 10)
+                                .autocapitalization(.none)
+                                .focused($isPasswordFocused)
+                                .textFieldStyle(AuthTextFieldStyle(isFocused: $isPasswordFocused))
+                                .opacity(showPassword ? 1 : 0)
+                                .zIndex(showPassword ? 1 : 0)
+                                .overlay(alignment: .trailing) {
+                                    Button {
+                                        withAnimation {
+                                            showPassword.toggle()
+                                        }
+                                    } label: {
+                                        Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
+                                            .padding(.horizontal, 25)
+                                            .foregroundStyle(Color(UIColor.lightGray))
                                     }
-                                } label: {
-                                    Image(systemName: showPassword ? "eye.fill" : "eye.slash.fill")
-                                        .padding(.horizontal, 25)
-                                        .foregroundStyle(Color(UIColor.lightGray))
                                 }
-                            }
-                            
+                          
                             SecureField(text: $viewModel.password) {
                                 Text("Password")
                             }
@@ -111,9 +111,9 @@ struct AuthView: View {
                     }
                     
                     if viewModel.errorMessage != nil {
-                                        Text(viewModel.errorMessage!)
-                                            .foregroundColor(.red)
-                                    }
+                        Text(viewModel.errorMessage!)
+                            .foregroundColor(.red)
+                    }
                     
                     Button {
                         Task {
@@ -121,9 +121,10 @@ struct AuthView: View {
                                 await viewModel.busines_owner_login()
                             } else if authType == .register && accountType == .businessOwnerAccount {
                                 await viewModel.business_owner_register()
+                            } else if authType == .login && accountType == .userAccount{
+                                await viewModel.user_login()
                             }
-                            // TODO: Add conditions for user login
-                            
+          
                             if viewModel.isAuthenticated == true {
                                 navigateToLanding = true
                             }
@@ -133,8 +134,6 @@ struct AuthView: View {
                         Text(authType == .login ? "Login" : "Register")
                     }
                     .buttonStyle(AuthButtonType())
-                    
-                    
                     
                     BottomView(authType: $authType)
                     
@@ -210,14 +209,11 @@ struct AuthButtonType: ButtonStyle {
 
 
 struct AuthTextFieldStyle: TextFieldStyle {
-    
-    let isFocused: FocusState<Bool>.Binding
-    
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
-            .font(.system(size: 20, weight: .bold))
+            .font(.system(size: 20))
             .background(
                 ZStack {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -252,14 +248,14 @@ struct TopView: View {
                     .padding(.top, 5)
             }
         }
-        
+      
     }
 }
-
+    
 struct SegmentedView: View {
     @Binding var authType: AuthType
     let lightGray = Color(white: 0.9)
-    
+
     var body: some View {
         HStack(spacing: 0) {
             Button {
@@ -320,16 +316,14 @@ struct SegmentedView: View {
     }
 }
 
-
-
 struct BottomView: View {
     @Binding var authType: AuthType
-    
+        
     var body: some View {
         HStack(spacing: 3) {
             Text(authType == .login ? "Don't have an account?" : "Already have an account?")
                 .font(.system(size: 15, weight: .medium))
-            
+
             Button {
                 if authType == .login {
                     withAnimation {
@@ -343,8 +337,8 @@ struct BottomView: View {
                 }
             } label: {
                 Text(authType == .login ? "Register" : "Login")
-                .font(.system(size: 15, weight: .medium))
-                .foregroundColor(.blue)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(.blue)
             }
         }
     }
