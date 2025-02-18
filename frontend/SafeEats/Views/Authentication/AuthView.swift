@@ -35,7 +35,6 @@ struct AuthView: View {
     @State private var showPassword = false
     @State private var authType: AuthType = .login
     @State private var accountType: AccountType = .userAccount
-    @State private var navigateToLanding = false
     
     
     
@@ -50,7 +49,7 @@ struct AuthView: View {
                     .ignoresSafeArea()
                 
                 VStack {
-                    TopView()
+                    TopView(accountType: accountType)
                     SegmentedView(authType: $authType)
                     
                     VStack(spacing: 15) {
@@ -134,8 +133,10 @@ struct AuthView: View {
                         Text(authType == .login ? "Login" : "Register")
                     }
                     .buttonStyle(AuthButtonType())
+
                     
                     BottomView(authType: $authType)
+                    
                     
                     Spacer()
                     Button {
@@ -209,6 +210,7 @@ struct AuthButtonType: ButtonStyle {
 
 
 struct AuthTextFieldStyle: TextFieldStyle {
+    let isFocused: FocusState<Bool>.Binding
     func _body(configuration: TextField<Self._Label>) -> some View {
         configuration
             .padding(.horizontal, 20)
