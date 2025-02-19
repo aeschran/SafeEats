@@ -30,7 +30,7 @@ struct BusinessCard: View {
                     ForEach(allergenIcons, id: \.self) { icon in
                         Image(systemName: "leaf.circle.fill") // Load from Assets
                             .resizable()
-                            .foregroundColor(Color.green)
+                            .foregroundColor(Color.mainGreen)
                             .frame(width: 20, height: 20) // Small icons
                     }
                 }

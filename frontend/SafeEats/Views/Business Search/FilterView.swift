@@ -100,14 +100,14 @@ extension View {
             .background(
                 RoundedRectangle(cornerRadius: 15)
                     .fill(LinearGradient(
-                        gradient: Gradient(colors: [Color.green.opacity(0.1), Color.white]),
+                        gradient: Gradient(colors: [Color.mainGreen.opacity(0.4), Color.white]),
                         startPoint: .top,
                         endPoint: .bottom
                     ))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 15)
-                    .stroke(Color.green.opacity(0.4), lineWidth: 2)
+                    .stroke(Color.mainGreen.opacity(0.8), lineWidth: 2)
             )
             .padding(.horizontal)
             .font(.title2)

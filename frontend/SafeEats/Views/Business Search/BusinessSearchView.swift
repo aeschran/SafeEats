@@ -36,9 +36,9 @@ struct BusinessSearchView: View {
                         Image(systemName: "line.horizontal.3.decrease.circle.fill") // A more stylish filter icon
                             .resizable()
                             .frame(width: 22, height: 22) // Adjust size
-                            .foregroundColor(.green) // Match theme
+                            .foregroundColor(.mainGreen) // Match theme
                             .padding(10)
-                            .background(Color.green.opacity(0.2)) // Light green background
+                            .background(Color.mainGreen.opacity(0.2)) // Light green background
                             .clipShape(Circle()) // Makes it circular
                     }
                 }

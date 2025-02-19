@@ -16,7 +16,7 @@ struct SearchBar: View {
             TextField("I want a restaurant that’s...", text: $searchText)
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color.green.opacity(0.1)))
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color.mainGreen.opacity(0.1)))
         .padding(.horizontal)
     }
 }
