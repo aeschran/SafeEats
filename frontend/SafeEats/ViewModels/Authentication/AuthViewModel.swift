@@ -114,6 +114,47 @@ class AuthViewModel: ObservableObject {
         }
     }
     
+    func user_register() async {
+        guard validateFields() else { return }
+        guard let url = URL(string: "\(baseURL)/users") else { return }
+        
+        let requestBody: [String: Any] = [
+            "name": username,
+            "email": email,
+            "password": password,
+            "username": username // TODO: talk to group about this
+        ]
+        
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: requestBody) else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = jsonData
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+                print("Response Status Code: \(httpResponse.statusCode)")
+                DispatchQueue.main.async {
+                    self.errorMessage = "Registration failed"
+                }
+                return
+            }
+
+            
+                self.isAuthenticated = true
+                print("Successful: registration")
+            
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Network error: \(error.localizedDescription)"
+                }
+            
+        }
+    }
+    
    
     
     
