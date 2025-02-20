@@ -4,7 +4,7 @@ from bson import ObjectId
 from models.user import User
 from schemas.user import UserResponse, UserCreate
 from utils.pyobjectid import PyObjectId
-from db.init_db import db
+from services.base_service import BaseService
 
 from fastapi import Depends, HTTPException, status
 from services.jwttoken import verify_token
@@ -24,9 +24,9 @@ def verify_password(password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 
-class UserService:
+class UserService(BaseService):
     def __init__(self):
-        self.db = db  # Get the database connection
+        super().__init__()  # Get the database connection
         if self.db is None:
             raise Exception("Database connection failed.")
 

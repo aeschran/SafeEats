@@ -2,7 +2,7 @@
 import bcrypt
 from models.profile import Profile
 from schemas.profile import ProfileResponse, ProfileCreate
-from db.init_db import db
+from services.base_service import BaseService
 from utils.pyobjectid import PyObjectId
 import logging
 from bson import ObjectId
@@ -10,9 +10,9 @@ from bson import ObjectId
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 PyObjectId = PyObjectId()
-class UserProfileService:
+class UserProfileService(BaseService):
     def __init__(self):
-        self.db = db # Get the database connection
+        super().__init__() # Get the database connection
         if self.db is None:
             raise Exception("Database connection failed.")
 

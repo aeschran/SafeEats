@@ -4,7 +4,7 @@ from bson import ObjectId
 from models.business_owner import BusinessOwner
 from schemas.business_owner import BusinessOwnerResponse, BusinessOwnerCreate
 from utils.pyobjectid import PyObjectId
-from db.init_db import db
+from services.base_service import BaseService
 
 
 from fastapi import Depends, HTTPException, status
@@ -21,9 +21,9 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
 
-class BusinessOwnerService:
+class BusinessOwnerService(BaseService):
     def __init__(self):
-        self.db = db # Get the database connection
+        super().__init__() # Get the database connection
         if self.db is None:
             raise Exception("Database connection failed.")
 

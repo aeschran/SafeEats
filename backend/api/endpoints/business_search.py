@@ -1,5 +1,4 @@
-from fastapi import APIRouter, Depends
-from motor.motor_asyncio import AsyncIOMotorDatabase
+from fastapi import APIRouter
 from services.business_search import BusinessSearchService
 
 router = APIRouter(tags=["Business Search"])

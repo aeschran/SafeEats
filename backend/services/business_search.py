@@ -1,8 +1,10 @@
 import requests
 from core.config import settings
+from services.base_service import BaseService
 
-class BusinessSearchService:
+class BusinessSearchService(BaseService):
     def __init__(self, query: str = "coffee", near: str = "West Lafayette, IN", limit: int = 10):
+        super().__init__()
         self.query = query
         self.near = near
         self.limit = limit
