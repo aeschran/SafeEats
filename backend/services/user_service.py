@@ -32,6 +32,8 @@ class UserService:
 
     async def create_new_user(self, user_create: UserCreate):
         # Create a new user in the database
+        if await self.get_user_by_email(user_create.email):
+            raise HTTPException(status_code=400, detail="Email already registered")
         user = User(name=user_create.name, email=user_create.email, password=hash_password(
             user_create.password), username=user_create.username)
         result = await self.db.users.insert_one(user.to_dict())
@@ -47,8 +49,8 @@ class UserService:
     async def get_user_by_email(self, email: str):
         # Fetch a user from the database by user_id
         user_data = await self.db.users.find_one({"email": email})
-        user = UserResponse(**user_data)
-        if user:
+        if user_data:
+            user = UserResponse(**user_data)
             return user
         return None
 
