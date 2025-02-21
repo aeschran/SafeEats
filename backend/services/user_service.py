@@ -3,7 +3,6 @@ import bcrypt
 from bson import ObjectId
 from models.user import User
 from schemas.user import UserResponse, UserCreate
-from utils.pyobjectid import PyObjectId
 from services.base_service import BaseService
 
 from fastapi import Depends, HTTPException, status
@@ -41,7 +40,6 @@ class UserService(BaseService):
     
     async def delete_user(self, _id: str) -> bool:
         # Delete a user from database by email
-        PyObjectId.validate(_id)
         
         result = await self.db.users.delete_one({"_id": ObjectId(_id)})
         return result.deleted_count == 1

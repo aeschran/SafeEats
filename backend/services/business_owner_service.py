@@ -3,7 +3,6 @@ import bcrypt
 from bson import ObjectId
 from models.business_owner import BusinessOwner
 from schemas.business_owner import BusinessOwnerResponse, BusinessOwnerCreate
-from utils.pyobjectid import PyObjectId
 from services.base_service import BaseService
 
 
@@ -42,7 +41,6 @@ class BusinessOwnerService(BaseService):
     
     async def delete_business_owner(self, _id: str) -> bool:
         # Delete a owner from database by email
-        PyObjectId.validate(_id)
         
         result = await self.db.business_owners.delete_one({"_id": ObjectId(_id)})
         return result.deleted_count == 1
