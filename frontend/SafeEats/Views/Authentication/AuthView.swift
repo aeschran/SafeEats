@@ -18,8 +18,8 @@ enum AccountType {
 }
 
 struct AuthView: View {
-
-    @StateObject private var viewModel = AuthViewModel()
+//    @StateObject private var viewModel = AuthViewModel()
+    @EnvironmentObject var viewModel: AuthViewModel
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var phoneNumber: String = ""
@@ -38,7 +38,7 @@ struct AuthView: View {
     
     
     
-    var body: some View {    
+    var body: some View {
         NavigationStack {
             ZStack {
                 let gradientColors: [Color] = accountType == .userAccount ? [.white, .mainGreen] : [.white, .mainGray]
@@ -85,7 +85,7 @@ struct AuthView: View {
                                             .foregroundStyle(Color(UIColor.lightGray))
                                     }
                                 }
-                          
+                            
                             SecureField(text: $viewModel.password) {
                                 Text("Password")
                             }
@@ -123,19 +123,29 @@ struct AuthView: View {
                             } else if authType == .login && accountType == .userAccount{
                                 await viewModel.user_login()
                             }
-          
-                            if viewModel.isAuthenticated == true {
-                                navigateToLanding = true
-                            }
+                            
+                            //                            if viewModel.isAuthenticated == true {
+                            //                                navigateToLanding = true
+                            //                            }
                             
                         }
                     } label: {
                         Text(authType == .login ? "Login" : "Register")
                     }
                     .buttonStyle(AuthButtonType())
-
+                    .onChange(of: viewModel.isAuthenticated) {
+                        if viewModel.isAuthenticated {
+                            navigateToLanding = true
+                        }
+                        
+                    }
+                    
                     
                     BottomView(authType: $authType)
+                    
+                        .navigationDestination(isPresented: $navigateToLanding) {
+                            LandingPage().navigationBarBackButtonHidden(true)
+                        }
                     
                     
                     Spacer()
@@ -152,8 +162,8 @@ struct AuthView: View {
                             .padding(.horizontal, 20)
                     }
                     
-                    NavigationLink("", destination: LandingPage(), isActive: $navigateToLanding)
-                        .navigationBarBackButtonHidden(true)
+                    //                    NavigationLink("", destination: LandingPage(), isActive: $navigateToLanding)
+                    //                        .navigationBarBackButtonHidden(true)
                 }
                 .padding(.top, CGFloat(padding))
                 .padding()
@@ -167,7 +177,7 @@ struct AuthView: View {
                 )
             }
         }
-        .navigationBarBackButtonHidden(true)
+        //        .navigationBarBackButtonHidden(true)
     }
     
     /*
@@ -180,7 +190,7 @@ struct AuthView: View {
         return emailTest.evaluate(with: email)
     }
     
-
+    
     func isValidPhoneNumber() -> Bool {
         return phoneNumber.contains(/^\([0-9]{3}\) [0-9]{3}-[0-9]{4}$/)
     }
@@ -190,7 +200,7 @@ struct AuthView: View {
         return NSPredicate(format: "SELF MATCHES %@", passwordRegex).evaluate(with: password)
     }
 }
-                             
+
 struct AuthButtonType: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -205,7 +215,7 @@ struct AuthButtonType: ButtonStyle {
             .opacity(configuration.isPressed ? 0.5 : 1)
             .padding(.vertical, 12)
     }
-                    
+    
 }
 
 
@@ -238,10 +248,10 @@ struct TopView: View {
     var body: some View {
         VStack(alignment: .center) {
             Image("SafeEats-logo")
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 250)
-                            .padding(.top, -40)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 250)
+                .padding(.top, -40)
             if accountType == .businessOwnerAccount {
                 Text("SafeEats Business")
                     .font(.title3)
@@ -250,14 +260,14 @@ struct TopView: View {
                     .padding(.top, 5)
             }
         }
-      
+        
     }
 }
-    
+
 struct SegmentedView: View {
     @Binding var authType: AuthType
     let lightGray = Color(white: 0.9)
-
+    
     var body: some View {
         HStack(spacing: 0) {
             Button {
@@ -320,12 +330,12 @@ struct SegmentedView: View {
 
 struct BottomView: View {
     @Binding var authType: AuthType
-        
+    
     var body: some View {
         HStack(spacing: 3) {
             Text(authType == .login ? "Don't have an account?" : "Already have an account?")
                 .font(.system(size: 15, weight: .medium))
-
+            
             Button {
                 if authType == .login {
                     withAnimation {

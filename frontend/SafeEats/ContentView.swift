@@ -7,15 +7,36 @@
 
 import SwiftUI
 
+
 struct ContentView: View {
+    @State private var tabSelected: Tab = .house
+    init() {
+        UITabBar.appearance().isHidden = true
+    }
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        ZStack {
+            VStack {
+                Group {
+                    switch tabSelected {
+                    case .house:
+                        LandingPage()
+                    case .search:
+                        SearchView()
+                    case .location:
+                        MapView()
+                    case .person:
+                        // put profile page here
+                        LandingPage()
+                    }
+                }
+                .animation(.none, value: tabSelected)
+            }
+            VStack {
+                Spacer()
+                CustomTabBar(selectedTab: $tabSelected)
+            }
         }
-        .padding()
     }
 }
 
