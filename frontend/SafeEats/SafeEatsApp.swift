@@ -19,7 +19,6 @@ struct SafeEatsApp: App {
                 AuthView()
                     .environmentObject(viewModel) 
             }
-
         }
     }
 }
