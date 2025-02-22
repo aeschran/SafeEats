@@ -2,23 +2,20 @@
 import bcrypt
 from models.profile import Profile
 from schemas.profile import ProfileResponse, ProfileCreate
-from db.init_db import db
-from utils.pyobjectid import PyObjectId
+from services.base_service import BaseService
 import logging
 from bson import ObjectId
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-PyObjectId = PyObjectId()
-class UserProfileService:
+class UserProfileService(BaseService):
     def __init__(self):
-        self.db = db # Get the database connection
+        super().__init__() # Get the database connection
         if self.db is None:
             raise Exception("Database connection failed.")
 
     async def create_new_profile(self, _id: str, profile_create: ProfileCreate):
 
-        PyObjectId.validate(_id)
         user = await self.db.users.find_one({"_id": ObjectId(_id)})
         name = user.get("name")
         profile = Profile(name=name, bio=profile_create.bio, friend_count=profile_create.friend_count, review_count=profile_create.review_count)

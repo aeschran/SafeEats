@@ -4,6 +4,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "SafeEats Backend"
     MONGODB_URI: str
     MONGODB_NAME: str
+    FOURSQUARE_SECRET: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     class Config:

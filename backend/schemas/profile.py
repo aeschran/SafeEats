@@ -1,5 +1,4 @@
 from pydantic import BaseModel, EmailStr
-from utils.pyobjectid import PyObjectId
 
 class ProfileCreate(BaseModel):
 

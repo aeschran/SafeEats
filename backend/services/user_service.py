@@ -3,8 +3,7 @@ import bcrypt
 from bson import ObjectId
 from models.user import User
 from schemas.user import UserResponse, UserCreate
-from utils.pyobjectid import PyObjectId
-from db.init_db import db
+from services.base_service import BaseService
 
 from fastapi import Depends, HTTPException, status
 from services.jwttoken import verify_token
@@ -24,14 +23,16 @@ def verify_password(password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
 
 
-class UserService:
+class UserService(BaseService):
     def __init__(self):
-        self.db = db  # Get the database connection
+        super().__init__()  # Get the database connection
         if self.db is None:
             raise Exception("Database connection failed.")
 
     async def create_new_user(self, user_create: UserCreate):
         # Create a new user in the database
+        if await self.get_user_by_email(user_create.email):
+            raise HTTPException(status_code=400, detail="Email already registered")
         user = User(name=user_create.name, email=user_create.email, password=hash_password(
             user_create.password), username=user_create.username)
         result = await self.db.users.insert_one(user.to_dict())
@@ -39,7 +40,6 @@ class UserService:
     
     async def delete_user(self, _id: str) -> bool:
         # Delete a user from database by email
-        PyObjectId.validate(_id)
         
         result = await self.db.users.delete_one({"_id": ObjectId(_id)})
         return result.deleted_count == 1
@@ -47,8 +47,8 @@ class UserService:
     async def get_user_by_email(self, email: str):
         # Fetch a user from the database by user_id
         user_data = await self.db.users.find_one({"email": email})
-        user = UserResponse(**user_data)
-        if user:
+        if user_data:
+            user = UserResponse(**user_data)
             return user
         return None
 

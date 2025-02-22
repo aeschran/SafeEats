@@ -54,7 +54,7 @@ struct AuthView: View {
                     
                     VStack(spacing: 15) {
                         if authType == .register {
-                            TextField(text: $email) {
+                            TextField(text: $viewModel.email) {
                                 Text("Email")
                             }
                             .padding(.horizontal, 10)
@@ -64,7 +64,7 @@ struct AuthView: View {
                         TextField("Username", text: $viewModel.username) .padding(.horizontal, 10) .focused($isUsernameFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isUsernameFocused))
                             .autocapitalization(.none)
                         
-                        if authType == .register { TextField("Phone Number", text: $phoneNumber) .padding(.horizontal, 10) .focused($isPhoneNumberFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isPhoneNumberFocused)) }
+                        if authType == .register { TextField("Phone Number", text: $viewModel.phoneNumber) .padding(.horizontal, 10) .focused($isPhoneNumberFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isPhoneNumberFocused)) }
                         
                         ZStack {
                             TextField("Password", text: $viewModel.password)
@@ -122,6 +122,9 @@ struct AuthView: View {
                                 await viewModel.business_owner_register()
                             } else if authType == .login && accountType == .userAccount{
                                 await viewModel.user_login()
+                            } else if authType == .register && accountType == .userAccount{
+                                await viewModel.user_register()
+                                print("hi")
                             }
                             
                             //                            if viewModel.isAuthenticated == true {
