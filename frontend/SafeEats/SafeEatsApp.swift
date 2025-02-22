@@ -9,11 +9,17 @@ import SwiftUI
 
 @main
 struct SafeEatsApp: App {
+    @StateObject private var viewModel = AuthViewModel()
     var body: some Scene {
         WindowGroup {
-//            ContentView()
-            AuthView()
-            
+            if viewModel.isAuthenticated {
+                ContentView()
+                    .environmentObject(viewModel)
+            } else {
+                AuthView()
+                    .environmentObject(viewModel) 
+            }
+
         }
     }
 }
