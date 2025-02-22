@@ -22,7 +22,7 @@ class UserProfileService:
         user = await self.db.users.find_one({"_id": ObjectId(_id)})
         name = user.get("name")
         profile = Profile(name=name, bio=profile_create.bio, friend_count=profile_create.friend_count, review_count=profile_create.review_count)
-        result = await self.db.users.update_one({"_id": ObjectId(_id)}, {"$set": profile.to_dict()}, upsert=True)
+        result = await self.db.users.update_one({"_id": ObjectId(_id)}, {"$set": profile.to_dict()}, upsert=False)
 
         if result.matched_count == 0 and not result.upserted_id:
             return None
@@ -42,3 +42,8 @@ class UserProfileService:
     #     users = await self.db.users.find().to_list(100)
     #     users = [UserResponse(**user) for user in users]
     #     return users
+    async def savePicture(self, _id: str, image: str):
+        PyObjectId.validate(_id)
+        
+        db.users.find_one_and_update({"_id": ObjectId(id)}, {"$set": { "imageUrl": imageUrl }})
+        return True
