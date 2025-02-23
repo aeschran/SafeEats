@@ -13,13 +13,11 @@ business_owner_service = BusinessOwnerService()
 
 @router.get("/email/{email}")
 async def get_email_endpoint(email: str, token: str = Depends(get_token), 
-    user_service: BusinessOwnerService = Depends()):
+    business_owner_service: BusinessOwnerService = Depends()):
     
     access = verify_token(token, credentials_exception)
     
-    business_owner = await user_service.get_business_owner_by_email(email)
-    if not business_owner:
-        raise HTTPException(status_code=404, detail="Business owner not found")
+    business_owner = await business_owner_service.get_business_owner_by_email(email)
     
     return business_owner
 
@@ -29,7 +27,7 @@ async def login(request: OAuth2PasswordRequestForm = Depends()):
     business_owner = await business_owner_service.get_business_owner_by_email(request.username)  
     
     if not business_owner:
-        raise HTTPException(status_code=400, detail="No existing account for entered email")
+        raise HTTPException(status_code=400, detail="Business owner not found")
         
     if not verify_password(request.password, business_owner["password"]):
         raise HTTPException(status_code=400, detail="Invalid password")
