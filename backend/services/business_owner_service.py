@@ -32,8 +32,8 @@ class BusinessOwnerService(BaseService):
         existing_owner = await self.db.business_owners.find_one({"email": business_owner_create.email})
         if existing_owner:
             raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered"
+                status_code=400,
+                detail="Email already registered."
             )
         business_owner = BusinessOwner(name=business_owner_create.name, email=business_owner_create.email, password=hash_password(business_owner_create.password), isVerified=business_owner_create.isVerified)
         result = await self.db.business_owners.insert_one(business_owner.to_dict())
