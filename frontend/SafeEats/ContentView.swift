@@ -27,7 +27,7 @@ struct ContentView: View {
                         MapView()
                     case .person:
                         // put profile page here
-                        LandingPage()
+                        MyProfileView()
                     }
                 }
                 .animation(.none, value: tabSelected)
