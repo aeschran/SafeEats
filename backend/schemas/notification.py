@@ -10,9 +10,17 @@ class NotificationCreate(BaseModel):
     content: str
     timestamp: float
 
+class Sender(BaseModel):
+    id: PyObjectId = Field(..., alias="_id")
+    name: str
+
 class NotificationResponse(BaseModel):
-    sender_id: PyObjectId
     recipient_id: PyObjectId
+    sender: Sender
     type: NotificationEnum
-    content: str
+    content: str = None
     timestamp: float
+
+    class Config:
+        arbitrary_types_allowed = True
+        
