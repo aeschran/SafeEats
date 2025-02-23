@@ -155,13 +155,16 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-   
     
     
     func busines_owner_login() async {
+        //TODO: is there a reason we are using email to login vs username? might be good to keep consistent with reg user login
         guard let url = URL(string: "\(baseURL)/business_auth/login") else { return }
         
-        let body = "username=\(email)&password=\(password)".data(using: .utf8)
+        let body = "username=\(username)&password=\(password)".data(using: .utf8)
+        print(username)
+        print(password)
+        
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -172,8 +175,25 @@ class AuthViewModel: ObservableObject {
             let (data, response) = try await URLSession.shared.data(for: request)
             
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
-                DispatchQueue.main.async {
-                    self.errorMessage = "Login failed"
+                if httpResponse.statusCode == 400 {
+                    if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                       let errorMessage = json["detail"] as? String {
+                        DispatchQueue.main.async {
+                            if errorMessage == "Business owner not found" {
+                                self.errorMessage = "The email you entered does not have an existing account."
+                            } else if errorMessage == "Invalid password" {
+                                self.errorMessage = "Invalid password."
+                            }
+                        }
+                    } else {
+                        DispatchQueue.main.async {
+                            self.errorMessage = "Invalid request. Please check your input."
+                        }
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self.errorMessage = "Login failed with status code \(httpResponse.statusCode)."
+                    }
                 }
                 return
             }
@@ -220,8 +240,17 @@ class AuthViewModel: ObservableObject {
 
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
                 print("Response Status Code: \(httpResponse.statusCode)")
-                DispatchQueue.main.async {
-                    self.errorMessage = "Registration failed"
+                if httpResponse.statusCode == 400 {
+                    if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+                       let errorMessage = json["detail"] as? String {
+                        DispatchQueue.main.async {
+                                self.errorMessage = "Business account already exists."
+                        }
+                    } else {
+                        DispatchQueue.main.async {
+                            self.errorMessage = "Invalid request. Please check your input."
+                        }
+                    }
                 }
                 return
             }
@@ -237,4 +266,22 @@ class AuthViewModel: ObservableObject {
             
         }
     }
+    
+    /**
+     logout function to remove authToken and set isAuthenticated to false
+     */
+    func logout() {
+        
+        UserDefaults.standard.removeObject(forKey: "authToken")
+        DispatchQueue.main.async {
+            self.isAuthenticated = false
+            self.email = ""
+            self.username = ""
+            self.phoneNumber = ""
+            self.password = ""
+        }
+    }
 }
+
+
+
