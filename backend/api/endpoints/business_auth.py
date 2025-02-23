@@ -4,12 +4,15 @@ from services.business_owner_service import BusinessOwnerService, verify_passwor
 from core.security import credentials_exception
 
 
-from services.jwttoken import create_access_token, verify_token, get_token
+from services.jwttoken import create_access_token, verify_token, get_token, create_reset_token, verify_reset_token
 from fastapi.security import OAuth2PasswordRequestForm
+
 
 router = APIRouter(tags=["Business Auth"])
 
 business_owner_service = BusinessOwnerService()    
+
+
 
 @router.get("/email/{email}")
 async def get_email_endpoint(email: str, token: str = Depends(get_token), 
@@ -37,3 +40,11 @@ async def login(request: OAuth2PasswordRequestForm = Depends()):
     access_token = create_access_token(data={"sub": business_owner["email"]})
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+@router.post("/forgot-password")
+async def forgot_password(email: str, service: BusinessOwnerService = Depends()):
+    return await service.forgot_password(email)
+
+@router.post("/reset-password")
+async def reset_password(token: str, new_password: str, service: BusinessOwnerService = Depends()):
+    return await service.reset_password(token, new_password)

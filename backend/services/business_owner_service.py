@@ -1,13 +1,16 @@
 # app/services/business_owner_service.py
 import bcrypt
 from bson import ObjectId
+from core.config import settings
 from models.business_owner import BusinessOwner
 from schemas.business_owner import BusinessOwnerResponse, BusinessOwnerCreate
 from services.base_service import BaseService
+import sendgrid
+from sendgrid.helpers.mail import Mail, Email, To, Content
 
 
 from fastapi import Depends, HTTPException, status
-from services.jwttoken import verify_token
+from services.jwttoken import verify_token, verify_reset_token, create_reset_token
 from fastapi.security import OAuth2PasswordBearer
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -19,6 +22,22 @@ def hash_password(password: str) -> str:
 
 def verify_password(password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
+
+
+
+def send_reset_email(email: str, token: str):
+    sg = sendgrid.SendGridAPIClient(api_key=settings.SENDGRID_KEY)
+    from_email = Email("safeeats.noreply@gmail.com")
+    to_email = To(email)
+    subject = "SafeEats Password Reset Request"
+    content = Content("text/plain", f"Hi there!\n\nClick the link to reset your business account password:\n https://your-app.com/reset-password?token={token}\n\nThis link will expire in 1 hour.")
+    mail = Mail(from_email, to_email, subject, content)
+    
+    response = sg.send(mail)
+    print(response.status_code, response.body, response.headers)
+
+
+
 
 class BusinessOwnerService(BaseService):
     def __init__(self):
@@ -66,3 +85,30 @@ class BusinessOwnerService(BaseService):
             {"$set": {"isVerified": True}}
         )
         return result.modified_count > 0  # Returns True if an update was made
+    
+    async def forgot_password(self, email: str):
+        business_owner = await self.get_business_owner_by_email(email)
+        if not business_owner:
+            raise HTTPException(status_code=400, detail="Business owner not found")
+
+        reset_token = create_reset_token(data={"sub": email})
+        
+        send_reset_email(email, reset_token)
+        return {"message": "Password reset link sent."}
+    
+   
+    async def reset_password(self, token: str, new_password: str):
+        email = verify_reset_token(token, credentials_exception=HTTPException(status_code=401, detail="Invalid or expired token"))
+        
+        business_owner = await self.get_business_owner_by_email(email)
+        if not business_owner:
+            raise HTTPException(status_code=404, detail="Business owner not found")
+
+        hashed_password = hash_password(new_password)
+
+        # Update password in the database
+        result = await self.db.business_owners.update_one(
+            {"email": email}, {"$set": {"password": hashed_password}}
+        )
+
+        return result.modified_count > 0 
