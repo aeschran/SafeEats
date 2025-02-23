@@ -34,3 +34,12 @@ class NotificationService(BaseService):
         notifications = await self.db.notifications.aggregate(pipeline).to_list(100)
         notifications = [NotificationResponse(**notification) for notification in notifications]
         return notifications
+    
+    async def delete_notification(self, _id: str) -> bool:
+        result = await self.db.notifications.delete_one({"_id": ObjectId(_id)})
+        return result.deleted_count == 1
+    
+    async def delete_all_notifications(self, recipient_id: str) -> bool:
+        recipient_id = ObjectId(recipient_id)
+        result = await self.db.notifications.delete_many({"recipient_id": recipient_id})
+        return result.deleted_count > 0
