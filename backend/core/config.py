@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     MONGODB_URI: str
     MONGODB_NAME: str
     FOURSQUARE_SECRET: str
+    SENDGRID_KEY: str  
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     class Config:
