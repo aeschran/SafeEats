@@ -363,4 +363,5 @@ struct BottomView: View {
 
 #Preview {
     AuthView()
+        .environmentObject(AuthViewModel())
 }

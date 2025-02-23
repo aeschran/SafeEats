@@ -22,7 +22,7 @@ struct ContentView: View {
                     case .house:
                         LandingPage()
                     case .search:
-                        SearchView()
+                        BusinessSearchView()
                     case .location:
                         MapView()
                     case .person:
