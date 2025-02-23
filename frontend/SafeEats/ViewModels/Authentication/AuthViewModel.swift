@@ -233,8 +233,22 @@ class AuthViewModel: ObservableObject {
         } catch {
             DispatchQueue.main.async {
                 self.errorMessage = "Network error: \(error.localizedDescription)"
-                }
+            }
             
+        }
+    }
+    /**
+     logout function to remove authToken and set isAuthenticated to false
+     */
+    func logout() {
+        
+        UserDefaults.standard.removeObject(forKey: "authToken")
+        DispatchQueue.main.async {
+            self.isAuthenticated = false
+            self.email = ""
+            self.username = ""
+            self.phoneNumber = ""
+            self.password = ""
         }
     }
 }
