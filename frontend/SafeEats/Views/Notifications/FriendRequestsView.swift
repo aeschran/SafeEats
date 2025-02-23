@@ -1,5 +1,5 @@
 //
-//  NotificationsView.swift
+//  FriendRequestsView.swift
 //  SafeEats
 //
 //  Created by Jon Hurley on 2/22/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct NotificationsView: View {
+struct FriendRequestsView: View {
     @State private var viewModel = FriendsViewModel()
         
         var body: some View {
@@ -27,5 +27,5 @@ struct NotificationsView: View {
 }
 
 #Preview {
-    NotificationsView()
+    FriendRequestsView()
 }
