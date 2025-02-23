@@ -30,7 +30,6 @@ struct ContentView: View {
                         case .person:
                             MyProfileView()
                         }
-                    }
                     .animation(.none, value: tabSelected)
                 }
                 VStack {
