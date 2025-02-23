@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct ProfileView: View {
+    @State private var username: String = "Loading..."
     @State private var didTap: Bool = false
     @State private var isFollowing: Bool = false
     var body: some View {
@@ -107,7 +108,28 @@ struct ProfileView: View {
             }.padding(6)
         }
     }
-}
+    func fetchUsername() {
+            guard let url = URL(string: "https://your-backend.com/api/user") else { return }
+
+            URLSession.shared.dataTask(with: url) { data, response, error in
+                if let data = data {
+                    do {
+                        let decodedResponse = try JSONDecoder().decode(User.self, from: data)
+                        DispatchQueue.main.async {
+                            username = decodedResponse.username
+                        }
+                    } catch {
+                        print("Error decoding JSON:", error)
+                    }
+                }
+            }.resume()
+        }
+    }
+
+    struct User: Codable {
+        let username: String
+    }
+
 
 #Preview {
     ProfileView()
