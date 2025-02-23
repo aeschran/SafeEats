@@ -25,11 +25,11 @@ struct ContentView: View {
                         case .search:
                             BusinessSearchView()
                         case .location:
-                            // TODO: put actual mapview here
                             MapView()
                         case .person:
                             MyProfileView()
                         }
+                    }
                     .animation(.none, value: tabSelected)
                 }
                 VStack {
