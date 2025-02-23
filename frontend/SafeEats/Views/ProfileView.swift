@@ -126,10 +126,6 @@ struct ProfileView: View {
         }
     }
 
-    struct User: Codable {
-        let username: String
-    }
-
 
 #Preview {
     ProfileView()

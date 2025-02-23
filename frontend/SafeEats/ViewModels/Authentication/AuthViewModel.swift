@@ -262,7 +262,7 @@ class AuthViewModel: ObservableObject {
         } catch {
             DispatchQueue.main.async {
                 self.errorMessage = "Network error: \(error.localizedDescription)"
-                }
+            }
             
         }
     }

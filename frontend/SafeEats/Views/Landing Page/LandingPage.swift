@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct LandingPage: View {
+    @AppStorage("user") var userData : Data?
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var navigateToAuth = false
     var body: some View {
@@ -24,6 +25,24 @@ struct LandingPage: View {
                 
                 VStack {
                     Text("Login/Registration Successful")
+                    
+                    Button {
+                        Task {
+                            await authViewModel.logout()
+                            navigateToAuth = true
+                            userData = nil
+                        }
+                    } label: {
+                        Text("LOGOUT (temp for testing)")
+                    }
+                    .navigationDestination(isPresented: $navigateToAuth) {
+                        AuthView().navigationBarBackButtonHidden(true)
+                    }
+                    .onAppear {
+                        if !authViewModel.isAuthenticated {
+                            navigateToAuth = true
+                        }
+                    }
                 }
             }
         }
