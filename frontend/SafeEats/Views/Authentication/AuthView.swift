@@ -31,6 +31,7 @@ struct AuthView: View {
     @FocusState private var isPhoneNumberFocused: Bool
     @FocusState private var isUsernameFocused: Bool
     @State private var navigateToLanding = false
+    @State private var resetPassword = false
     
     @State private var showPassword = false
     @State private var authType: AuthType = .login
@@ -60,6 +61,7 @@ struct AuthView: View {
                             .padding(.horizontal, 10)
                             .focused($isEmailFocused)
                             .textFieldStyle(AuthTextFieldStyle(isFocused: $isEmailFocused))}
+                        
                         
                         TextField("Username", text: $viewModel.username) .padding(.horizontal, 10) .focused($isUsernameFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isUsernameFocused))
                             .autocapitalization(.none)
@@ -149,6 +151,24 @@ struct AuthView: View {
                         .navigationDestination(isPresented: $navigateToLanding) {
                             LandingPage().navigationBarBackButtonHidden(true)
                         }
+                    if (authType == .login) {
+                        Button {
+                            resetPassword = true
+                            } label: {
+                                Text("Forgot Password?")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundColor(.blue)
+                            }
+                            
+                            // NavigationLink to ResetPasswordView
+                        NavigationLink(
+                            destination: ForgotPasswordView(accountType: accountType).navigationBarBackButtonHidden(true),
+                            isActive: $resetPassword
+                        ) {
+                            EmptyView()
+                        }
+                        .hidden()
+                    }
                     
                     
                     Spacer()
@@ -355,6 +375,7 @@ struct BottomView: View {
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(.blue)
             }
+            
         }
     }
 }
