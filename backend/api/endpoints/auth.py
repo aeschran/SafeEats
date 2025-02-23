@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from services.user_service import UserService, verify_password
 from core.security import credentials_exception
+from schemas.password_reset import ForgotPasswordRequest, VerifyCodeRequest, ResetPasswordRequest
 
 
 from services.jwttoken import create_access_token, verify_token, get_token
@@ -31,3 +32,17 @@ async def login(request:OAuth2PasswordRequestForm = Depends()):
     access_token = create_access_token(data={"sub": user["username"] })
 
     return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/forgot-password")
+async def forgot_password(request: ForgotPasswordRequest):
+    return await user_service.forgot_password(request.email)
+
+@router.post("/verify-reset-code")
+async def verify_reset_code(request: VerifyCodeRequest):
+    return await user_service.verify_code(request.email, request.code)
+
+
+@router.post("/reset-password")
+async def reset_password(request: ResetPasswordRequest):
+    return await user_service.reset_password(request.email, request.code, request.new_password)

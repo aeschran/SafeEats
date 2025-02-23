@@ -18,3 +18,16 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+    
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class VerifyCodeRequest(BaseModel):
+    email: str
+    code: str
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    code: str
+    new_password: str
+
