@@ -15,26 +15,28 @@ struct ContentView: View {
     }
     
     var body: some View {
-        ZStack {
-            VStack {
-                Group {
-                    switch tabSelected {
-                    case .house:
-                        LandingPage()
-                    case .search:
-                        BusinessSearchView()
-                    case .location:
-                        MapView()
-                    case .person:
-                        // put profile page here
-                        LandingPage()
+        NavigationStack {
+            ZStack {
+                VStack {
+                    Group {
+                        switch tabSelected {
+                        case .house:
+                            LandingPage()
+                        case .search:
+                            BusinessSearchView()
+                        case .location:
+                            // TODO: put actual mapview here
+                            MapView()
+                        case .person:
+                            MyProfileView()
+                        }
                     }
+                    .animation(.none, value: tabSelected)
                 }
-                .animation(.none, value: tabSelected)
-            }
-            VStack {
-                Spacer()
-                CustomTabBar(selectedTab: $tabSelected)
+                VStack {
+                    Spacer()
+                    CustomTabBar(selectedTab: $tabSelected)
+                }
             }
         }
     }
@@ -42,4 +44,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environmentObject(AuthViewModel())
 }

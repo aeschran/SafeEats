@@ -51,19 +51,20 @@ struct PreferenceDisclosureGroup: View {
     let options: [String]
     @Binding var selectedOptions: Set<String>
     
-    private let optionsFontSize: CGFloat = 20
-    private let categoryFontSize: CGFloat = 22
+    private let optionsScaleEffect: CGFloat = 1.3
     
     var body: some View {
         DisclosureGroup(isExpanded: $isExpanded) {
-            VStack(spacing: 5) {
+            VStack() {
                 ForEach(options, id: \..self) { option in
                     HStack {
                         Image(systemName: selectedOptions.contains(option) ? "checkmark.square" : "square")
-                            .font(.system(size: optionsFontSize))
+                            .font(.footnote)
+                            .scaleEffect(optionsScaleEffect)
                         Text(option)
                             .foregroundColor(.black)
-                            .font(.system(size: optionsFontSize))
+                            .font(.footnote)
+                            .scaleEffect(optionsScaleEffect)
                             .padding(.leading, 10) // padding betwen checkbox and text
                     }
                     .padding(.vertical, 5) // padding between options
@@ -82,7 +83,8 @@ struct PreferenceDisclosureGroup: View {
         } label: {
             HStack {
                 Text(title)
-                    .font(.system(size: categoryFontSize, weight: .bold))
+                    .font(.headline)
+                    .fontWeight(.medium)
                     .frame(height: 35)
                 Spacer()
                 Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
@@ -90,7 +92,7 @@ struct PreferenceDisclosureGroup: View {
             .padding(.horizontal, 20) // padding between category title and drop-down
             .foregroundColor(.black)
         }
-        .padding(.vertical, 10) // padding for each section
+        .padding(.vertical, 5) // padding for each section
         .animation(.easeInOut, value: isExpanded)
                     
     }

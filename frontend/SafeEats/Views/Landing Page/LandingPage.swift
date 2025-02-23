@@ -24,27 +24,14 @@ struct LandingPage: View {
                 
                 VStack {
                     Text("Login/Registration Successful")
-                    
-                    Button {
-                        Task {
-                            await authViewModel.logout()
-                            navigateToAuth = true
-                            
-                        }
-                    } label: {
-                        Text("LOGOUT (temp for testing)")
-                    }
-                    .navigationDestination(isPresented: $navigateToAuth) {
-                        AuthView().navigationBarBackButtonHidden(true)
-                    }
-                    .onAppear {
-                        if !authViewModel.isAuthenticated {
-                            navigateToAuth = true
-                        }
-                    }
                 }
             }
         }
     }
     
+}
+
+#Preview {
+    LandingPage()
+        .environmentObject(AuthViewModel())
 }
