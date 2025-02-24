@@ -38,9 +38,16 @@ async def login(request: OAuth2PasswordRequestForm = Depends()):
     
     
     # Generate access token with the business owner's email
-    access_token = create_access_token(data={"sub": business_owner["email"]})
+    access_token = create_access_token({"email": business_owner["email"], "id": str(business_owner["_id"])})
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+            "id": str(business_owner["_id"]),
+            "name": business_owner["name"],
+            "email": business_owner["email"],
+            "isVerified": business_owner["isVerified"],
+            "access_token": access_token,
+            "token_type": "bearer"  
+        }
 
 @router.post("/forgot-password")
 async def forgot_password(request: ForgotPasswordRequest):

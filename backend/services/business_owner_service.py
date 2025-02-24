@@ -13,7 +13,7 @@ from sendgrid.helpers.mail import Mail, Email, To, Content
 
 
 from fastapi import Depends, HTTPException, status
-from services.jwttoken import verify_token
+from services.jwttoken import verify_token, create_access_token
 from fastapi.security import OAuth2PasswordBearer
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -62,7 +62,17 @@ class BusinessOwnerService(BaseService):
             )
         business_owner = BusinessOwner(name=business_owner_create.name, email=business_owner_create.email, password=hash_password(business_owner_create.password), isVerified=business_owner_create.isVerified)
         result = await self.db.business_owners.insert_one(business_owner.to_dict())
-        return {**business_owner.to_dict(), "id": str(result.inserted_id)}
+
+        token = create_access_token({"email": business_owner.email, "id": str(result.inserted_id)})
+
+        return {
+            "id": str(result.inserted_id),
+            "name": business_owner.name,
+            "email": business_owner.email,
+            "isVerified": business_owner.isVerified,
+            "access_token": token,  
+            "token_type": "bearer"
+        }
     
     async def delete_business_owner(self, _id: str) -> bool:
         # Delete a owner from database by email
