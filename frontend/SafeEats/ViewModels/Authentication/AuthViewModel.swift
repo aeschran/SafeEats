@@ -203,12 +203,25 @@ class AuthViewModel: ObservableObject {
             }
             
             if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
-                if let token = json["access_token"] as? String {
-                    
+                if let accessToken = json["access_token"] as? String,
+                   let id = json["id"] as? String,
+                   let businessName = json["name"] as? String,
+                   let email = json["email"] as? String,
+                   let isVerified = json["isVerified"] as? Bool {
+                
+                    // setting up user defaults
                     DispatchQueue.main.async {
-                        UserDefaults.standard.set(token, forKey: "authToken")
+                        UserDefaults.standard.set(accessToken, forKey: "authToken")
+                        UserDefaults.standard.set(id, forKey: "userID")
+                        UserDefaults.standard.set(businessName, forKey: "userName")
+                        UserDefaults.standard.set(email, forKey: "userEmail")
+                        UserDefaults.standard.set(isVerified, forKey: "isVerified")
                         self.isAuthenticated = true
                         print("Success: authenticated")
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self.errorMessage = "Invalid response data"
                     }
                 }
             }
@@ -258,10 +271,29 @@ class AuthViewModel: ObservableObject {
                 }
                 return
             }
-
-            DispatchQueue.main.async {
-                self.isAuthenticated = true
-                print("Successful: registration")
+            
+            if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                if let accessToken = json["access_token"] as? String,
+                   let id = json["id"] as? String,
+                   let businessName = json["name"] as? String,
+                   let email = json["email"] as? String,
+                   let isVerified = json["isVerified"] as? Bool {
+                
+                    // setting up user defaults
+                    DispatchQueue.main.async {
+                        UserDefaults.standard.set(accessToken, forKey: "authToken")
+                        UserDefaults.standard.set(id, forKey: "userID")
+                        UserDefaults.standard.set(businessName, forKey: "userName")
+                        UserDefaults.standard.set(email, forKey: "userEmail")
+                        UserDefaults.standard.set(isVerified, forKey: "isVerified")
+                        self.isAuthenticated = true
+                        print("Success: authenticated")
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self.errorMessage = "Invalid response data"
+                    }
+                }
             }
         } catch {
             DispatchQueue.main.async {
@@ -271,14 +303,19 @@ class AuthViewModel: ObservableObject {
         }
     }
     
+    
+
+    
     /**
      logout function to remove authToken and set isAuthenticated to false
      */
     func logout() {
         
         UserDefaults.standard.removeObject(forKey: "authToken")
-//        UserDefaults.standard.set(false, forKey: "isUserCreated")
-//        UserDefaults.standard.set(false, forKey: "isUserCreated")
+        UserDefaults.standard.removeObject(forKey: "userID")
+        UserDefaults.standard.removeObject(forKey: "userName")
+        UserDefaults.standard.removeObject(forKey: "userEmail")
+        UserDefaults.standard.removeObject(forKey: "isVerified")
         DispatchQueue.main.async {
             self.isAuthenticated = false
             self.email = ""
