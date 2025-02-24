@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct SettingsView: View {
+    @AppStorage("user") var userData : Data?
     @State private var showChangePassword = false
     @State private var showDeleteAccountAlert = false
     @State private var showLogoutConfirmation = false
@@ -26,11 +27,6 @@ struct SettingsView: View {
                         }) {
                             Text("Change Password")
                         }
-                        .alert(isPresented: $showChangePassword) {
-                            Alert(title: Text("Change Password"),
-                                  message: Text("You can implement the password change logic here."),
-                                  dismissButton: .default(Text("OK")))
-                        }
                         
                         Button(action: {
                             // Add logic for logging out
@@ -42,6 +38,7 @@ struct SettingsView: View {
                             Alert(title: Text("Log Out"),
                                   message: Text("Are you sure you want to log out?"),
                                   primaryButton: .destructive(Text("Log Out")) {
+                                userData = nil
                                 authViewModel.logout()
                             },
                                   secondaryButton: .cancel())
@@ -69,13 +66,24 @@ struct SettingsView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .background(Color.mainGray)
+                
+                Text("Have any questions? Email us at safeeats.dev@gmail.com!")
             }
             .background(Color(UIColor.systemGray6))
             .background(Color.mainGray)
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
+            
+            NavigationLink(
+                destination: ChangePasswordView(viewModel: ChangePasswordViewModel()),
+                isActive: $showChangePassword
+            ) {
+                EmptyView()
+            }
+        
         }
     }
+    
     
 }
 

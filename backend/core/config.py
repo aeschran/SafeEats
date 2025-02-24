@@ -6,6 +6,7 @@ class Settings(BaseSettings):
     MONGODB_NAME: str
     FOURSQUARE_SECRET: str
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    SENDGRID_KEY: str
 
     class Config:
         env_file = ".env"

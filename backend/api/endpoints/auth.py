@@ -28,6 +28,8 @@ async def login(request:OAuth2PasswordRequestForm = Depends()):
     if not verify_password(request.password, user["password"]):
         raise HTTPException(status_code=400, detail="Wrong password")
     
+    
     access_token = create_access_token(data={"sub": user["username"] })
+
 
     return {"access_token": access_token, "token_type": "bearer"}

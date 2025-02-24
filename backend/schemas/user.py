@@ -7,6 +7,11 @@ class UserCreate(BaseModel):
     password: str
     username: str
 
+class UserChangePassword(BaseModel):
+    password: str
+    username: str
+    new_password: str
+
 class UserResponse(BaseModel):
     name: str
     email: EmailStr
