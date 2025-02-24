@@ -1,4 +1,3 @@
-@ -0,0 +1,103 @@
 //
 //  ChangePasswordViewModel.swift
 //  SafeEats
@@ -12,6 +11,7 @@ import SwiftUI
 @MainActor
 class ChangePasswordViewModel: ObservableObject {
     @AppStorage("user") var userData : Data?
+    @AppStorage("authToken") private var token: String = ""
     @Published var oldPassword : String = ""
     @Published var newPassword : String = ""
     @Published var confirmNewPassword : String = ""
@@ -76,12 +76,13 @@ class ChangePasswordViewModel: ObservableObject {
             print("JSON being sent:", jsonString)
         }
         
-        
-
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.httpBody = jsonData
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        
+        print(request.allHTTPHeaderFields ?? [:])
 
         do {
             let (data, response) = try await URLSession.shared.data(for: request)

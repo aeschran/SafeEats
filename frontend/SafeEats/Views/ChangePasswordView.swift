@@ -1,4 +1,3 @@
-@ -0,0 +1,188 @@
 //
 //  ChangePasswordView.swift
 //  SafeEats
@@ -11,6 +10,7 @@ import SwiftUI
 
 struct ChangePasswordView: View {
     @StateObject var viewModel : ChangePasswordViewModel
+    @Environment(\.dismiss) private var dismiss
     
     @State var oldPassword: String = ""
     @State var newPassword: String = ""
@@ -168,19 +168,14 @@ struct ChangePasswordView: View {
             .buttonStyle(AuthButtonType())
             .onChange(of: viewModel.isAuthenticated) {
                 if viewModel.isAuthenticated {
-                    navigateToSettings = true
+                    dismiss()
                 }
                 
             }
         }
         
         
-        NavigationLink(
-            destination: MyProfileView(),
-            isActive: $navigateToSettings
-        ) {
-            EmptyView()
-        }
+        
     }
 }
 

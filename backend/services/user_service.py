@@ -82,21 +82,14 @@ class UserService(BaseService):
     
     async def change_user_password(self, tempUser: UserChangePassword):
         dbUser = await self.get_user_by_username(tempUser.username)
-        print(dbUser, "dbUser")
-        print(tempUser, "tempUser")
-        print("hi3")
         if dbUser is None:
             raise HTTPException(status_code=404, detail="User not found")
-        print("hi4")
         if not verify_password(tempUser.password, dbUser['password']):
             raise HTTPException(status_code=400, detail="Incorrect password")
-        print("hi5")
         hashed_password = hash_password(tempUser.new_password)
         result = await self.db.users.update_one({"username": tempUser.username}, {"$set": {"password": hashed_password}})
-        print("hi")
         if result.modified_count == 0:
             raise HTTPException(status_code=400, detail="Password change failed")
-        print("hi2")
         return {"message": "Password changed successfully"}
      
 
