@@ -18,11 +18,17 @@ class UserProfileService(BaseService):
 
         user = await self.db.users.find_one({"_id": ObjectId(_id)})
         name = user.get("name")
-        profile = Profile(name=name, bio=profile_create.bio, friend_count=profile_create.friend_count, review_count=profile_create.review_count)
+        profile = Profile(name=name, bio=profile_create.bio, friend_count=profile_create.friend_count, review_count=profile_create.review_count, image=profile_create.image)
         result = await self.db.users.update_one({"_id": ObjectId(_id)}, {"$set": profile.to_dict()}, upsert=False)
-
+        image_dict = profile.get_image()
+        image_dict["user_id"] = _id
+        print(image_dict)
         if result.matched_count == 0 and not result.upserted_id:
             return None
+        result = await self.db.user_profile_images.insert_one(image_dict)
+
+
+        
         return {**profile.to_dict(), "id": str(_id)}
 
 

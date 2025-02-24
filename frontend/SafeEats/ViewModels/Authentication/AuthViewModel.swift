@@ -8,6 +8,8 @@ class AuthViewModel: ObservableObject {
     @Published var phoneNumber: String = ""
     @Published var isAuthenticated: Bool = false
     @Published var errorMessage: String?
+    @Published var createProfileViewModel = CreateProfileViewModel()
+    @AppStorage("isUserCreated") var isCreated: Bool = false 
     
     private let baseURL = "http://127.0.0.1:8000"
     
@@ -83,7 +85,9 @@ class AuthViewModel: ObservableObject {
                             self.isAuthenticated = true
                             print("Success: authenticated")
                         }
+                        print(token)
                     }
+                    
                 } else if httpResponse.statusCode == 400 {
                     // handles error response from the server
                     if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
@@ -308,10 +312,10 @@ class AuthViewModel: ObservableObject {
     func logout() {
         
         UserDefaults.standard.removeObject(forKey: "authToken")
-            UserDefaults.standard.removeObject(forKey: "userID")
-            UserDefaults.standard.removeObject(forKey: "userName")
-            UserDefaults.standard.removeObject(forKey: "userEmail")
-            UserDefaults.standard.removeObject(forKey: "isVerified")
+        UserDefaults.standard.removeObject(forKey: "userID")
+        UserDefaults.standard.removeObject(forKey: "userName")
+        UserDefaults.standard.removeObject(forKey: "userEmail")
+        UserDefaults.standard.removeObject(forKey: "isVerified")
         DispatchQueue.main.async {
             self.isAuthenticated = false
             self.email = ""
@@ -319,6 +323,7 @@ class AuthViewModel: ObservableObject {
             self.phoneNumber = ""
             self.password = ""
             self.errorMessage = nil
+            self.isCreated = false
         }
     }
 }
