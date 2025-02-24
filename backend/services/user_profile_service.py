@@ -39,8 +39,8 @@ class UserProfileService(BaseService):
     #     users = await self.db.users.find().to_list(100)
     #     users = [UserResponse(**user) for user in users]
     #     return users
-    async def savePicture(self, _id: str, image: str):
-        PyObjectId.validate(_id)
+
+    async def savePicture(self, _id: str, imageUrl: str):
         
-        db.users.find_one_and_update({"_id": ObjectId(id)}, {"$set": { "imageUrl": imageUrl }})
+        self.db.users.find_one_and_update({"_id": ObjectId(_id)}, {"$set": { "imageUrl": imageUrl }})
         return True
