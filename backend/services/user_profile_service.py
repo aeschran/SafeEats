@@ -6,6 +6,7 @@ from services.base_service import BaseService
 import logging
 from bson import ObjectId
 
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 class UserProfileService(BaseService):
@@ -33,10 +34,13 @@ class UserProfileService(BaseService):
 
 
     async def get_user_profile(self, _id: str):
-        print("hi")
-        user_data = await self.db.users.find_one({"_id": ObjectId(_id)})
+        user_data = await self.db.users.find_one({"_id": ObjectId(_id)}) 
+        if not user_data:
+            return None
+        user_image = await self.db.user_profile_images.find_one({"user_id": str(_id)})
         user = ProfileResponse(**user_data)
         if user:
+            user = user.copy(update={"image": user_image["image"]})
             return user
         return None
 
