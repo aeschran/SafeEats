@@ -12,4 +12,7 @@ class ProfileResponse(BaseModel):
     bio: str
     friend_count: int
     review_count: int
+    username: str
+    image: str | None = None
+    # image: str
 
