@@ -120,7 +120,7 @@ class AuthViewModel: ObservableObject {
         
         let requestBody: [String: Any] = [
             "name": username,
-            "email": email,
+            "email": email.lowercased(),
             "password": password,
             "username": username // TODO: talk to group about this
         ]
@@ -222,7 +222,7 @@ class AuthViewModel: ObservableObject {
         
         let requestBody: [String: Any] = [
             "name": username,
-            "email": email,
+            "email": email.lowercased(),
             "password": password,
             "phone_number": phoneNumber,
             "isVerified": false
@@ -262,7 +262,7 @@ class AuthViewModel: ObservableObject {
         } catch {
             DispatchQueue.main.async {
                 self.errorMessage = "Network error: \(error.localizedDescription)"
-                }
+            }
             
         }
     }
@@ -279,6 +279,7 @@ class AuthViewModel: ObservableObject {
             self.username = ""
             self.phoneNumber = ""
             self.password = ""
+            self.errorMessage = nil
         }
     }
 }

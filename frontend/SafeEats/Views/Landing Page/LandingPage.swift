@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct LandingPage: View {
+    @AppStorage("user") var userData : Data?
     @EnvironmentObject var authViewModel: AuthViewModel
     @State private var navigateToAuth = false
     var body: some View {
@@ -29,7 +30,7 @@ struct LandingPage: View {
                         Task {
                             await authViewModel.logout()
                             navigateToAuth = true
-                            
+                            userData = nil
                         }
                     } label: {
                         Text("LOGOUT (temp for testing)")
@@ -47,4 +48,9 @@ struct LandingPage: View {
         }
     }
     
+}
+
+#Preview {
+    LandingPage()
+        .environmentObject(AuthViewModel())
 }

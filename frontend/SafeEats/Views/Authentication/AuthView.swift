@@ -18,6 +18,8 @@ enum AccountType {
 }
 
 struct AuthView: View {
+
+    @AppStorage("user") var userData : Data?
 //    @StateObject private var viewModel = AuthViewModel()
     @EnvironmentObject var viewModel: AuthViewModel
     @State private var email: String = ""
@@ -25,12 +27,23 @@ struct AuthView: View {
     @State private var phoneNumber: String = ""
     @State private var username: String = ""
     
+    var user: User? {
+        get {
+            guard let userData else { return nil }
+            return try? JSONDecoder().decode(User.self, from: userData)
+        }
+        set {
+            userData = try? JSONEncoder().encode(newValue)
+        }
+    }
+    
     
     @FocusState private var isEmailFocused: Bool
     @FocusState private var isPasswordFocused: Bool
     @FocusState private var isPhoneNumberFocused: Bool
     @FocusState private var isUsernameFocused: Bool
     @State private var navigateToLanding = false
+    @State private var resetPassword = false
     
     @State private var showPassword = false
     @State private var authType: AuthType = .login
@@ -60,6 +73,7 @@ struct AuthView: View {
                             .padding(.horizontal, 10)
                             .focused($isEmailFocused)
                             .textFieldStyle(AuthTextFieldStyle(isFocused: $isEmailFocused))}
+                        
                         
                         TextField("Username", text: $viewModel.username) .padding(.horizontal, 10) .focused($isUsernameFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isUsernameFocused))
                             .autocapitalization(.none)
@@ -118,12 +132,20 @@ struct AuthView: View {
                         Task {
                             if authType == .login && accountType == .businessOwnerAccount {
                                 await viewModel.busines_owner_login()
+                                let loggedInUser = User(name: viewModel.username, email: viewModel.email, username: viewModel.username)
+                                userData = try? JSONEncoder().encode(loggedInUser)
                             } else if authType == .register && accountType == .businessOwnerAccount {
                                 await viewModel.business_owner_register()
+                                let loggedInUser = User(name: viewModel.username, email: viewModel.email, username: viewModel.username)
+                                userData = try? JSONEncoder().encode(loggedInUser)
                             } else if authType == .login && accountType == .userAccount{
                                 await viewModel.user_login()
+                                let loggedInUser = User(name: viewModel.username, email: viewModel.email, username: viewModel.username)
+                                userData = try? JSONEncoder().encode(loggedInUser)
                             } else if authType == .register && accountType == .userAccount{
                                 await viewModel.user_register()
+                                let loggedInUser = User(name: viewModel.username, email: viewModel.email, username: viewModel.username)
+                                userData = try? JSONEncoder().encode(loggedInUser)
                                 print("hi")
                             }
                             
@@ -145,10 +167,37 @@ struct AuthView: View {
                     
                     
                     BottomView(authType: $authType)
+                    .onAppear {
+                        if userData != nil {
+                            navigateToLanding = true
+                            viewModel.isAuthenticated = true
+                        }
+                    }
+                    .navigationDestination(isPresented: $navigateToLanding) {
+                        LandingPage().navigationBarBackButtonHidden(true)
+                    }
                     
                         .navigationDestination(isPresented: $navigateToLanding) {
                             LandingPage().navigationBarBackButtonHidden(true)
                         }
+                    if (authType == .login) {
+                        Button {
+                            resetPassword = true
+                            } label: {
+                                Text("Forgot Password?")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundColor(.blue)
+                            }
+                            
+                            // NavigationLink to ResetPasswordView
+                        NavigationLink(
+                            destination: ForgotPasswordView(accountType: accountType).navigationBarBackButtonHidden(true),
+                            isActive: $resetPassword
+                        ) {
+                            EmptyView()
+                        }
+                        .hidden()
+                    }
                     
                     
                     Spacer()
@@ -355,6 +404,7 @@ struct BottomView: View {
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(.blue)
             }
+            
         }
     }
 }
