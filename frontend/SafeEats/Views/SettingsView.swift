@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @AppStorage("user") var userData : Data?
+    @EnvironmentObject var settingsViewModel: SettingsViewModel
     @State private var showChangePassword = false
     @State private var showDeleteAccountAlert = false
     @State private var showLogoutConfirmation = false
@@ -64,7 +65,7 @@ struct SettingsView: View {
                     }
                     
                     GroupBox(label: Label("Suggest New Preferences", systemImage: "fork.knife.circle.fill")) {
-                            TagField(tags: $tags)
+                        TagField(tags: $settingsViewModel.tags)
                         }
                     
                     
@@ -109,10 +110,13 @@ struct TagField: View {
                             tags.append(.init(value: "", isInitial: true))
                         }
                     }
-            Button { Task {
+            Button {
+                Task {
                     print("Tags: \(tags)")
                 
                     // TODO: get preference list from backend, compare all tags with those, report good or bad! If good, send email, if bad, report error.
+                    
+                
                 }
             } label: {
                 Text("Submit Suggestions")
