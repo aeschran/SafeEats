@@ -8,17 +8,14 @@
 import SwiftUI
 
 struct PickPreferences: View {
-    @Binding var selectedCuisines: Set<String>
     @Binding var selectedAllergies: Set<String>
     @Binding var selectedDietaryRestrictions: Set<String>
     
     @Environment(\.dismiss) var dismiss
     
-    @State private var showCuisines = false
     @State private var showAllergies = false
     @State private var showDietaryRestrictions = false
     
-    private let cuisines = ["Italian", "Indian", "Mexican", "Thai"]
     private let allergies = ["Peanuts", "Dairy", "Gluten", "Shellfish"]
     private let dietaryRestrictions = ["Vegan", "Vegetarian", "Halal", "Kosher"]
     
@@ -29,8 +26,6 @@ struct PickPreferences: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 10) {
-                    PreferenceDisclosureGroup(title: "Cuisines", isExpanded: $showCuisines, options: cuisines, selectedOptions: $selectedCuisines)
-                    Divider().background(.gray)
                     PreferenceDisclosureGroup(title: "Allergies", isExpanded: $showAllergies, options: allergies, selectedOptions: $selectedAllergies)
                     Divider().background(.gray)
                     PreferenceDisclosureGroup(title: "Dietary Restrictions", isExpanded: $showDietaryRestrictions, options: dietaryRestrictions, selectedOptions: $selectedDietaryRestrictions)

@@ -8,11 +8,12 @@ class User:
         self.email = email
         self.password = password
         self.username = username
+        
 
     def to_dict(self):
         return {  
             "name": self.name,
             "email": self.email,
             "password": self.password,
-            "username": self.username
+            "username": self.username,
         }

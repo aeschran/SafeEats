@@ -22,10 +22,12 @@ struct AuthView: View {
     @AppStorage("user") var userData : Data?
 //    @StateObject private var viewModel = AuthViewModel()
     @EnvironmentObject var viewModel: AuthViewModel
+    @EnvironmentObject var createProfileViewModel: CreateProfileViewModel
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var phoneNumber: String = ""
     @State private var username: String = ""
+    
     
     var user: User? {
         get {
@@ -43,6 +45,8 @@ struct AuthView: View {
     @FocusState private var isPhoneNumberFocused: Bool
     @FocusState private var isUsernameFocused: Bool
     @State private var navigateToLanding = false
+    @State private var navigateToCreateProfile = false
+    @State private var resetPassword = false
     
     @State private var showPassword = false
     @State private var authType: AuthType = .login
@@ -72,6 +76,7 @@ struct AuthView: View {
                             .padding(.horizontal, 10)
                             .focused($isEmailFocused)
                             .textFieldStyle(AuthTextFieldStyle(isFocused: $isEmailFocused))}
+                        
                         
                         TextField("Username", text: $viewModel.username) .padding(.horizontal, 10) .focused($isUsernameFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isUsernameFocused))
                             .autocapitalization(.none)
@@ -141,11 +146,16 @@ struct AuthView: View {
                                 let loggedInUser = User(name: viewModel.username, email: viewModel.email, username: viewModel.username)
                                 userData = try? JSONEncoder().encode(loggedInUser)
                             } else if authType == .register && accountType == .userAccount{
+                                navigateToCreateProfile = true
                                 await viewModel.user_register()
                                 let loggedInUser = User(name: viewModel.username, email: viewModel.email, username: viewModel.username)
                                 userData = try? JSONEncoder().encode(loggedInUser)
                                 print("hi")
+                                
                             }
+//                            DispatchQueue.main.async {
+//                                            navigateToCreateProfile = true
+//                                        }
                             
                             //                            if viewModel.isAuthenticated == true {
                             //                                navigateToLanding = true
@@ -158,7 +168,11 @@ struct AuthView: View {
                     .buttonStyle(AuthButtonType())
                     .onChange(of: viewModel.isAuthenticated) {
                         if viewModel.isAuthenticated {
-                            navigateToLanding = true
+                            if createProfileViewModel.isCreated == false {
+                                navigateToCreateProfile = true
+                            } else {
+                                navigateToLanding = true
+                            }
                         }
                         
                     }
@@ -166,18 +180,55 @@ struct AuthView: View {
                     
                     BottomView(authType: $authType)
                     .onAppear {
+                        navigateToCreateProfile = false
+                        navigateToLanding = false
                         if userData != nil {
-                            navigateToLanding = true
+                            if authType == .register {
+                                navigateToCreateProfile = true
+                                navigateToLanding = false
+                            } else {
+                                navigateToCreateProfile = false
+                                navigateToLanding = true
+                            }
+                            
                             viewModel.isAuthenticated = true
                         }
                     }
-                    .navigationDestination(isPresented: $navigateToLanding) {
-                        LandingPage().navigationBarBackButtonHidden(true)
-                    }
-                    
-                        .navigationDestination(isPresented: $navigateToLanding) {
+                    .navigationDestination(isPresented: $navigateToCreateProfile) {
+                        if navigateToCreateProfile { // Ensure it only goes to CreateProfile if isCreated is false
+                            CreateProfileView().navigationBarBackButtonHidden(true)
+                        } else {
                             LandingPage().navigationBarBackButtonHidden(true)
                         }
+                    }
+//                    .navigationDestination(isPresented: $navigateToCreateProfile) {
+//                        CreateProfileView().navigationBarBackButtonHidden(true)
+//                    }
+//                    .navigationDestination(isPresented: $navigateToLanding) {
+//                        LandingPage().navigationBarBackButtonHidden(true)
+//                    }
+//                    
+//                        .navigationDestination(isPresented: $navigateToLanding) {
+//                            LandingPage().navigationBarBackButtonHidden(true)
+//                        }
+                    if (authType == .login) {
+                        Button {
+                            resetPassword = true
+                            } label: {
+                                Text("Forgot Password?")
+                                    .font(.system(size: 15, weight: .medium))
+                                    .foregroundColor(.blue)
+                            }
+                            
+                            // NavigationLink to ResetPasswordView
+                        NavigationLink(
+                            destination: ForgotPasswordView(accountType: accountType).navigationBarBackButtonHidden(true),
+                            isActive: $resetPassword
+                        ) {
+                            EmptyView()
+                        }
+                        .hidden()
+                    }
                     
                     
                     Spacer()
@@ -384,6 +435,7 @@ struct BottomView: View {
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(.blue)
             }
+            
         }
     }
 }
@@ -393,4 +445,5 @@ struct BottomView: View {
 #Preview {
     AuthView()
         .environmentObject(AuthViewModel())
+        .environmentObject(CreateProfileViewModel())
 }

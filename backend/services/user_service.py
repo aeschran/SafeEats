@@ -4,6 +4,13 @@ from bson import ObjectId
 from models.user import User
 from schemas.user import UserResponse, UserCreate, UserChangePassword
 from services.base_service import BaseService
+from datetime import datetime, timedelta
+from core.config import settings
+import random
+import string
+import sendgrid
+from sendgrid.helpers.mail import Mail, Email, To, Content
+
 
 from fastapi import Depends, HTTPException, status
 from services.jwttoken import verify_token
@@ -21,6 +28,21 @@ def hash_password(password: str) -> str:
 def verify_password(password: str, hashed_password: str) -> bool:
     # Verify the password
     return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
+
+def generate_verification_code():
+    return "".join(random.choices(string.digits, k=6))
+
+
+def send_verification_email(email: str, code: str):
+    sg = sendgrid.SendGridAPIClient(api_key=settings.SENDGRID_KEY)
+    from_email = Email("safeeats.noreply@gmail.com")
+    to_email = To(email)
+    subject = "SafeEats Password Reset Code"
+    content = Content("text/plain", f"Your SafeEats verification code is: {code}\n\nThis code expires in 10 minutes.")
+    mail = Mail(from_email, to_email, subject, content)
+    
+    response = sg.send(mail)
+    print(response.status_code, response.body, response.headers)
 
 
 class UserService(BaseService):
@@ -91,6 +113,50 @@ class UserService(BaseService):
         if result.modified_count == 0:
             raise HTTPException(status_code=400, detail="Password change failed")
         return {"message": "Password changed successfully"}
+    
+    async def forgot_password(self, email: str):
+        user = await self.get_user_by_email(email)
+        if not user:
+            raise HTTPException(status_code=400, detail="User owner not found")
+        verification_code = generate_verification_code()
+        expiration_time = datetime.utcnow() + timedelta(minutes=10)
+
+        # storing verification code in DB
+        await self.db.password_resets.update_one(
+            {"email": email},
+            {"$set": {"code": verification_code, "expires_at": expiration_time}},
+            upsert=True
+        )
+
+        send_verification_email(email, verification_code)
+        return {"message": "Verification code sent."}
+    
+    async def verify_code(self, email: str, code: str):
+        record = await self.db.password_resets.find_one({"email": email})
+        if not record or record["code"] != code:
+            raise HTTPException(status_code=400, detail="Invalid verification code")
+
+        if datetime.utcnow() > record["expires_at"]:
+            raise HTTPException(status_code=400, detail="Verification code expired")
+
+        return {"message": "Code verified. You can now reset your password."}
+    
+   
+    async def reset_password(self, email: str, code: str, new_password: str):
+        record = await self.db.password_resets.find_one({"email": email})
+        if not record or record["code"] != code:
+            raise HTTPException(status_code=400, detail="Invalid or expired verification code")
+        
+        hashed_password = hash_password(new_password)
+
+        # Update password 
+        result = await self.db.users.update_one(
+            {"email": email}, {"$set": {"password": hashed_password}}
+        )
+        await self.db.password_resets.delete_one({"email": email})
+
+        return {"message": "Password reset successful"}
+
      
 
 

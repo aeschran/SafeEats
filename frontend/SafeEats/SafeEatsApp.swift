@@ -10,15 +10,25 @@ import SwiftUI
 @main
 struct SafeEatsApp: App {
     @StateObject private var viewModel = AuthViewModel()
+    @StateObject private var createProfile = CreateProfileViewModel()
     var body: some Scene {
         WindowGroup {
             if viewModel.isAuthenticated {
-                ContentView()
-                    .environmentObject(viewModel)
+                if createProfile.isCreated {
+                    ContentView()
+                        .environmentObject(viewModel)
+                        .environmentObject(createProfile)
+                } else {
+                    CreateProfileView()
+                        .environmentObject(createProfile)
+                        .environmentObject(viewModel)
+                }
             } else {
                 AuthView()
-                    .environmentObject(viewModel) 
+                    .environmentObject(viewModel)
+                    .environmentObject(createProfile)
             }
+//            CreateProfileView()
         }
     }
 }

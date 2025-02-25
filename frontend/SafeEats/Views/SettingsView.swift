@@ -42,6 +42,7 @@ struct SettingsView: View {
                                   primaryButton: .destructive(Text("Log Out")) {
                                 userData = nil
                                 authViewModel.logout()
+                                userData = nil
                             },
                                   secondaryButton: .cancel())
                         }
