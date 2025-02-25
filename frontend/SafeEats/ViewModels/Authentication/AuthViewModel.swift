@@ -2,14 +2,32 @@ import SwiftUI
 
 @MainActor
 class AuthViewModel: ObservableObject {
+    @Published var id: String = ""
     @Published var email: String = ""
     @Published var password: String = ""
     @Published var username: String = ""
-    @Published var phoneNumber: String = ""
+    @Published var name: String = ""
+    @Published var phone: String = ""
+    @Published var isVerified: Bool?
+    
     @Published var isAuthenticated: Bool = false
     @Published var errorMessage: String?
     @Published var createProfileViewModel = CreateProfileViewModel()
-    @AppStorage("isUserCreated") var isCreated: Bool = false 
+    @AppStorage("user") var userData : Data?
+    @AppStorage("isUserCreated") var isCreated: Bool = false
+    
+    var user: User? {
+            get {
+                guard let userData else { return nil }
+                return try? JSONDecoder().decode(User.self, from: userData)
+            }
+            set {
+                guard let newValue = newValue else { return }
+                if let encodedUser = try? JSONEncoder().encode(newValue) {
+                    self.userData = encodedUser
+                }
+            }
+        }
     
     private let baseURL = "http://127.0.0.1:8000"
     
@@ -29,7 +47,7 @@ class AuthViewModel: ObservableObject {
             return false
         }
         
-        if !isValidPhoneNumber(phoneNumber) {
+        if !isValidPhoneNumber(phone) {
             errorMessage = "Invalid phone number format. Use (XXX) XXX-XXXX or XXX-XXX-XXXX."
             return false
         }
@@ -78,14 +96,27 @@ class AuthViewModel: ObservableObject {
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 200 {
                     // success case
-                    if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                       let token = json["access_token"] as? String {
-                        DispatchQueue.main.async {
-                            UserDefaults.standard.set(token, forKey: "authToken")
-                            self.isAuthenticated = true
-                            print("Success: authenticated")
+                    if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                        if let accessToken = json["access_token"] as? String,
+                           let id = json["id"] as? String,
+                           let name = json["name"] as? String,
+                           let email = json["email"] as? String,
+                           let phone = json["phone"] as? String,
+                           let username = json["username"] as? String {
+                            DispatchQueue.main.async {
+                                self.id = id
+                                self.username = username
+                                self.email = email
+                                self.phone = phone
+                                self.name = name
+                                self.isAuthenticated = true
+                                print("Success: registered")
+                            }
+                        } else {
+                            DispatchQueue.main.async {
+                                self.errorMessage = "Invalid response data"
+                            }
                         }
-                        print(token)
                     }
                     
                 } else if httpResponse.statusCode == 400 {
@@ -125,6 +156,7 @@ class AuthViewModel: ObservableObject {
         let requestBody: [String: Any] = [
             "name": username,
             "email": email.lowercased(),
+            "phone": phone,
             "password": password,
             "username": username // TODO: talk to group about this
         ]
@@ -146,11 +178,28 @@ class AuthViewModel: ObservableObject {
                 }
                 return
             }
-
-            
-                self.isAuthenticated = true
-                print("Successful: registration")
-            
+            if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                if let accessToken = json["access_token"] as? String,
+                   let id = json["id"] as? String,
+                   let name = json["name"] as? String,
+                   let email = json["email"] as? String,
+                   let phone = json["phone"] as? String,
+                   let username = json["username"] as? String {
+                    DispatchQueue.main.async {
+                        self.id = id
+                        self.name = name
+                        self.username = username
+                        self.email = email
+                        self.phone = phone
+                        self.isAuthenticated = true
+                        print("Success: registered")
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self.errorMessage = "Invalid response data"
+                    }
+                }
+            }
         } catch {
             DispatchQueue.main.async {
                 self.errorMessage = "Network error: \(error.localizedDescription)"
@@ -205,17 +254,18 @@ class AuthViewModel: ObservableObject {
             if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
                 if let accessToken = json["access_token"] as? String,
                    let id = json["id"] as? String,
-                   let businessName = json["name"] as? String,
+                   let username = json["name"] as? String,
                    let email = json["email"] as? String,
+                   let phone = json["phone"] as? String,
                    let isVerified = json["isVerified"] as? Bool {
-                
-                    // setting up user defaults
                     DispatchQueue.main.async {
-                        UserDefaults.standard.set(accessToken, forKey: "authToken")
-                        UserDefaults.standard.set(id, forKey: "userID")
-                        UserDefaults.standard.set(businessName, forKey: "userName")
-                        UserDefaults.standard.set(email, forKey: "userEmail")
-                        UserDefaults.standard.set(isVerified, forKey: "isVerified")
+                        self.id = id
+                        self.username = username
+                        self.email = email
+                        self.phone = phone
+                        self.isVerified = isVerified
+                        print(self.email + " EMAIL")
+                        print(self.id)
                         self.isAuthenticated = true
                         print("Success: authenticated")
                     }
@@ -241,7 +291,7 @@ class AuthViewModel: ObservableObject {
             "name": username,
             "email": email.lowercased(),
             "password": password,
-            "phone_number": phoneNumber,
+            "phone": phone,
             "isVerified": false
         ]
         
@@ -275,18 +325,18 @@ class AuthViewModel: ObservableObject {
             if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
                 if let accessToken = json["access_token"] as? String,
                    let id = json["id"] as? String,
-                   let businessName = json["name"] as? String,
+                   let username = json["name"] as? String,
                    let email = json["email"] as? String,
+                   let phone = json["phone"] as? String,
                    let isVerified = json["isVerified"] as? Bool {
-                
-                    // setting up user defaults
                     DispatchQueue.main.async {
-                        UserDefaults.standard.set(accessToken, forKey: "authToken")
-                        UserDefaults.standard.set(id, forKey: "userID")
-                        UserDefaults.standard.set(businessName, forKey: "userName")
-                        UserDefaults.standard.set(email, forKey: "userEmail")
-                        UserDefaults.standard.set(isVerified, forKey: "isVerified")
+                        self.id = id
+                        self.username = username
+                        self.email = email
+                        self.phone = phone
+                        self.isVerified = isVerified
                         self.isAuthenticated = true
+                        print("ID\(self.id)")
                         print("Success: authenticated")
                     }
                 } else {
@@ -311,16 +361,12 @@ class AuthViewModel: ObservableObject {
      */
     func logout() {
         
-        UserDefaults.standard.removeObject(forKey: "authToken")
-        UserDefaults.standard.removeObject(forKey: "userID")
-        UserDefaults.standard.removeObject(forKey: "userName")
-        UserDefaults.standard.removeObject(forKey: "userEmail")
-        UserDefaults.standard.removeObject(forKey: "isVerified")
+        self.userData = nil
         DispatchQueue.main.async {
             self.isAuthenticated = false
             self.email = ""
             self.username = ""
-            self.phoneNumber = ""
+            self.phone = ""
             self.password = ""
             self.errorMessage = nil
             self.isCreated = false

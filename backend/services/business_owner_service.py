@@ -60,16 +60,14 @@ class BusinessOwnerService(BaseService):
                 status_code=400,
                 detail="Email already registered."
             )
-        business_owner = BusinessOwner(name=business_owner_create.name, email=business_owner_create.email, password=hash_password(business_owner_create.password), isVerified=business_owner_create.isVerified)
+        business_owner = BusinessOwner(name=business_owner_create.name, email=business_owner_create.email, password=hash_password(business_owner_create.password), phone=business_owner_create.phone, isVerified=business_owner_create.isVerified)
         result = await self.db.business_owners.insert_one(business_owner.to_dict())
 
         token = create_access_token({"email": business_owner.email, "id": str(result.inserted_id)})
 
         return {
+            **business_owner.to_dict(),
             "id": str(result.inserted_id),
-            "name": business_owner.name,
-            "email": business_owner.email,
-            "isVerified": business_owner.isVerified,
             "access_token": token,  
             "token_type": "bearer"
         }

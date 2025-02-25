@@ -7,13 +7,13 @@ class BusinessOwnerCreate(BaseModel):
     name: str
     email: EmailStr
     password: str
-    phone_number: str
+    phone: str
     isVerified: bool = False
 
 class BusinessOwnerResponse(BaseModel):
     name: str
     email: EmailStr
-    phone_number: str
+    phone: str
     isVerified: bool
     
 class Token(BaseModel):

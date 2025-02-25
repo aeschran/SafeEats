@@ -29,10 +29,17 @@ async def login(request:OAuth2PasswordRequestForm = Depends()):
     if not verify_password(request.password, user["password"]):
         raise HTTPException(status_code=400, detail="Wrong password")
     
-    access_token = create_access_token(data={"sub": user["username"] })
+    access_token = create_access_token(data={"sub": user["username"], "id": str(user["_id"])})
 
-    return {"access_token": access_token, "token_type": "bearer"}
-
+    return {
+            "email": user["email"],
+            "name": user["name"],
+            "phone": user["phone"],
+            "username": user["username"],
+            "id": str(user["_id"]),
+            "access_token": access_token,
+            "token_type": "bearer"
+        }
 
 @router.post("/forgot-password")
 async def forgot_password(request: ForgotPasswordRequest):

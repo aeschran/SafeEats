@@ -5,6 +5,7 @@ from typing import Optional
 class UserCreate(BaseModel):
     name: str
     email: EmailStr
+    phone: str
     password: str
     username: str
     
@@ -12,6 +13,7 @@ class UserCreate(BaseModel):
 class UserResponse(BaseModel):
     name: str
     email: EmailStr
+    phone: str
     username: str
     
     
