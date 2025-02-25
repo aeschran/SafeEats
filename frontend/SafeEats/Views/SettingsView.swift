@@ -11,6 +11,7 @@ struct SettingsView: View {
     @State private var showChangePassword = false
     @State private var showDeleteAccountAlert = false
     @State private var showLogoutConfirmation = false
+    @AppStorage("user") var userData : Data?
     
     @EnvironmentObject var authViewModel: AuthViewModel
     
@@ -43,6 +44,7 @@ struct SettingsView: View {
                                   message: Text("Are you sure you want to log out?"),
                                   primaryButton: .destructive(Text("Log Out")) {
                                 authViewModel.logout()
+                                userData = nil
                             },
                                   secondaryButton: .cancel())
                         }

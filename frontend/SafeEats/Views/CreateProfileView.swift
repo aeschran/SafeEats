@@ -60,7 +60,6 @@ struct CreateProfileView: View {
 //    @State private var isCameraRoll: Bool = false
     @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
     private let fieldWidth: CGFloat = 265
-    @State private var selectedCuisines = Set<String>([])
     @State private var selectedDietaryRestrictions: Set<String> = []
     @State private var selectedAllergies: Set<String> = []
     
@@ -102,7 +101,7 @@ struct CreateProfileView: View {
 //    }
 
     var body: some View {
-        
+        NavigationStack {
             ScrollView{
                 VStack{
                     HStack{
@@ -131,7 +130,7 @@ struct CreateProfileView: View {
                             Button(action: {
                                 sourceType = .camera
                                 isImagePickerPresented = true
-                                  // Set to camera
+                                // Set to camera
                             }) {
                                 Text("Take Photo")
                                     .font(.footnote)
@@ -155,7 +154,7 @@ struct CreateProfileView: View {
                                             .stroke(Color.mainGreen)
                                     )
                             }
-
+                            
                         }.padding(20)
                         Spacer()
                     }.padding(20)
@@ -217,27 +216,31 @@ struct CreateProfileView: View {
                         Text("Pick Your Preferences")
                             .font(.headline)
                             .fontWeight(.semibold)
-                        PickPreferences(selectedCuisines: $selectedCuisines, selectedAllergies: $selectedAllergies, selectedDietaryRestrictions: $selectedDietaryRestrictions)
+                        PickPreferences( selectedAllergies: $selectedAllergies, selectedDietaryRestrictions: $selectedDietaryRestrictions)
                     }
                     .padding(.vertical, 20)
                     
                     HStack() {
                         Button(action: {
-//                            print("Saved: \(firstName) \(lastName), Bio: \(bio)")
+                            //                            print("Saved: \(firstName) \(lastName), Bio: \(bio)")
                             viewModel.isCreated = true
                             let base64Image = convertImageToBase64(image: image) ?? ""
-                                
-                                let profileData: [String: Any] = [
-                                    "name": firstName + " " + lastName,
-                                    "bio": bio,
-                                    "image": base64Image,  // Encoded Base64 image string
-//                                    "cuisines": Array(selectedCuisines),
-//                                    "dietaryRestrictions": Array(selectedDietaryRestrictions),
-//                                    "allergies": Array(selectedAllergies)
-                                    "friend_count" : 0,
-                                    "review_count": 0
-                                ]
-                                
+                            
+                            let preferences = selectedAllergies.map { ["preference": $0, "preference_type": "Allergy"] } +
+                                                  selectedDietaryRestrictions.map { ["preference": $0, "preference_type": "Dietary Restriction"] }
+                            
+                            let profileData: [String: Any] = [
+                                "name": firstName + " " + lastName,
+                                "bio": bio,
+                                "image": base64Image,  // Encoded Base64 image string
+                                //                                    "cuisines": Array(selectedCuisines),
+                                //                                    "dietaryRestrictions": Array(selectedDietaryRestrictions),
+                                //                                    "allergies": Array(selectedAllergies)
+                                "friend_count" : 0,
+                                "review_count": 0,
+                                "preferences": preferences
+                            ]
+                            
                             viewModel.sendProfileDataToBackend(profileData)
                             navigateToLandingPage = true
                         }) {
@@ -250,9 +253,9 @@ struct CreateProfileView: View {
                                 .cornerRadius(10)
                         }
                         NavigationLink(destination: LandingPage(), isActive: $navigateToLandingPage) {
-                                        EmptyView()
-                                    }
-                                    .hidden()
+                            EmptyView()
+                        }
+                        .hidden()
                     }
                     
                 }.padding(10)
@@ -263,10 +266,11 @@ struct CreateProfileView: View {
                             sourceType: $sourceType // Ensures correct source type is passed
                         )
                     }
-
-
+                
+                
             }
         }
+    }
 }
 
 #Preview {
