@@ -1,18 +1,21 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 
+
 class UserCreate(BaseModel):
     name: str
     email: EmailStr
     phone: str
     password: str
     username: str
+    
 
 class UserResponse(BaseModel):
     name: str
     email: EmailStr
     phone: str
     username: str
+    
     
 class Token(BaseModel):
     access_token: str

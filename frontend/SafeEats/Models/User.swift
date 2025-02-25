@@ -7,12 +7,15 @@
 import Foundation
 
 struct User : Codable, Identifiable {
+
     let id : String
     let name: String?
     let email: String
     let phone: String
     let username: String
     let isVerified: Bool?
+    let preferences: [Preference] = []
+
     
     enum CodingKeys : String, CodingKey {
         case id
@@ -21,6 +24,14 @@ struct User : Codable, Identifiable {
         case phone
         case username
         case isVerified
+        case preferences
+
         
     }
+}
+
+struct Preference: Codable, Identifiable {
+    var id: UUID = UUID()
+    let preference: String
+    let preference_type: String
 }
