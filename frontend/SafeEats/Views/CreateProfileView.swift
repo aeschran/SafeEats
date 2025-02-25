@@ -10,8 +10,8 @@ import UIKit
 struct ImagePicker: UIViewControllerRepresentable {
     @Binding var isImagePickerPresented: Bool
     @Binding var image: UIImage?
-    var sourceType: UIImagePickerController.SourceType  // Added sourceType to handle both camera and photo library
-    
+    @Binding var sourceType: UIImagePickerController.SourceType // Change from value to binding
+
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
         var parent: ImagePicker
         
@@ -38,28 +38,71 @@ struct ImagePicker: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
         picker.delegate = context.coordinator
-        picker.sourceType = sourceType // Use the sourceType passed in
+        picker.sourceType = sourceType // Now uses a binding
         return picker
     }
     
-    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {
+        uiViewController.sourceType = sourceType // Ensure it updates
+    }
 }
+
 
 struct CreateProfileView: View {
     
+    @EnvironmentObject var viewModel: CreateProfileViewModel
+    @State private var navigateToLandingPage = false
     @State private var firstName: String = ""
     @State private var lastName: String = ""
     @State private var bio: String = ""
     @State private var image: UIImage? = nil
     @State private var isImagePickerPresented: Bool = false
-    @State private var isCameraRoll: Bool = false
+//    @State private var isCameraRoll: Bool = false
+    @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
     private let fieldWidth: CGFloat = 265
     @State private var selectedCuisines = Set<String>([])
     @State private var selectedDietaryRestrictions: Set<String> = []
     @State private var selectedAllergies: Set<String> = []
     
+    
+
+    
+    
+    func convertImageToBase64(image: UIImage?) -> String? {
+        guard let imageData = image?.jpegData(compressionQuality: 0.8) else { return nil }
+        return imageData.base64EncodedString()
+    }
+    
+//    func sendProfileDataToBackend(_ profileData: [String: Any]) {
+////        guard let userId = userData.id else { return }
+//        guard let url = URL(string: "\(baseURL)/profile/create/\(userId)") else { return }
+//
+//        var request = URLRequest(url: url)
+//        request.httpMethod = "PUT"
+//        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+//
+//        do {
+//            let jsonData = try JSONSerialization.data(withJSONObject: profileData, options: [])
+//            request.httpBody = jsonData
+//        } catch {
+//            print("Error encoding JSON: \(error)")
+//            return
+//        }
+//
+//        URLSession.shared.dataTask(with: request) { data, response, error in
+//            if let error = error {
+//                print("Error sending data: \(error)")
+//                return
+//            }
+//            
+//            if let httpResponse = response as? HTTPURLResponse {
+//                print("Server Response: \(httpResponse.statusCode)")
+//            }
+//        }.resume()
+//    }
+
     var body: some View {
-        NavigationStack {
+        
             ScrollView{
                 VStack{
                     HStack{
@@ -86,8 +129,9 @@ struct CreateProfileView: View {
                         //                    Spacer()
                         VStack(spacing: 10){
                             Button(action: {
-                                isCameraRoll = false // Camera option
+                                sourceType = .camera
                                 isImagePickerPresented = true
+                                  // Set to camera
                             }) {
                                 Text("Take Photo")
                                     .font(.footnote)
@@ -99,18 +143,19 @@ struct CreateProfileView: View {
                                     )
                             }
                             Button(action: {
-                                isCameraRoll = true // Camera roll option
+                                sourceType = .photoLibrary
                                 isImagePickerPresented = true
                             }) {
                                 Text("Camera Roll")
                                     .font(.footnote)
                                     .foregroundColor(Color.black)
-                                    .frame(width:150, height: 30)
+                                    .frame(width: 150, height: 30)
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 4)
                                             .stroke(Color.mainGreen)
                                     )
                             }
+
                         }.padding(20)
                         Spacer()
                     }.padding(20)
@@ -178,7 +223,23 @@ struct CreateProfileView: View {
                     
                     HStack() {
                         Button(action: {
-                            print("Saved: \(firstName) \(lastName), Bio: \(bio)")
+//                            print("Saved: \(firstName) \(lastName), Bio: \(bio)")
+                            viewModel.isCreated = true
+                            let base64Image = convertImageToBase64(image: image) ?? ""
+                                
+                                let profileData: [String: Any] = [
+                                    "name": firstName + " " + lastName,
+                                    "bio": bio,
+                                    "image": base64Image,  // Encoded Base64 image string
+//                                    "cuisines": Array(selectedCuisines),
+//                                    "dietaryRestrictions": Array(selectedDietaryRestrictions),
+//                                    "allergies": Array(selectedAllergies)
+                                    "friend_count" : 0,
+                                    "review_count": 0
+                                ]
+                                
+                            viewModel.sendProfileDataToBackend(profileData)
+                            navigateToLandingPage = true
                         }) {
                             Text("Save")
                                 .foregroundColor(.white)
@@ -188,6 +249,10 @@ struct CreateProfileView: View {
                                 .background(Color.mainGreen)
                                 .cornerRadius(10)
                         }
+                        NavigationLink(destination: LandingPage(), isActive: $navigateToLandingPage) {
+                                        EmptyView()
+                                    }
+                                    .hidden()
                     }
                     
                 }.padding(10)
@@ -195,14 +260,16 @@ struct CreateProfileView: View {
                         ImagePicker(
                             isImagePickerPresented: $isImagePickerPresented,
                             image: $image,
-                            sourceType: isCameraRoll ? .photoLibrary : .camera // Choose source type based on button clicked
+                            sourceType: $sourceType // Ensures correct source type is passed
                         )
                     }
+
+
             }
         }
-    }
 }
 
 #Preview {
     CreateProfileView()
+        .environmentObject(CreateProfileViewModel())
 }

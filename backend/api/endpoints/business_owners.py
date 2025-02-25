@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from schemas.business_owner import BusinessOwnerCreate
+from schemas.business_owner import BusinessOwnerCreate, BusinessOwnerResponse
 from services.business_owner_service import BusinessOwnerService
 from core.security import credentials_exception
 from services.jwttoken import verify_token, get_token

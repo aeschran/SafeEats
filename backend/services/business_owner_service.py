@@ -1,13 +1,19 @@
 # app/services/business_owner_service.py
 import bcrypt
 from bson import ObjectId
+from datetime import datetime, timedelta
+from core.config import settings
 from models.business_owner import BusinessOwner
+import random
+import string
 from schemas.business_owner import BusinessOwnerResponse, BusinessOwnerCreate
 from services.base_service import BaseService
+import sendgrid
+from sendgrid.helpers.mail import Mail, Email, To, Content
 
 
 from fastapi import Depends, HTTPException, status
-from services.jwttoken import verify_token
+from services.jwttoken import verify_token, create_access_token
 from fastapi.security import OAuth2PasswordBearer
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -19,6 +25,25 @@ def hash_password(password: str) -> str:
 
 def verify_password(password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(password.encode('utf-8'), hashed_password.encode('utf-8'))
+
+def generate_verification_code():
+    return "".join(random.choices(string.digits, k=6))
+
+
+
+def send_verification_email(email: str, code: str):
+    sg = sendgrid.SendGridAPIClient(api_key=settings.SENDGRID_KEY)
+    from_email = Email("safeeats.noreply@gmail.com")
+    to_email = To(email)
+    subject = "SafeEats Business Password Reset Code"
+    content = Content("text/plain", f"Your SafeEats verification code is: {code}\n\nThis code expires in 10 minutes.")
+    mail = Mail(from_email, to_email, subject, content)
+    
+    response = sg.send(mail)
+    print(response.status_code, response.body, response.headers)
+
+
+
 
 class BusinessOwnerService(BaseService):
     def __init__(self):
@@ -37,7 +62,17 @@ class BusinessOwnerService(BaseService):
             )
         business_owner = BusinessOwner(name=business_owner_create.name, email=business_owner_create.email, password=hash_password(business_owner_create.password), isVerified=business_owner_create.isVerified)
         result = await self.db.business_owners.insert_one(business_owner.to_dict())
-        return {**business_owner.to_dict(), "id": str(result.inserted_id)}
+
+        token = create_access_token({"email": business_owner.email, "id": str(result.inserted_id)})
+
+        return {
+            "id": str(result.inserted_id),
+            "name": business_owner.name,
+            "email": business_owner.email,
+            "isVerified": business_owner.isVerified,
+            "access_token": token,  
+            "token_type": "bearer"
+        }
     
     async def delete_business_owner(self, _id: str) -> bool:
         # Delete a owner from database by email
@@ -66,3 +101,46 @@ class BusinessOwnerService(BaseService):
             {"$set": {"isVerified": True}}
         )
         return result.modified_count > 0  # Returns True if an update was made
+    
+    async def forgot_password(self, email: str):
+        business_owner = await self.get_business_owner_by_email(email)
+        if not business_owner:
+            raise HTTPException(status_code=400, detail="Business owner not found")
+        verification_code = generate_verification_code()
+        expiration_time = datetime.utcnow() + timedelta(minutes=10)
+
+        # storing verification code in DB
+        await self.db.password_resets.update_one(
+            {"email": email},
+            {"$set": {"code": verification_code, "expires_at": expiration_time}},
+            upsert=True
+        )
+
+        send_verification_email(email, verification_code)
+        return {"message": "Verification code sent."}
+    
+    async def verify_code(self, email: str, code: str):
+        record = await self.db.password_resets.find_one({"email": email})
+        if not record or record["code"] != code:
+            raise HTTPException(status_code=400, detail="Invalid verification code")
+
+        if datetime.utcnow() > record["expires_at"]:
+            raise HTTPException(status_code=400, detail="Verification code expired")
+
+        return {"message": "Code verified. You can now reset your password."}
+    
+   
+    async def reset_password(self, email: str, code: str, new_password: str):
+        record = await self.db.password_resets.find_one({"email": email})
+        if not record or record["code"] != code:
+            raise HTTPException(status_code=400, detail="Invalid or expired verification code")
+        
+        hashed_password = hash_password(new_password)
+
+        # Update password 
+        result = await self.db.business_owners.update_one(
+            {"email": email}, {"$set": {"password": hashed_password}}
+        )
+        await self.db.password_resets.delete_one({"email": email})
+
+        return {"message": "Password reset successful"}

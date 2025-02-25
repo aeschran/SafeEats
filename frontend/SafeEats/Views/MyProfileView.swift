@@ -8,45 +8,73 @@
 import SwiftUI
 
 struct MyProfileView: View {
+    @StateObject private var viewModel = MyProfileViewModel()
     
     var body: some View {
         NavigationStack {
             ScrollView{
                 VStack{
-                    HStack{
-                        Spacer()
-                        
-                        Text("username").font(.subheadline).fontWeight(.semibold)
-                        Spacer()
-                        
-                        NavigationLink(destination: SettingsView()) {
-                            Image(systemName: "line.3.horizontal")
-                                .font(.title2)
-                            
-                        }
-                        .accentColor(.black)
-                        .padding(.horizontal, 10)
-                        
-                    }
-                    .padding(2)
+                    
+//                        HStack {
+//
+//                                Spacer()
+//                                Thbext(viewModel.username)
+//                                    .font(.subheadline)
+//                                    .fontWeight(.semibold)
+//                                    .multilineTextAlignment(.leading)
+////                                    .frame(maxWidth: .infinity, alignment: .center)
+//                                    Spacer()
+//                            
+//                            
+//                            
+//                        }
+//                    HStack {
+//                        Spacer()
+//                            
+//
+//                                NavigationLink(destination: SettingsView()) {
+//                                    Image(systemName: "line.3.horizontal")
+//                                        .font(.title2)
+//                                    
+//                                }
+//                                .accentColor(.black)
+//                                .padding(.trailing, 2)
+//                            
+//                        
+//                    }
+//                    .padding(8)
                     
                     HStack{
-                        Image("blank-profile")
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width:88, height:88)
-                            .clipShape(Circle())
+                        if let profileImage = viewModel.imageBase64 {
+                            Image(uiImage: profileImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 88, height: 88)
+                                .clipShape(Circle())
+                        } else {
+                            Image("blank-profile")
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 88, height: 88)
+                                .clipShape(Circle())
+                        }
+                        
+//                        Image("blank-profile")
+//                            .resizable()
+//                            .scaledToFill()
+//                            .frame(width:88, height:88)
+//                            .clipShape(Circle())
                         Spacer()
                         HStack(spacing: 32) {
                             VStack(spacing: 2){
-                                Text("5")
+                                Text("\(viewModel.reviewCount)")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                                 Text("Reviews")
                                     .font(.caption)
                             }
                             VStack(spacing: 2){
-                                Text("10")
+                                Text("\(viewModel.friendCount)")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
                                 Text("Friends")
@@ -57,10 +85,10 @@ struct MyProfileView: View {
                     }.padding(5)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("First Last")
+                        Text(viewModel.name)
                             .font(.footnote)
                             .fontWeight(.semibold)
-                        Text("Hi! This is my bio")
+                        Text(viewModel.bio)
                             .font(.caption)
                         
                     }.padding(6)
@@ -104,7 +132,22 @@ struct MyProfileView: View {
                                     .stroke(Color(.systemGray4))
                             )
                     }
-                }.padding(6)
+                }
+                .padding(6)
+                .navigationTitle(viewModel.username) // Centered title
+                            .navigationBarTitleDisplayMode(.inline) // Ensures it's in the center
+                            .toolbar {
+                                ToolbarItem(placement: .navigationBarTrailing) {
+                                    NavigationLink(destination: SettingsView()) {
+                                        Image(systemName: "line.3.horizontal") // Settings icon
+                                            .font(.title2)
+                                            .foregroundColor(.black)
+                                    }
+                                }
+                            }
+                .task {
+                    await viewModel.fetchUserProfile() // Fetch data when view appears
+                }
             }
         }
     }

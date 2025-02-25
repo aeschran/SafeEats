@@ -1,15 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from services.business_owner_service import BusinessOwnerService, verify_password
+from schemas.password_reset import ForgotPasswordRequest, VerifyCodeRequest, ResetPasswordRequest
 from core.security import credentials_exception
 
 
-from services.jwttoken import create_access_token, verify_token, get_token
+from services.jwttoken import create_access_token, verify_token, get_token, create_reset_token, verify_reset_token
 from fastapi.security import OAuth2PasswordRequestForm
+
 
 router = APIRouter(tags=["Business Auth"])
 
 business_owner_service = BusinessOwnerService()    
+
+
 
 @router.get("/email/{email}")
 async def get_email_endpoint(email: str, token: str = Depends(get_token), 
@@ -34,6 +38,27 @@ async def login(request: OAuth2PasswordRequestForm = Depends()):
     
     
     # Generate access token with the business owner's email
-    access_token = create_access_token(data={"sub": business_owner["email"]})
+    access_token = create_access_token({"email": business_owner["email"], "id": str(business_owner["_id"])})
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+            "id": str(business_owner["_id"]),
+            "name": business_owner["name"],
+            "email": business_owner["email"],
+            "isVerified": business_owner["isVerified"],
+            "access_token": access_token,
+            "token_type": "bearer"  
+        }
+
+@router.post("/forgot-password")
+async def forgot_password(request: ForgotPasswordRequest):
+    return await business_owner_service.forgot_password(request.email)
+
+@router.post("/verify-reset-code")
+async def verify_reset_code(request: VerifyCodeRequest):
+    return await business_owner_service.verify_code(request.email, request.code)
+
+
+@router.post("/reset-password")
+async def reset_password(request: ResetPasswordRequest):
+    return await business_owner_service.reset_password(request.email, request.code, request.new_password)
+

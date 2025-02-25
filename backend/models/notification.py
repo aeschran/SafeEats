@@ -1,10 +1,10 @@
 # Notification model
 from bson import ObjectId
 from utils.enums import NotificationEnum
-from time import time
+import time
 
 class Notification():
-    def __init__(self, sender_id: ObjectId, recipient_id: ObjectId, type: NotificationEnum, content: str, timestamp: float):
+    def __init__(self, sender_id: ObjectId, recipient_id: ObjectId, type: NotificationEnum, content: str, timestamp: float = time.time()):
         self.sender_id = sender_id
         self.recipient_id = recipient_id
         self.type = type
