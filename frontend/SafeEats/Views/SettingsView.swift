@@ -66,7 +66,7 @@ struct SettingsView: View {
                     }
                     
                     GroupBox(label: Label("Suggest New Preferences", systemImage: "fork.knife.circle.fill")) {
-                        TagField(tags: $settingsViewModel.tags)
+                        TagField().environmentObject(settingsViewModel)
                         }
                     
                     
@@ -96,96 +96,101 @@ struct SettingsView: View {
 
 
 struct TagField: View {
-    @Binding var tags: [Tag]
+    @EnvironmentObject var settingsViewModel : SettingsViewModel
     var body : some View {
         VStack {
             VStack {
-                        ForEach($tags) { tag in TagView(tag: tag, allTags: $tags)
-                        }
-                    }
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 15)
-                    .background(.bar, in: .rect(cornerRadius: 12))
-                    .onAppear {
-                        if tags.isEmpty {
-                            tags.append(.init(value: "", isInitial: true))
-                        }
-                    }
-            Button {
-                Task {
-                    print("Tags: \(tags)")
-                
-                    // TODO: get preference list from backend, compare all tags with those, report good or bad! If good, send email, if bad, report error.
-                    
-                
+                ForEach($settingsViewModel.tags.indices, id: \.self) { index in
+                    TagView(tag: $settingsViewModel.tags[index], allTags: $settingsViewModel.tags)
                 }
-            } label: {
-                Text("Submit Suggestions")
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.white)
-                    .padding(.vertical, 12)
-                    .padding(.horizontal, 20)
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 15)
-                                .fill(Color.mainGreen)
-                                .zIndex(1)
-                        }
-                    )
+                .padding(.vertical, 10)
+                .padding(.horizontal, 15)
+                .background(.bar, in: .rect(cornerRadius: 12))
+                .onAppear {
+                    if settingsViewModel.tags.isEmpty {
+                        settingsViewModel.tags.append(Tag(value: "", isInitial: true))
+                    }
+                }
+                Button {
+                    Task {
+                        print("Tags: \($settingsViewModel.tags)")
+                        
+                        // TODO: get preference list from backend, compare all tags with those, report good or bad! If good, send email, if bad, report error.
+                        
+                        let preferences = await settingsViewModel.fetchExistingPreferences()
+                        
+                        
+                    }
+                } label: {
+                    Text("Submit Suggestions")
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.white)
+                        .padding(.vertical, 12)
+                        .padding(.horizontal, 20)
+                        .background(
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 15)
+                                    .fill(Color.mainGreen)
+                                    .zIndex(1)
+                            }
+                        )
+                }
             }
+            
         }
         
-    }
-        
-}
-
-fileprivate struct TagView: View {
-    @Binding var tag: Tag
-    @Binding var allTags: [Tag]
-    @FocusState private var isFocused: Bool
-    @Environment(\.colorScheme) private var colorScheme
-    var body: some View {
-        TextField("New Preference", text: $tag.value)
-            .focused($isFocused)
-            .padding(.vertical, 10)
-            .padding(.horizontal, 10)
-            .background((colorScheme == .dark ? Color.black : Color.white).opacity(isFocused ? 0 : 1), in: .rect(cornerRadius: 5))
-            .disabled(tag.isInitial)
-            .overlay {
-                if tag.isInitial {
-                    Rectangle()
-                        .fill(.clear)
-                        .contentShape(.rect)
-                        .onTapGesture {
-                            tag.isInitial = false
-                            isFocused = true
-                        }
-                }
-            }
-            .onSubmit {
-                addNewTag()
-            }
-                
     }
     
-    private func addNewTag() {
-        guard !tag.value.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-        
-        print("Tag: \(tag.value), Adding new tag to Tags: \(allTags)")
-        
-        if allTags.last?.value != "" {
-                        allTags.append(Tag(value: "", isInitial: true))
+    fileprivate struct TagView: View {
+        @Binding var tag: Tag
+        @Binding var allTags: [Tag]
+        @FocusState private var isFocused: Bool
+        @Environment(\.colorScheme) private var colorScheme
+        var body: some View {
+            TextField("New Preference", text: $tag.value)
+                .focused($isFocused)
+                .padding(.vertical, 10)
+                .padding(.horizontal, 10)
+                .background((colorScheme == .dark ? Color.black : Color.white).opacity(isFocused ? 0 : 1), in: .rect(cornerRadius: 5))
+                .disabled(tag.isInitial)
+                .overlay {
+                    if tag.isInitial {
+                        Rectangle()
+                            .fill(.clear)
+                            .contentShape(.rect)
+                            .onTapGesture {
+                                tag.isInitial = false
+                                isFocused = true
+                            }
                     }
+                }
+                .onSubmit {
+                    addNewTag()
+                }
             
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            if let lastIndex = allTags.indices.last {
-                isFocused = (allTags[lastIndex].isInitial)
+        }
+        
+        private func addNewTag() {
+            guard !tag.value.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+            
+            // Modify the parent array through the ViewModel instead of local binding
+            if let index = allTags.firstIndex(where: { $0.id == tag.id }) {
+                allTags[index] = tag // Update existing tag if needed
+            }
+            
+            if allTags.last?.value != "" {
+                allTags.append(Tag(value: "", isInitial: true)) // Add a new blank tag
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isFocused = false
             }
         }
     }
 }
-
+    
 #Preview {
     SettingsView()
         .environmentObject(AuthViewModel())
+        .environmentObject(SettingsViewModel())
 }

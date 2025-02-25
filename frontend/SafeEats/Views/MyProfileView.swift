@@ -138,7 +138,7 @@ struct MyProfileView: View {
                             .navigationBarTitleDisplayMode(.inline) // Ensures it's in the center
                             .toolbar {
                                 ToolbarItem(placement: .navigationBarTrailing) {
-                                    NavigationLink(destination: SettingsView()) {
+                                    NavigationLink(destination: SettingsView().environmentObject(SettingsViewModel())) {
                                         Image(systemName: "line.3.horizontal") // Settings icon
                                             .font(.title2)
                                             .foregroundColor(.black)

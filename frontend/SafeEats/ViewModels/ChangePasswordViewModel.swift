@@ -72,17 +72,11 @@ class ChangePasswordViewModel: ObservableObject {
             return
         }
         
-        if let jsonString = String(data: jsonData, encoding: .utf8) {
-            print("JSON being sent:", jsonString)
-        }
-        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.httpBody = jsonData
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        
-        print(request.allHTTPHeaderFields ?? [:])
 
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
