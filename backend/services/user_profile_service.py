@@ -1,7 +1,7 @@
 # app/services/user_service.py
 import bcrypt
 from models.profile import Profile
-from schemas.profile import ProfileResponse, ProfileCreate
+from schemas.profile import ProfileResponse, ProfileCreate, OtherProfileResponse
 from services.base_service import BaseService
 import logging
 from bson import ObjectId
@@ -40,7 +40,40 @@ class UserProfileService(BaseService):
         user_image = await self.db.user_profile_images.find_one({"user_id": str(_id)})
         user = ProfileResponse(**user_data)
         if user:
-            user = user.copy(update={"image": user_image["image"]})
+            if user_image:
+                user = user.copy(update={"image": user_image["image"]})
+            else:
+                user = user.copy(update={"image": None})
+            return user
+        return None
+    
+    async def get_other_user_profile(self, _id: str, friend_id: str):
+        user_data = await self.db.users.find_one({"_id": ObjectId(friend_id)}) 
+        if not user_data:
+            return None
+        user_image = await self.db.user_profile_images.find_one({"user_id": str(friend_id)})
+        user = OtherProfileResponse(**user_data)
+        friend_data = await self.db.friends.find_one({"user_id": str(_id), "friend_id": str(friend_id)})
+        if friend_data:
+            print(friend_data)
+        else:
+            print("hi")
+        if user:
+            if friend_data:
+                if user_image:
+                    print("1")
+                    user = user.copy(update={"image": user_image["image"], "is_following": True})
+                else:
+                    print("2")
+                    user = user.copy(update={"image": None, "is_following": True})
+            else:
+                if user_image:
+                    print("3")
+                    user = user.copy(update={"image": user_image["image"], "is_following": False})
+                else:
+                    print("4")
+                    user = user.copy(update={"is_following": False, "image": None})
+            print("Updated user:", user)
             return user
         return None
 
