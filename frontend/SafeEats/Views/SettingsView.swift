@@ -98,46 +98,64 @@ struct SettingsView: View {
 struct TagField: View {
     @EnvironmentObject var settingsViewModel : SettingsViewModel
     var body : some View {
-        VStack {
+        ZStack {
             VStack {
-                ForEach($settingsViewModel.tags.indices, id: \.self) { index in
-                    TagView(tag: $settingsViewModel.tags[index], allTags: $settingsViewModel.tags)
-                }
-                .padding(.vertical, 10)
-                .padding(.horizontal, 15)
-                .background(.bar, in: .rect(cornerRadius: 12))
-                .onAppear {
-                    if settingsViewModel.tags.isEmpty {
-                        settingsViewModel.tags.append(Tag(value: "", isInitial: true))
+                VStack {
+                    ForEach($settingsViewModel.tags.indices, id: \.self) { index in
+                        TagView(tag: $settingsViewModel.tags[index], allTags: $settingsViewModel.tags)
+                    }
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 15)
+                    .background(.bar, in: .rect(cornerRadius: 12))
+                    .onAppear {
+                        if settingsViewModel.tags.isEmpty {
+                            settingsViewModel.tags.append(Tag(value: "", isInitial: true))
+                        }
+                    }
+                    Button {
+                        Task {
+                            await settingsViewModel.submitSuggestions()
+                        }
+                    } label: {
+                        Text("Submit Suggestions")
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                            .padding(.vertical, 12)
+                            .padding(.horizontal, 20)
+                            .background(
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 15)
+                                        .fill(Color.mainGreen)
+                                        .zIndex(1)
+                                }
+                            )
                     }
                 }
-                Button {
-                    Task {
-                        print("Tags: \($settingsViewModel.tags)")
-                        
-                        // TODO: get preference list from backend, compare all tags with those, report good or bad! If good, send email, if bad, report error.
-                        
-                        let preferences = await settingsViewModel.fetchExistingPreferences()
-                        
-                        
+                
+            }
+            .zIndex(settingsViewModel.errorMessage == nil ? 1 : 0)
+            
+//            Text(settingsViewModel.errorMessage ?? "")
+//                .foregroundColor(.red)
+//                .padding()
+//                .zIndex(settingsViewModel.errorMessage == nil ? 0 : 1)
+//                .disabled(true)
+//
+            .alert(isPresented: Binding<Bool>(
+                get: { settingsViewModel.errorMessage != nil },
+                set: { if !$0 { settingsViewModel.errorMessage = nil } }
+            )) {
+                Alert(
+                    title: Text("Error"),
+                    message: Text(settingsViewModel.errorMessage ?? "Unknown error"),
+                    dismissButton: .default(Text("OK")) {
+                        settingsViewModel.errorMessage = nil  // ✅ Clears the error after dismissal.
                     }
-                } label: {
-                    Text("Submit Suggestions")
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.white)
-                        .padding(.vertical, 12)
-                        .padding(.horizontal, 20)
-                        .background(
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 15)
-                                    .fill(Color.mainGreen)
-                                    .zIndex(1)
-                            }
-                        )
-                }
+                )
             }
             
         }
+        
         
     }
     
