@@ -46,6 +46,19 @@ def verify_reset_token(token: str, credentials_exception):
 
  
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme_token = OAuth2PasswordBearer(tokenUrl="token")
 
 async def get_token(token: str = Depends(oauth2_scheme)):
     return token
+
+async def get_token_protected(token: str = Depends(oauth2_scheme_token)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    print("hola")
+    token_data = verify_token(token, credentials_exception)
+    if token_data is None:
+        raise credentials_exception
+    return token_data
