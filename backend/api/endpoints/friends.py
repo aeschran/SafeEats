@@ -9,7 +9,7 @@ router = APIRouter(tags=["Friends"])
 friend_service = FriendService()
 notification_service = NotificationService()
 
-@router.get("")
+@router.get("/{user_id}")
 async def get_friends(user_id: str):
     friends = await friend_service.get_friends(user_id)
     return friends

@@ -18,21 +18,47 @@ class FriendService(BaseService):
         return None
     
     async def get_friends(self, user_id: str):
-        user_id = ObjectId(user_id)
-        pipeline = [
-        {"$match": {"user_id": user_id}},  # Filter by user ID
-        {
-            "$lookup": {
-                "from": "users",  # Users collection
-                "localField": "friend_id",  # Field in friends
-                "foreignField": "_id",  # Matching field in users
-                "as": "friend"
+        # user_id = ObjectId(user_id)
+
+        friends = await self.db.friends.aggregate([
+            {
+                "$match": { "user_id": user_id }
+            },
+            {
+                "$project": {
+                    "_id": 0, 
+                    "friend_id": 1, 
+                    "friend_since": 1
+                }
+            },
+            {
+                "$group": {
+                    "_id": None,
+                    "friends": { "$push": { "friend_id": "$friend_id", "friend_since": "$friend_since" } }
+                }
+            },
+            {
+                "$project": { "_id": 0, "friends": 1 }
             }
-        },
-        {"$unwind": "$friend"}  # Convert friend array to an object
-        ]
-        friends = await self.db.friends.aggregate(pipeline).to_list(100)
-        friends = [FriendResponse(**friend) for friend in friends]
+            ]).to_list(length=None)
+        
+        for friend in friends[0]["friends"]:
+            friend_id = friend["friend_id"]
+            print(friend_id)
+            user_data = await self.db.users.find_one({"_id": ObjectId(friend_id)}, {"name": 1, "username": 1})
+            if user_data:
+                friend["name"] = user_data["name"]
+                print(friend["name"])
+                friend["username"] = user_data["username"]
+                print(friend["username"])
+            print(user_data)
+
+        # friends = await self.db.friends.aggregate(pipeline).to_list(100)
+        
+        # friends = [FriendResponse(**friend) for friend in friends]
+        # if friends:
+        #     print(":")
+        print(friends[0]["friends"][0])
         return friends
     
     async def delete_friend(self, _id: str) -> bool:
