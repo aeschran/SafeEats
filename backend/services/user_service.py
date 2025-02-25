@@ -13,7 +13,7 @@ from sendgrid.helpers.mail import Mail, Email, To, Content
 
 
 from fastapi import Depends, HTTPException, status
-from services.jwttoken import verify_token
+from services.jwttoken import verify_token, create_access_token
 from fastapi.security import OAuth2PasswordBearer
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
@@ -53,13 +53,25 @@ class UserService(BaseService):
 
     async def create_new_user(self, user_create: UserCreate):
         # Create a new user in the database
-        if await self.get_user_by_email(user_create.email):
+        if await self.get_user_by_username(user_create.username):
             raise HTTPException(status_code=400, detail="Email already registered")
-        user = User(name=user_create.name, email=user_create.email, password=hash_password(
-            user_create.password), username=user_create.username)
+        user = User(
+            name=user_create.name,
+            email=user_create.email,
+            phone=user_create.phone,
+            password=hash_password(user_create.password),
+            username=user_create.username
+        )
         result = await self.db.users.insert_one(user.to_dict())
-        return {**user.to_dict(), "id": str(result.inserted_id)}
-    
+        token = create_access_token({"email": user.email, "id": str(result.inserted_id)})
+
+        return {
+            **user.to_dict(),
+            "id": str(result.inserted_id),
+            "access_token": token,
+            "token_type": "bearer"
+        }
+        
     async def delete_user(self, _id: str) -> bool:
         # Delete a user from database by email
         

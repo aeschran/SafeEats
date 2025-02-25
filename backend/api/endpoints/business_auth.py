@@ -41,10 +41,11 @@ async def login(request: OAuth2PasswordRequestForm = Depends()):
     access_token = create_access_token({"email": business_owner["email"], "id": str(business_owner["_id"])})
 
     return {
-            "id": str(business_owner["_id"]),
-            "name": business_owner["name"],
             "email": business_owner["email"],
+            "name":business_owner["name"],
+            "phone": business_owner["phone"],
             "isVerified": business_owner["isVerified"],
+            "id": str(business_owner["_id"]),
             "access_token": access_token,
             "token_type": "bearer"  
         }

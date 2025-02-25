@@ -7,16 +7,20 @@
 import Foundation
 
 struct User : Codable, Identifiable {
-    let id : UUID = UUID()
-    let name: String
+    let id : String
+    let name: String?
     let email: String
+    let phone: String
     let username: String
+    let isVerified: Bool?
     
     enum CodingKeys : String, CodingKey {
-        case id = "_id"
+        case id
         case name
         case email
+        case phone
         case username
+        case isVerified
         
     }
 }

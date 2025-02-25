@@ -18,9 +18,8 @@ enum AccountType {
 }
 
 struct AuthView: View {
-
+    // declare in all views
     @AppStorage("user") var userData : Data?
-//    @StateObject private var viewModel = AuthViewModel()
     @EnvironmentObject var viewModel: AuthViewModel
     @EnvironmentObject var createProfileViewModel: CreateProfileViewModel
     @State private var email: String = ""
@@ -28,7 +27,7 @@ struct AuthView: View {
     @State private var phoneNumber: String = ""
     @State private var username: String = ""
     
-    
+    // use this function to access user data in future views
     var user: User? {
         get {
             guard let userData else { return nil }
@@ -38,6 +37,7 @@ struct AuthView: View {
             userData = try? JSONEncoder().encode(newValue)
         }
     }
+    
     
     
     @FocusState private var isEmailFocused: Bool
@@ -81,7 +81,7 @@ struct AuthView: View {
                         TextField("Username", text: $viewModel.username) .padding(.horizontal, 10) .focused($isUsernameFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isUsernameFocused))
                             .autocapitalization(.none)
                         
-                        if authType == .register { TextField("Phone Number", text: $viewModel.phoneNumber) .padding(.horizontal, 10) .focused($isPhoneNumberFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isPhoneNumberFocused)) }
+                        if authType == .register { TextField("Phone Number", text: $viewModel.phone) .padding(.horizontal, 10) .focused($isPhoneNumberFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isPhoneNumberFocused)) }
                         
                         ZStack {
                             TextField("Password", text: $viewModel.password)
@@ -135,32 +135,22 @@ struct AuthView: View {
                         Task {
                             if authType == .login && accountType == .businessOwnerAccount {
                                 await viewModel.busines_owner_login()
-                                let loggedInUser = User(name: viewModel.username, email: viewModel.email, username: viewModel.username)
-                                userData = try? JSONEncoder().encode(loggedInUser)
+                                
                             } else if authType == .register && accountType == .businessOwnerAccount {
                                 await viewModel.business_owner_register()
-                                let loggedInUser = User(name: viewModel.username, email: viewModel.email, username: viewModel.username)
-                                userData = try? JSONEncoder().encode(loggedInUser)
+                               
                             } else if authType == .login && accountType == .userAccount{
                                 await viewModel.user_login()
-                                let loggedInUser = User(name: viewModel.username, email: viewModel.email, username: viewModel.username)
-                                userData = try? JSONEncoder().encode(loggedInUser)
+                                
                             } else if authType == .register && accountType == .userAccount{
                                 navigateToCreateProfile = true
                                 await viewModel.user_register()
-                                let loggedInUser = User(name: viewModel.username, email: viewModel.email, username: viewModel.username)
-                                userData = try? JSONEncoder().encode(loggedInUser)
+                                
+                                
                                 print("hi")
                                 
                             }
-//                            DispatchQueue.main.async {
-//                                            navigateToCreateProfile = true
-//                                        }
-                            
-                            //                            if viewModel.isAuthenticated == true {
-                            //                                navigateToLanding = true
-                            //                            }
-                            
+//                         
                         }
                     } label: {
                         Text(authType == .login ? "Login" : "Register")
@@ -168,6 +158,12 @@ struct AuthView: View {
                     .buttonStyle(AuthButtonType())
                     .onChange(of: viewModel.isAuthenticated) {
                         if viewModel.isAuthenticated {
+                            // Setting user object (after authentication is finsihed, why it's moved to here)
+                            let loggedInUser = User(id: viewModel.id, name: viewModel.username, email: viewModel.email, phone: viewModel.phone, username: viewModel.username, isVerified: viewModel.isVerified)
+                            
+                            print("ID:\(viewModel.id)")
+                            
+                            userData = try? JSONEncoder().encode(loggedInUser)
                             if createProfileViewModel.isCreated == false {
                                 navigateToCreateProfile = true
                             } else {
