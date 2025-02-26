@@ -8,10 +8,6 @@ class UserCreate(BaseModel):
     phone: str
     password: str
     username: str
-    # bio: str = ""
-    # friend_count: int = 0
-    # review_count: int = 0
-    
 
 class UserChangePassword(BaseModel):
     password: str

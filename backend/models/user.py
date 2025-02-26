@@ -17,9 +17,6 @@ class User:
         self.phone = phone
         self.password = password
         self.username = username
-        # self.bio = bio
-        # self.friend_count = friend_count
-        # self.review_count = review_count
         
 
     def to_dict(self):
@@ -29,7 +26,4 @@ class User:
             "phone": self.phone,
             "password": self.password,
             "username": self.username,
-            # "bio": self.bio,
-            # "friend_count": self.friend_count,
-            # "review_count": self.review_count
         }
