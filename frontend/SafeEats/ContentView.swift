@@ -21,11 +21,12 @@ struct ContentView: View {
                     Group {
                         switch tabSelected {
                         case .house:
-                            LandingPage()
+                            FeedView()
                         case .search:
                             BusinessSearchView()
                         case .location:
-                            MapView()
+                            LandingPage()
+//                            MapView()
                         case .person:
                             MyProfileView()
                         }

@@ -223,7 +223,7 @@ struct CreateProfileView: View {
                     HStack() {
                         Button(action: {
                             //                            print("Saved: \(firstName) \(lastName), Bio: \(bio)")
-                            viewModel.isCreated = true
+                            viewModel.createdProfile = true
                             let base64Image = convertImageToBase64(image: image) ?? ""
                             
                             let preferences = selectedAllergies.map { ["preference": $0, "preference_type": "Allergy"] } +
