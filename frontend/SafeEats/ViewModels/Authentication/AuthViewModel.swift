@@ -114,6 +114,7 @@ class AuthViewModel: ObservableObject {
                                 self.phone = phone
                                 self.name = name
                                 self.isAuthenticated = true
+                                self.createdProfile = true
                                 print("Success: registered")
                             }
                         } else {
@@ -198,6 +199,7 @@ class AuthViewModel: ObservableObject {
                         self.email = email
                         self.phone = phone
                         self.isAuthenticated = true
+                        self.createdProfile = false
                         print("Success: registered")
                     }
                 } else {
@@ -420,7 +422,7 @@ class AuthViewModel: ObservableObject {
             self.phone = ""
             self.password = ""
             self.errorMessage = nil
-//            self.createdProfile = false
+            self.createdProfile = false
 //            self.createProfileViewModel = CreateProfileViewModel()
 //            self.createProfileViewModel.createdProfile = false
         }
