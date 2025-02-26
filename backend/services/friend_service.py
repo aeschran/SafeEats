@@ -52,10 +52,7 @@ class FriendService(BaseService):
                 "$project": {
                     "friend_id": 1,
                     "user_id": 1,
-                    "friend.name": 1,
-                    "friend.email": 1,
-                    "friend.username": 1,
-                    "friend.preferences": 1,
+                    "username": "$friend.username",
                     "friend_since": 1
                 }
             }

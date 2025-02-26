@@ -12,7 +12,7 @@ class FriendResponse(BaseModel):
     user_id: PyObjectId
     friend_id: PyObjectId
     friend_since: float
-    friend: UserResponse
+    username: str
 
     class Config:
         arbitrary_types_allowed = True
