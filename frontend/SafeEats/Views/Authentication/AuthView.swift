@@ -20,6 +20,7 @@ enum AccountType {
 struct AuthView: View {
     // declare in all views
     @AppStorage("user") var userData : Data?
+    @AppStorage("userType") var userType: String?
     @EnvironmentObject var viewModel: AuthViewModel
     @EnvironmentObject var createProfileViewModel: CreateProfileViewModel
     @State private var email: String = ""
@@ -135,18 +136,19 @@ struct AuthView: View {
                         Task {
                             if authType == .login && accountType == .businessOwnerAccount {
                                 await viewModel.busines_owner_login()
+                                userType = "Business"
                                 
                             } else if authType == .register && accountType == .businessOwnerAccount {
                                 await viewModel.business_owner_register()
+                                userType = "Business"
                                
                             } else if authType == .login && accountType == .userAccount{
                                 await viewModel.user_login()
+                                userType = "User"
                                 
                             } else if authType == .register && accountType == .userAccount{
-                                navigateToCreateProfile = true
                                 await viewModel.user_register()
-                                
-                                
+                                userType = "User"
                                 print("hi")
                                 
                             }

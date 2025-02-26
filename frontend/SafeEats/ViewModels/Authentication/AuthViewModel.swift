@@ -14,8 +14,11 @@ class AuthViewModel: ObservableObject {
     @Published var errorMessage: String?
 //    @Published var createProfileViewModel = CreateProfileViewModel()
     @AppStorage("user") var userData : Data?
-    @AppStorage("isUserCreated") var isCreated: Bool = false
     @AppStorage("createdProfile") var createdProfile: Bool = false
+    @AppStorage("userType") var userType: String?
+    @AppStorage("isUserCreated") var isCreated: Bool = false
+ 
+
     
     var user: User? {
             get {
@@ -356,7 +359,52 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    
+    func delete_account() async {
+
+        var url: URL?
+        if self.userType == "User" {
+            url = URL(string: "\(baseURL)/users/\(self.id)")
+        } else if self.userType == "Business" {
+            url = URL(string: "\(baseURL)/business_owners/\(self.id)")
+        }
+
+        guard let url = url else {
+            print("Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 200 {
+                    DispatchQueue.main.async {
+                        self.userData = nil
+                        self.isAuthenticated = false
+                        self.email = ""
+                        self.username = ""
+                        self.phone = ""
+                        self.password = ""
+                        self.errorMessage = nil
+                        self.createdProfile = false
+                        print("Account successfully deleted")
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self.errorMessage = "Failed to delete account. Status code: \(httpResponse.statusCode)"
+                    }
+                }
+            }
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Network error: \(error.localizedDescription)"
+            }
+        }
+    }
 
     
     /**
@@ -377,4 +425,5 @@ class AuthViewModel: ObservableObject {
 //            self.createProfileViewModel.createdProfile = false
         }
     }
+    
 }

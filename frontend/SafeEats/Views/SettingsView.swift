@@ -15,6 +15,17 @@ struct SettingsView: View {
     @State private var showLogoutConfirmation = false
     @State private var tags : [Tag] = []
     
+    // use this function to access user data in future views
+    var user: User? {
+        get {
+            guard let userData else { return nil }
+            return try? JSONDecoder().decode(User.self, from: userData)
+        }
+        set {
+            userData = try? JSONEncoder().encode(newValue)
+        }
+    }
+    
     @EnvironmentObject var authViewModel: AuthViewModel
     
     var body: some View {
@@ -58,8 +69,10 @@ struct SettingsView: View {
                             Alert(title: Text("Delete Account"),
                                   message: Text("Are you sure you want to delete your account? This action cannot be undone."),
                                   primaryButton: .destructive(Text("Delete")) {
-                                // Handle account deletion logic here
-                                print("Account deleted")
+                                Task {
+                                    await authViewModel.delete_account()
+                                }
+                                
                             },
                                   secondaryButton: .cancel())
                         }
@@ -149,7 +162,7 @@ struct TagField: View {
                     title: Text("Error"),
                     message: Text(settingsViewModel.errorMessage ?? "Unknown error"),
                     dismissButton: .default(Text("OK")) {
-                        settingsViewModel.errorMessage = nil  // ✅ Clears the error after dismissal.
+                        settingsViewModel.errorMessage = nil  
                     }
                 )
             }
