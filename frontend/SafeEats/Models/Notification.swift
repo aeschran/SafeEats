@@ -16,9 +16,10 @@ struct Sender: Codable, Identifiable {
 }
 
 struct NotificationResponse: Codable, Identifiable {
-    var id: String { "\(sender.id)-\(recipient_id)-\(timestamp)" } // Unique composite key
+    var id: String { "\(sender_id)-\(recipient_id)-\(timestamp)" } // Unique composite key
     let recipient_id: String
-    let sender: Sender
+    let sender_id: String
+    let sender_username: String
     let type: Int
     let content: String?
     let timestamp: Float

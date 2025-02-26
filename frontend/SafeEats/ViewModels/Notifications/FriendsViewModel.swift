@@ -46,7 +46,7 @@ class FriendsViewModel {
                 var requestObj = URLRequest(url: url)
                 requestObj.httpMethod = "POST"
                 requestObj.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                requestObj.httpBody = try JSONEncoder().encode(["user_id": request.recipient_id, "friend_id": request.sender.id])
+                requestObj.httpBody = try JSONEncoder().encode(["user_id": request.recipient_id, "friend_id": request.sender_id])
                 
                 let (_, response) = try await URLSession.shared.data(for: requestObj)
                 if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
