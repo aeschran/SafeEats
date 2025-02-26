@@ -40,7 +40,7 @@ struct PickPreferences: View {
                 .background(Color.mainGray)
                 .cornerRadius(15)
                 .padding(.horizontal, 20)
-                .padding(.vertical, 10)
+                .padding(.vertical, 2)
             }
         }
         .tint(.clear)
