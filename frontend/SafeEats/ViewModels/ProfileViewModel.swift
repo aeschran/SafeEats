@@ -137,6 +137,7 @@ class ProfileViewModel: ObservableObject {
             }
         }
     }
+    
     func sendFriendRequest() async {
         guard let id = id_ else {
                 print("Error: User data is not available")
@@ -174,6 +175,32 @@ class ProfileViewModel: ObservableObject {
             } catch {
                 print("Error sending friend request: \(error.localizedDescription)")
             }
+    }
+    
+    func unfollowFriend() async {
+        guard let id = id_ else {
+                print("Error: User data is not available")
+                return
+            }
+        
+        guard let url = URL(string: "\(baseURL)/friends/unfollow") else { return }
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: String] = ["user_id": id, "friend_id": friendId]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                DispatchQueue.main.async {
+                    self.isFollowing = false
+                }
+            }
+        } catch {
+            print("Failed to unfollow friend: \(error)")
+        }
     }
 
 }
