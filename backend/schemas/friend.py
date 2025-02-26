@@ -4,6 +4,7 @@ from utils.pyobjectid import PyObjectId
 from schemas.user import UserCreate, UserResponse
 
 class FriendCreate(BaseModel):
+    notification_id: str
     user_id: str
     friend_id: str
 

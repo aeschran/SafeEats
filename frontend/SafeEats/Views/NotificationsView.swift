@@ -10,6 +10,7 @@ import SwiftUI
 
 struct NotificationsView: View {
     @StateObject var viewModel = NotificationsViewModel()
+    @Environment(\.presentationMode) var presentationMode
 
     var body: some View {
         NavigationStack {
@@ -21,14 +22,16 @@ struct NotificationsView: View {
                     HStack {
                         Button("Accept") {
                             print(notification.id)
-                            viewModel.respondToRequest(notificationId: notification.id, accept: true)
+                            print(notification.recipient_id)
+                            print(notification.sender_id)
+                            viewModel.acceptRequest(notificationId: notification.id, recipientId: notification.recipient_id, senderId: notification.sender_id)
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.green)
 
                         Button("Deny") {
                             print(notification.id)
-                            viewModel.respondToRequest(notificationId: notification.id, accept: false)
+                            viewModel.denyRequest(notificationId: notification.id, recipientId: notification.recipient_id, senderId: notification.sender_id)
                         }
                         .buttonStyle(.bordered)
                         .tint(.red)
@@ -40,6 +43,24 @@ struct NotificationsView: View {
             .onAppear {
                 viewModel.fetchNotifications()
             }
+            .navigationBarBackButtonHidden()
+            .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(action: {
+                    // Navigate back to FeedView when back button is clicked
+                    let rootView = ContentView()
+                    let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+                    let window = windowScene?.windows.first
+                    window?.rootViewController = UIHostingController(rootView: rootView)
+                    window?.makeKeyAndVisible()
+                }) {
+                    HStack {
+                        Image(systemName: "chevron.left")
+                        Text("Back")
+                    }
+                }
+            }
+        }
         }
     }
 }

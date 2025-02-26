@@ -146,6 +146,7 @@ struct AuthView: View {
                                 userType = "User"
                                 
                             } else if authType == .register && accountType == .userAccount{
+                                
                                 await viewModel.user_register()
                                 userType = "User"
                                 print("hi")

@@ -8,7 +8,7 @@ class Friend():
         self.friend_since = friend_since 
     def to_dict(self):
         return {
-            "user_id": str(self.user_id),
-            "friend_id": str(self.friend_id),
+            "user_id": self.user_id,
+            "friend_id": self.friend_id,
             "friend_since": self.friend_since
         }
