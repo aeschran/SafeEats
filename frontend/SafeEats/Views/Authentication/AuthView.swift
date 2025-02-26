@@ -69,7 +69,7 @@ struct AuthView: View {
                     SegmentedView(authType: $authType)
                     
                     VStack(spacing: 15) {
-                        if authType == .register {
+                        if authType == .register  || accountType == .businessOwnerAccount {
                             TextField(text: $viewModel.email) {
                                 Text("Email")
                             }
@@ -77,9 +77,10 @@ struct AuthView: View {
                             .focused($isEmailFocused)
                             .textFieldStyle(AuthTextFieldStyle(isFocused: $isEmailFocused))}
                         
-                        
-                        TextField("Username", text: $viewModel.username) .padding(.horizontal, 10) .focused($isUsernameFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isUsernameFocused))
-                            .autocapitalization(.none)
+                        if authType == .register  || accountType == .userAccount {
+                            TextField("Username", text: $viewModel.username) .padding(.horizontal, 10) .focused($isUsernameFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isUsernameFocused))
+                                .autocapitalization(.none)
+                        }
                         
                         if authType == .register { TextField("Phone Number", text: $viewModel.phone) .padding(.horizontal, 10) .focused($isPhoneNumberFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isPhoneNumberFocused)) }
                         

@@ -220,7 +220,7 @@ class AuthViewModel: ObservableObject {
         //TODO: is there a reason we are using email to login vs username? might be good to keep consistent with reg user login
         guard let url = URL(string: "\(baseURL)/business_auth/login") else { return }
         
-        let body = "username=\(username.lowercased())&password=\(password)".data(using: .utf8)
+        let body = "username=\(email.lowercased())&password=\(password)".data(using: .utf8)
         print(username)
         print(password)
         
