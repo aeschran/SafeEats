@@ -62,6 +62,17 @@ struct CreateProfileView: View {
     private let fieldWidth: CGFloat = 265
     @State private var selectedDietaryRestrictions: Set<String> = []
     @State private var selectedAllergies: Set<String> = []
+    @AppStorage("user") var userData : Data?
+    
+    var user: User? {
+        get {
+            guard let userData else { return nil }
+            return try? JSONDecoder().decode(User.self, from: userData)
+        }
+        set {
+            userData = try? JSONEncoder().encode(newValue)
+        }
+    }
     
     
 
@@ -223,7 +234,7 @@ struct CreateProfileView: View {
                     HStack() {
                         Button(action: {
                             //                            print("Saved: \(firstName) \(lastName), Bio: \(bio)")
-                            viewModel.createdProfile = true
+                            
                             let base64Image = convertImageToBase64(image: image) ?? ""
                             
                             let preferences = selectedAllergies.map { ["preference": $0, "preference_type": "Allergy"] } +
@@ -242,7 +253,8 @@ struct CreateProfileView: View {
                             ]
                             
                             viewModel.sendProfileDataToBackend(profileData)
-                            navigateToLandingPage = true
+//                            viewModel.createdProfile = true
+//                            navigateToLandingPage = true
                         }) {
                             Text("Save")
                                 .foregroundColor(.white)

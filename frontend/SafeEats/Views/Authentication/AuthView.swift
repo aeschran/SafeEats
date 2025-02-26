@@ -150,7 +150,7 @@ struct AuthView: View {
                                 print("hi")
                                 
                             }
-//                         
+//
                         }
                     } label: {
                         Text(authType == .login ? "Login" : "Register")
@@ -203,7 +203,7 @@ struct AuthView: View {
 //                    .navigationDestination(isPresented: $navigateToLanding) {
 //                        LandingPage().navigationBarBackButtonHidden(true)
 //                    }
-//                    
+//
 //                        .navigationDestination(isPresented: $navigateToLanding) {
 //                            LandingPage().navigationBarBackButtonHidden(true)
 //                        }

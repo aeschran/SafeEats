@@ -12,8 +12,8 @@ class Notification():
         self.timestamp = timestamp
     def to_dict(self):
         return {
-            "sender_id": str(self.sender_id),
-            "recipient_id": str(self.recipient_id),
+            "sender_id": self.sender_id,
+            "recipient_id": self.recipient_id,
             "type": self.type.value,
             "content": self.content,
             "timestamp": self.timestamp

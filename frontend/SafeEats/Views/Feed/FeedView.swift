@@ -18,11 +18,14 @@ struct FeedView: View {
     @StateObject var viewModel = FeedViewModel()
     @State private var navigateToProfile = false
     @State private var selectedUserId: String?
+    @State private var navigateToNotifications = false
 
     var body: some View {
         NavigationStack {
             VStack {
-                SearchBarView(searchText: $viewModel.searchText)
+                SearchBarView(searchText: $viewModel.searchText, onNotificationsTap: {
+                    navigateToNotifications = true
+                })
                     .onChange(of: viewModel.searchText) { _ in
                         viewModel.searchUsers()
                     }
@@ -64,6 +67,12 @@ struct FeedView: View {
                 if let userId = selectedUserId {
                     ProfileView(friendId: userId)
                 }
+            }
+            .navigationDestination(isPresented: $navigateToNotifications) {
+                    NotificationsView()
+//                Text("Notifications Page (Coming Soon)") // Placeholder for future implementation
+//                    .font(.largeTitle)
+//                    .foregroundColor(.gray)
             }
         }
         .background(Color.white)
