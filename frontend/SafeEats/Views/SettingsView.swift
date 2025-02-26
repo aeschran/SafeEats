@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @AppStorage("user") var userData : Data?
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     @State private var showChangePassword = false
     @State private var showDeleteAccountAlert = false
@@ -16,15 +15,7 @@ struct SettingsView: View {
     @State private var tags : [Tag] = []
     
     // use this function to access user data in future views
-    var user: User? {
-        get {
-            guard let userData else { return nil }
-            return try? JSONDecoder().decode(User.self, from: userData)
-        }
-        set {
-            userData = try? JSONEncoder().encode(newValue)
-        }
-    }
+    
     
     @EnvironmentObject var authViewModel: AuthViewModel
     
@@ -51,9 +42,8 @@ struct SettingsView: View {
                             Alert(title: Text("Log Out"),
                                   message: Text("Are you sure you want to log out?"),
                                   primaryButton: .destructive(Text("Log Out")) {
-                                userData = nil
+                               
                                 authViewModel.logout()
-                                userData = nil
                             },
                                   secondaryButton: .cancel())
                         }
@@ -177,44 +167,64 @@ struct TagField: View {
         @Binding var allTags: [Tag]
         @FocusState private var isFocused: Bool
         @Environment(\.colorScheme) private var colorScheme
+
         var body: some View {
-            TextField("New Preference", text: $tag.value)
-                .focused($isFocused)
-                .padding(.vertical, 10)
-                .padding(.horizontal, 10)
-                .background((colorScheme == .dark ? Color.black : Color.white).opacity(isFocused ? 0 : 1), in: .rect(cornerRadius: 5))
-                .disabled(tag.isInitial)
-                .overlay {
-                    if tag.isInitial {
-                        Rectangle()
-                            .fill(.clear)
-                            .contentShape(.rect)
-                            .onTapGesture {
-                                tag.isInitial = false
-                                isFocused = true
-                            }
+            HStack {
+                TextField("New Preference", text: $tag.value)
+                    .focused($isFocused)
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 10)
+                    .background((colorScheme == .dark ? Color.black : Color.white).opacity(isFocused ? 0 : 1), in: .rect(cornerRadius: 5))
+                    .disabled(tag.isInitial)
+                    .overlay {
+                        if tag.isInitial {
+                            Rectangle()
+                                .fill(.clear)
+                                .contentShape(.rect)
+                                .onTapGesture {
+                                    tag.isInitial = false
+                                    isFocused = true
+                                }
+                        }
                     }
-                }
-                .onSubmit {
-                    addNewTag()
-                }
-            
+                    .onSubmit {
+                        addNewTag()
+                    }
+                
+                Button(action: {
+                        removeTag()
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.red)
+                    }
+                    .padding(.leading, 8)
+            }
         }
         
         private func addNewTag() {
             guard !tag.value.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-            
-            // Modify the parent array through the ViewModel instead of local binding
+
             if let index = allTags.firstIndex(where: { $0.id == tag.id }) {
-                allTags[index] = tag // Update existing tag if needed
+                allTags[index] = tag
             }
-            
+
             if allTags.last?.value != "" {
-                allTags.append(Tag(value: "", isInitial: true)) // Add a new blank tag
+                allTags.append(Tag(value: "", isInitial: true))
             }
-            
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 isFocused = false
+            }
+        }
+        
+        private func removeTag() {
+            if let index = allTags.firstIndex(where: { $0.id == tag.id }) {
+                allTags.remove(at: index)
+            }
+
+            // Ensure at least one empty tag remains
+            if allTags.isEmpty {
+                allTags.append(Tag(value: "", isInitial: true))
             }
         }
     }

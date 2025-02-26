@@ -18,20 +18,7 @@ class ProfileViewModel: ObservableObject {
     @Published var isFollowing: Bool = false
     @Published var didTap: Bool = false
     private var friendId: String
-    @AppStorage("user") var userData : Data?
-    
-    var user: User? {
-            get {
-                guard let userData else { return nil }
-                return try? JSONDecoder().decode(User.self, from: userData)
-            }
-            set {
-                guard let newValue = newValue else { return }
-                if let encodedUser = try? JSONEncoder().encode(newValue) {
-                    self.userData = encodedUser
-                }
-            }
-        }
+    @AppStorage("id") var id_: String?
     
 //    @Published var friend: Friend
 //
@@ -104,7 +91,7 @@ class ProfileViewModel: ObservableObject {
 
     func fetchUserProfile(friendId: String) async {
         Task {
-            guard let user = user else {
+            guard let id = id_ else {
                     print("Error: User data is not available")
                     return
                 }
@@ -112,7 +99,7 @@ class ProfileViewModel: ObservableObject {
             //                print("Error: User data is not available")
             //                return
             //            }
-            guard let url = URL(string: "\(baseURL)/profile/\(user.id)/other/\(friendId)") else { return }
+            guard let url = URL(string: "\(baseURL)/profile/\(id)/other/\(friendId)") else { return }
             
             do {
                 let (data, _) = try await URLSession.shared.data(from: url)
@@ -151,13 +138,13 @@ class ProfileViewModel: ObservableObject {
         }
     }
     func sendFriendRequest() async {
-        guard let user = user else {
-            print("Error: User data is not available")
-            return
-        }
+        guard let id = id_ else {
+                print("Error: User data is not available")
+                return
+            }
         
         let requestBody: [String: Any] = [
-            "sender_id": user.id,
+            "sender_id": id,
             "recipient_id": friendId,
             "type": 1,
             "content": "",

@@ -6,5 +6,6 @@ router = APIRouter(tags=["Business Search"])
 business_search_service = BusinessSearchService()
 
 @router.get("")
-async def search_businesses_endpont(query: str = "coffee", near: str = "West Lafayette, IN", limit: int = 10):
-    return business_search_service.search_by_query()
+async def search_businesses_endpoint(lat: float, lon: float, limit: int = 10, query: str = "coffee"):
+    response = await business_search_service.search_by_lat_long(lat, lon, query)
+    return response

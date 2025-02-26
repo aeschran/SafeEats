@@ -25,49 +25,48 @@ class FriendService(BaseService):
             raise HTTPException(status_code=500, detail=str(e))
     
     async def get_friends(self, user_id: str):
-        # user_id = ObjectId(user_id)
-        # user_id = ObjectId(user_id)
-
-        friends = await self.db.friends.aggregate([
+        user_id = ObjectId(user_id)
+        pipeline = [
             {
-                "$match": { "user_id": ObjectId(user_id) }
+                "$match": {
+                    "$or": [
+                        {"user_id": user_id},
+                        {"friend_id": user_id}
+                    ]
+                }
             },
+            {
+                "$addFields": {
+                    "friend_ref": {
+                        "$cond": {
+                            "if": {"$eq": ["$user_id", user_id]},
+                            "then": "$friend_id",
+                            "else": "$user_id"
+                        }
+                    }
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "users",  # Users collection
+                    "localField": "friend_ref",  # The actual friend's ID
+                    "foreignField": "_id",  # Matching field in users
+                    "as": "friend"
+                }
+            },
+            {"$unwind": "$friend"},  # Convert friend array to an object
             {
                 "$project": {
-                    "_id": 0, 
-                    "friend_id": 1, 
+                    "friend_id": 1,
+                    "user_id": 1,
+                    "username": "$friend.username",
                     "friend_since": 1
                 }
-            },
-            {
-                "$group": {
-                    "_id": None,
-                    "friends": { "$push": { "friend_id": "$friend_id", "friend_since": "$friend_since" } }
-                }
-            },
-            {
-                "$project": { "_id": 0, "friends": 1 }
             }
-            ]).to_list(length=None)
-        friends_list = []
-        if not friends:
-            return friends_list
-        else:
-            
-            for friend in friends[0]["friends"]:
-                friend_id = friend["friend_id"]
-                user_data = await self.db.users.find_one(
-                    {"_id": ObjectId(friend_id)},
-                    {"name": 1, "username": 1}
-                )
-                if user_data:
-                    friends_list.append({
-                        "friend_id": str(friend_id),  # Convert to string for JSON compatibility
-                        "friend_since": friend["friend_since"],
-                        "name": user_data["name"],
-                        "username": user_data["username"],
-                    })
-        return friends_list
+        ]
+        friends = await self.db.friends.aggregate(pipeline).to_list(100)
+        friends = [FriendResponse(**friend) for friend in friends]
+        return friends
     
     async def delete_friend(self, _id: str) -> bool:
         result = await self.db.friends.delete_one({"_id": ObjectId(_id)})

@@ -1,0 +1,583 @@
+{
+    "results": [
+        {
+            "fsq_id": "4e6f4c3d1838a9b627945eb4",
+            "categories": [
+                {
+                    "id": 13035,
+                    "name": "Coffee Shop",
+                    "short_name": "Coffee Shop",
+                    "plural_name": "Coffee Shops",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/coffeeshop_",
+                        "suffix": ".png"
+                    }
+                }
+            ],
+            "chains": [],
+            "closed_bucket": "Unsure",
+            "distance": 428,
+            "geocodes": {
+                "main": {
+                    "latitude": 40.424459,
+                    "longitude": -86.917102
+                }
+            },
+            "link": "/v3/places/4e6f4c3d1838a9b627945eb4",
+            "location": {
+                "address": "900 W State St",
+                "census_block": "181570054012029",
+                "country": "US",
+                "dma": "Lafayette, In",
+                "formatted_address": "900 W State St, West Lafayette, IN 47907",
+                "locality": "West Lafayette",
+                "postcode": "47907",
+                "region": "IN"
+            },
+            "name": "Lavazza Espression",
+            "related_places": {
+                "parent": {
+                    "fsq_id": "4e553853a8093d27ccafd596",
+                    "categories": [
+                        {
+                            "id": 12014,
+                            "name": "College Academic Building",
+                            "short_name": "Academic Building",
+                            "plural_name": "College Academic Buildings",
+                            "icon": {
+                                "prefix": "https://ss3.4sqi.net/img/categories_v2/education/academicbuilding_",
+                                "suffix": ".png"
+                            }
+                        },
+                        {
+                            "id": 19014,
+                            "name": "Hotel",
+                            "short_name": "Hotel",
+                            "plural_name": "Hotels",
+                            "icon": {
+                                "prefix": "https://ss3.4sqi.net/img/categories_v2/travel/hotel_",
+                                "suffix": ".png"
+                            }
+                        }
+                    ],
+                    "name": "Marriott Hall HTM West Lafayette"
+                }
+            },
+            "timezone": "America/Indiana/Indianapolis"
+        },
+        {
+            "fsq_id": "4b094fd0f964a520901523e3",
+            "categories": [
+                {
+                    "id": 13035,
+                    "name": "Coffee Shop",
+                    "short_name": "Coffee Shop",
+                    "plural_name": "Coffee Shops",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/coffeeshop_",
+                        "suffix": ".png"
+                    }
+                },
+                {
+                    "id": 13065,
+                    "name": "Restaurant",
+                    "short_name": "Restaurant",
+                    "plural_name": "Restaurants",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/default_",
+                        "suffix": ".png"
+                    }
+                }
+            ],
+            "chains": [],
+            "closed_bucket": "Unsure",
+            "distance": 1168,
+            "geocodes": {
+                "main": {
+                    "latitude": 40.424133,
+                    "longitude": -86.907803
+                },
+                "roof": {
+                    "latitude": 40.424133,
+                    "longitude": -86.907803
+                }
+            },
+            "link": "/v3/places/4b094fd0f964a520901523e3",
+            "location": {
+                "address": "100 Northwestern Ave",
+                "census_block": "181570054011009",
+                "country": "US",
+                "cross_street": "at State St & South St",
+                "dma": "Lafayette, In",
+                "formatted_address": "100 Northwestern Ave (at State St & South St), West Lafayette, IN 47906",
+                "locality": "West Lafayette",
+                "postcode": "47906",
+                "region": "IN"
+            },
+            "name": "Greyhouse Coffee & Supply Co.",
+            "related_places": {},
+            "timezone": "America/Indiana/Indianapolis"
+        },
+        {
+            "fsq_id": "526beb80498eab0e2c410f64",
+            "categories": [
+                {
+                    "id": 13034,
+                    "name": "Café",
+                    "short_name": "Café",
+                    "plural_name": "Cafés",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/cafe_",
+                        "suffix": ".png"
+                    }
+                },
+                {
+                    "id": 13064,
+                    "name": "Pizzeria",
+                    "short_name": "Pizza",
+                    "plural_name": "Pizzerias",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/pizza_",
+                        "suffix": ".png"
+                    }
+                },
+                {
+                    "id": 13068,
+                    "name": "American Restaurant",
+                    "short_name": "American",
+                    "plural_name": "American Restaurants",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/default_",
+                        "suffix": ".png"
+                    }
+                }
+            ],
+            "chains": [],
+            "closed_bucket": "LikelyOpen",
+            "distance": 2648,
+            "geocodes": {
+                "main": {
+                    "latitude": 40.447216,
+                    "longitude": -86.921772
+                },
+                "roof": {
+                    "latitude": 40.447216,
+                    "longitude": -86.921772
+                }
+            },
+            "link": "/v3/places/526beb80498eab0e2c410f64",
+            "location": {
+                "address": "1920 Northwestern Ave",
+                "census_block": "181570052003004",
+                "country": "US",
+                "cross_street": "",
+                "dma": "Lafayette, In",
+                "formatted_address": "1920 Northwestern Ave, West Lafayette, IN 47906",
+                "locality": "West Lafayette",
+                "postcode": "47906",
+                "region": "IN"
+            },
+            "name": "Cafe Literato",
+            "related_places": {},
+            "timezone": "America/Indiana/Indianapolis"
+        },
+        {
+            "fsq_id": "53f018fe498e350b17c201f2",
+            "categories": [
+                {
+                    "id": 13033,
+                    "name": "Bubble Tea Shop",
+                    "short_name": "Bubble Tea",
+                    "plural_name": "Bubble Tea Shops",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/bubble_",
+                        "suffix": ".png"
+                    }
+                },
+                {
+                    "id": 13034,
+                    "name": "Café",
+                    "short_name": "Café",
+                    "plural_name": "Cafés",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/cafe_",
+                        "suffix": ".png"
+                    }
+                },
+                {
+                    "id": 13000,
+                    "name": "Dining and Drinking",
+                    "short_name": "Dining and Drinking",
+                    "plural_name": "Dining and Drinking",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/default_",
+                        "suffix": ".png"
+                    }
+                }
+            ],
+            "chains": [],
+            "closed_bucket": "Unsure",
+            "distance": 1802,
+            "geocodes": {
+                "main": {
+                    "latitude": 40.421018,
+                    "longitude": -86.900817
+                },
+                "roof": {
+                    "latitude": 40.421018,
+                    "longitude": -86.900817
+                }
+            },
+            "link": "/v3/places/53f018fe498e350b17c201f2",
+            "location": {
+                "address": "358 E State St",
+                "census_block": "181570054022013",
+                "country": "US",
+                "cross_street": "",
+                "dma": "Lafayette, In",
+                "formatted_address": "358 E State St, West Lafayette, IN 47906",
+                "locality": "West Lafayette",
+                "postcode": "47906",
+                "region": "IN"
+            },
+            "name": "Latea Bubble Tea Lounge",
+            "related_places": {},
+            "timezone": "America/Indiana/Indianapolis"
+        },
+        {
+            "fsq_id": "4bad61cff964a520374c3be3",
+            "categories": [
+                {
+                    "id": 13034,
+                    "name": "Café",
+                    "short_name": "Café",
+                    "plural_name": "Cafés",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/cafe_",
+                        "suffix": ".png"
+                    }
+                },
+                {
+                    "id": 13035,
+                    "name": "Coffee Shop",
+                    "short_name": "Coffee Shop",
+                    "plural_name": "Coffee Shops",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/coffeeshop_",
+                        "suffix": ".png"
+                    }
+                },
+                {
+                    "id": 13068,
+                    "name": "American Restaurant",
+                    "short_name": "American",
+                    "plural_name": "American Restaurants",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/default_",
+                        "suffix": ".png"
+                    }
+                }
+            ],
+            "chains": [],
+            "closed_bucket": "LikelyOpen",
+            "distance": 2391,
+            "geocodes": {
+                "main": {
+                    "latitude": 40.411138,
+                    "longitude": -86.898742
+                },
+                "roof": {
+                    "latitude": 40.411138,
+                    "longitude": -86.898742
+                }
+            },
+            "link": "/v3/places/4bad61cff964a520374c3be3",
+            "location": {
+                "address": "724 Wabash Ave",
+                "census_block": "181570111003027",
+                "country": "US",
+                "dma": "Lafayette, In",
+                "formatted_address": "724 Wabash Ave, Lafayette, IN 47905",
+                "locality": "Lafayette",
+                "postcode": "47905",
+                "region": "IN"
+            },
+            "name": "Sacred Grounds",
+            "related_places": {},
+            "timezone": "America/Indiana/Indianapolis"
+        },
+        {
+            "fsq_id": "50cf69a3e4b0a73ce6398ee0",
+            "categories": [
+                {
+                    "id": 13035,
+                    "name": "Coffee Shop",
+                    "short_name": "Coffee Shop",
+                    "plural_name": "Coffee Shops",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/coffeeshop_",
+                        "suffix": ".png"
+                    }
+                },
+                {
+                    "id": 13065,
+                    "name": "Restaurant",
+                    "short_name": "Restaurant",
+                    "plural_name": "Restaurants",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/default_",
+                        "suffix": ".png"
+                    }
+                }
+            ],
+            "chains": [],
+            "closed_bucket": "LikelyOpen",
+            "distance": 2313,
+            "geocodes": {
+                "main": {
+                    "latitude": 40.419274,
+                    "longitude": -86.894967
+                },
+                "roof": {
+                    "latitude": 40.419274,
+                    "longitude": -86.894967
+                }
+            },
+            "link": "/v3/places/50cf69a3e4b0a73ce6398ee0",
+            "location": {
+                "address": "210 Main St",
+                "census_block": "181570111003003",
+                "country": "US",
+                "cross_street": "",
+                "dma": "Lafayette, In",
+                "formatted_address": "210 Main St, Lafayette, IN 47901",
+                "locality": "Lafayette",
+                "postcode": "47901",
+                "region": "IN"
+            },
+            "name": "Star City Coffee & Ale House",
+            "related_places": {},
+            "timezone": "America/Indiana/Indianapolis"
+        },
+        {
+            "fsq_id": "4b0486d0f964a520e25422e3",
+            "categories": [
+                {
+                    "id": 13002,
+                    "name": "Bakery",
+                    "short_name": "Bakery",
+                    "plural_name": "Bakeries",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/bakery_",
+                        "suffix": ".png"
+                    }
+                },
+                {
+                    "id": 13035,
+                    "name": "Coffee Shop",
+                    "short_name": "Coffee Shop",
+                    "plural_name": "Coffee Shops",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/coffeeshop_",
+                        "suffix": ".png"
+                    }
+                },
+                {
+                    "id": 13334,
+                    "name": "Sandwich Spot",
+                    "short_name": "Sandwich Spot",
+                    "plural_name": "Sandwich Spots",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/deli_",
+                        "suffix": ".png"
+                    }
+                }
+            ],
+            "chains": [],
+            "closed_bucket": "Unsure",
+            "distance": 1193,
+            "geocodes": {
+                "main": {
+                    "latitude": 40.424052,
+                    "longitude": -86.907602
+                },
+                "roof": {
+                    "latitude": 40.424052,
+                    "longitude": -86.907602
+                }
+            },
+            "link": "/v3/places/4b0486d0f964a520e25422e3",
+            "location": {
+                "address": "208 South St",
+                "address_extended": "Ste A",
+                "census_block": "181570054011009",
+                "country": "US",
+                "cross_street": "",
+                "dma": "Lafayette, In",
+                "formatted_address": "208 South St, West Lafayette, IN 47906",
+                "locality": "West Lafayette",
+                "postcode": "47906",
+                "region": "IN"
+            },
+            "name": "Vienna Espresso Bar & Bakery",
+            "related_places": {},
+            "timezone": "America/Indiana/Indianapolis"
+        },
+        {
+            "fsq_id": "4cb5b1f5f6616dcb0c43d908",
+            "categories": [
+                {
+                    "id": 13035,
+                    "name": "Coffee Shop",
+                    "short_name": "Coffee Shop",
+                    "plural_name": "Coffee Shops",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/coffeeshop_",
+                        "suffix": ".png"
+                    }
+                },
+                {
+                    "id": 13065,
+                    "name": "Restaurant",
+                    "short_name": "Restaurant",
+                    "plural_name": "Restaurants",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/default_",
+                        "suffix": ".png"
+                    }
+                }
+            ],
+            "chains": [],
+            "closed_bucket": "Unsure",
+            "distance": 608,
+            "geocodes": {
+                "main": {
+                    "latitude": 40.427604,
+                    "longitude": -86.916916
+                }
+            },
+            "link": "/v3/places/4cb5b1f5f6616dcb0c43d908",
+            "location": {
+                "address": "305 N University St",
+                "census_block": "181570054012022",
+                "country": "US",
+                "cross_street": "in Lawson Computer Science Building 1st floor",
+                "dma": "Lafayette, In",
+                "formatted_address": "305 N University St (in Lawson Computer Science Building 1st floor), West Lafayette, IN 47907",
+                "locality": "West Lafayette",
+                "postcode": "47907",
+                "region": "IN"
+            },
+            "name": "Port",
+            "related_places": {},
+            "timezone": "America/Indiana/Indianapolis"
+        },
+        {
+            "fsq_id": "537f7c36498e7fd31bc8d99e",
+            "categories": [
+                {
+                    "id": 13035,
+                    "name": "Coffee Shop",
+                    "short_name": "Coffee Shop",
+                    "plural_name": "Coffee Shops",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/coffeeshop_",
+                        "suffix": ".png"
+                    }
+                },
+                {
+                    "id": 13334,
+                    "name": "Sandwich Spot",
+                    "short_name": "Sandwich Spot",
+                    "plural_name": "Sandwich Spots",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/deli_",
+                        "suffix": ".png"
+                    }
+                }
+            ],
+            "chains": [],
+            "closed_bucket": "Unsure",
+            "distance": 3100,
+            "geocodes": {
+                "main": {
+                    "latitude": 40.418958,
+                    "longitude": -86.885585
+                },
+                "roof": {
+                    "latitude": 40.418958,
+                    "longitude": -86.885585
+                }
+            },
+            "link": "/v3/places/537f7c36498e7fd31bc8d99e",
+            "location": {
+                "address": "1005 Main St",
+                "census_block": "181570004003027",
+                "country": "US",
+                "cross_street": "11th St",
+                "dma": "Lafayette, In",
+                "formatted_address": "1005 Main St (11th St), Lafayette, IN 47901",
+                "locality": "Lafayette",
+                "postcode": "47901",
+                "region": "IN"
+            },
+            "name": "Fuel",
+            "related_places": {},
+            "timezone": "America/Indiana/Indianapolis"
+        },
+        {
+            "fsq_id": "4ec18d1493ad36d7a9d6df24",
+            "categories": [
+                {
+                    "id": 13035,
+                    "name": "Coffee Shop",
+                    "short_name": "Coffee Shop",
+                    "plural_name": "Coffee Shops",
+                    "icon": {
+                        "prefix": "https://ss3.4sqi.net/img/categories_v2/food/coffeeshop_",
+                        "suffix": ".png"
+                    }
+                }
+            ],
+            "chains": [],
+            "closed_bucket": "LikelyOpen",
+            "distance": 1006,
+            "geocodes": {
+                "main": {
+                    "latitude": 40.429362,
+                    "longitude": -86.912611
+                },
+                "roof": {
+                    "latitude": 40.429362,
+                    "longitude": -86.912611
+                }
+            },
+            "link": "/v3/places/4ec18d1493ad36d7a9d6df24",
+            "location": {
+                "address": "501 Northwestern Ave",
+                "census_block": "181570054012006",
+                "country": "US",
+                "cross_street": "",
+                "dma": "Lafayette, In",
+                "formatted_address": "501 Northwestern Ave, West Lafayette, IN 47907",
+                "locality": "West Lafayette",
+                "postcode": "47907",
+                "region": "IN"
+            },
+            "name": "Beans",
+            "related_places": {},
+            "timezone": "America/Indiana/Indianapolis"
+        }
+    ],
+    "context": {
+        "geo_bounds": {
+            "circle": {
+                "center": {
+                    "latitude": 40.423538,
+                    "longitude": -86.921738
+                },
+                "radius": 22000
+            }
+        }
+    }
+}

@@ -10,7 +10,8 @@ import SwiftUI
 
 @MainActor
 class CreateProfileViewModel: ObservableObject {
-    @AppStorage("user") var userData : Data?
+    @AppStorage("id") var id_: String?
+    
 //    @Published var createdProfile: Bool?
     @AppStorage("createdProfile") var createdProfile: Bool = false
     
@@ -18,30 +19,18 @@ class CreateProfileViewModel: ObservableObject {
 //    @AppStorage("isUserCreated") var isCreated: Bool = false
 //    @AppStorage("isUserCreated") var isCreated: Bool = false
     
-    var user: User? {
-            get {
-                guard let userData else { return nil }
-                return try? JSONDecoder().decode(User.self, from: userData)
-            }
-            set {
-                guard let newValue = newValue else { return }
-                if let encodedUser = try? JSONEncoder().encode(newValue) {
-                    self.userData = encodedUser
-                }
-            }
-        }
     
     private let baseURL = "http://127.0.0.1:8000"
     
     
     func sendProfileDataToBackend(_ profileData: [String: Any]) {
         self.createdProfile = true
-        guard let user = user else {
-                print("Error: User data is not available")
-                return
-            }
-       
-        guard let url = URL(string: "\(baseURL)/profile/create/\(user.id)") else { return }
+        
+        guard let id = id_ else {
+            print("ID is nil")
+            return
+        }
+        guard let url = URL(string: "\(baseURL)/profile/create/\(id)") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
