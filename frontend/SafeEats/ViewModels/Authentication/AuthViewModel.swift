@@ -12,9 +12,10 @@ class AuthViewModel: ObservableObject {
     
     @Published var isAuthenticated: Bool = false
     @Published var errorMessage: String?
-    @Published var createProfileViewModel = CreateProfileViewModel()
+//    @Published var createProfileViewModel = CreateProfileViewModel()
     @AppStorage("user") var userData : Data?
     @AppStorage("isUserCreated") var isCreated: Bool = false
+    @AppStorage("createdProfile") var createdProfile: Bool = false
     
     var user: User? {
             get {
@@ -167,10 +168,12 @@ class AuthViewModel: ObservableObject {
         request.httpMethod = "POST"
         request.httpBody = jsonData
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
+        
+        print(request.httpBody)
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
 
+            print(data)
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
                 print("Response Status Code: \(httpResponse.statusCode)")
                 DispatchQueue.main.async {
@@ -369,6 +372,8 @@ class AuthViewModel: ObservableObject {
             self.phone = ""
             self.password = ""
             self.errorMessage = nil
+//            self.createdProfile = false
+//            self.createProfileViewModel = CreateProfileViewModel()
 //            self.createProfileViewModel.createdProfile = false
         }
     }

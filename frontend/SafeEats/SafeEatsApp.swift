@@ -14,7 +14,7 @@ struct SafeEatsApp: App {
     var body: some Scene {
         WindowGroup {
             if viewModel.isAuthenticated {
-                if createProfile.createdProfile {
+                if viewModel.createdProfile {
                     ContentView()
                         .environmentObject(viewModel)
                         .environmentObject(createProfile)
