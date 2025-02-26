@@ -1,21 +1,29 @@
 # models/user.py
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
-from schemas.preference import PreferenceCreate
-from typing import List
+
+# class User:
+#     def __init__(self, name: str, email: str, phone: str, password: str, username: str):
+#         self.name = name
+#         self.email = email
+#         self.phone = phone
+#         self.password = password
+#         self.username = username
+
 class User:
-    def __init__(self, name: str, email: str, password: str, username: str, preferences: List[PreferenceCreate] = []):
+    def __init__(self, name: str, email: str, phone: str, password: str, username: str, bio: str = "", friend_count: int = 0, review_count: int = 0):
         self.name = name
         self.email = email
+        self.phone = phone
         self.password = password
         self.username = username
-        self.preferences = preferences
+        
 
     def to_dict(self):
         return {  
             "name": self.name,
             "email": self.email,
+            "phone": self.phone,
             "password": self.password,
             "username": self.username,
-            "preferences": [preference.to_dict() for preference in self.preferences]
         }

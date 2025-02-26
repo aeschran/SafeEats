@@ -12,11 +12,13 @@ struct PickPreferences: View {
     @Binding var selectedAllergies: Set<String>
     @Binding var selectedDietaryRestrictions: Set<String>
     
+    
     @Environment(\.dismiss) var dismiss
     
     @State private var showCuisines = false
     @State private var showAllergies = false
     @State private var showDietaryRestrictions = false
+    
     
     private let cuisines = ["Italian", "Indian", "Mexican", "Thai"]
     private let allergies = ["Peanuts", "Dairy", "Gluten", "Shellfish"]

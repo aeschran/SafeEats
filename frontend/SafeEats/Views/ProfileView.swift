@@ -8,6 +8,17 @@
 import SwiftUI
 
 struct ProfileView: View {
+    @StateObject var viewModel: ProfileViewModel
+    let friendId: String
+
+        // Accept the friendId
+    init(friendId: String) {
+       self.friendId = friendId
+       _viewModel = StateObject(wrappedValue: ProfileViewModel(friendId: friendId))
+    }
+//    friend.id
+    @State private var id: String = ""
+    @State private var name: String = ""
     @State private var username: String = "Loading..."
     @State private var didTap: Bool = false
     @State private var isFollowing: Bool = false
@@ -18,28 +29,36 @@ struct ProfileView: View {
                     Image(systemName: "chevron.left").font(.title2)
                     Spacer()
                     
-                    Text("username").font(.subheadline).fontWeight(.semibold)
+                    Text(viewModel.username).font(.subheadline).fontWeight(.semibold)
                     Spacer()
                     
                     
                 }.padding(2)
                 HStack{
-                    Image("blank-profile")
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width:88, height:88)
-                        .clipShape(Circle())
+                    if let profileImage = viewModel.imageBase64 {
+                        Image(uiImage: profileImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 88, height: 88)
+                            .clipShape(Circle())
+                    } else {
+                        Image("blank-profile")
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 88, height: 88)
+                            .clipShape(Circle())
+                    }
                     Spacer()
                     HStack(spacing: 32) {
                         VStack(spacing: 2){
-                            Text("5")
+                            Text("\(viewModel.reviewCount)")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                             Text("Reviews")
                                 .font(.caption)
                         }
                         VStack(spacing: 2){
-                            Text("10")
+                            Text("\(viewModel.friendCount)")
                                 .font(.subheadline)
                                 .fontWeight(.semibold)
                             Text("Friends")
@@ -50,10 +69,10 @@ struct ProfileView: View {
                 }.padding(5)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("First Last")
+                    Text(viewModel.name)
                         .font(.footnote)
                         .fontWeight(.semibold)
-                    Text("Hi! This is my bio")
+                    Text(viewModel.bio)
                         .font(.caption)
                     
                 }.padding(6)
@@ -61,7 +80,7 @@ struct ProfileView: View {
                 .padding(.vertical, 4)
             
                 HStack{
-                    if isFollowing {
+                    if viewModel.isFollowing {
                         Text("Following")
                             .foregroundColor(.black)
                             .padding()
@@ -76,7 +95,11 @@ struct ProfileView: View {
                         
                     } else {
                         Button(action: {
-                            didTap.toggle()
+                            didTap = true
+                            Task {
+                                    await viewModel.sendFriendRequest()
+                            }
+                            
                         }) {
                             Text(didTap ? "Requested" : "Follow")
                                 .foregroundColor(didTap ? Color.black : Color.black)
@@ -107,26 +130,14 @@ struct ProfileView: View {
                 }
             }.padding(6)
         }
-    }
-    func fetchUsername() {
-            guard let url = URL(string: "https://your-backend.com/api/user") else { return }
-
-            URLSession.shared.dataTask(with: url) { data, response, error in
-                if let data = data {
-                    do {
-                        let decodedResponse = try JSONDecoder().decode(User.self, from: data)
-                        DispatchQueue.main.async {
-                            username = decodedResponse.username
-                        }
-                    } catch {
-                        print("Error decoding JSON:", error)
-                    }
-                }
-            }.resume()
+        .onAppear {
+            // Fetch the data after the view appears
+            viewModel.fetchData()
         }
+    }
     }
 
 
 #Preview {
-    ProfileView()
+    ProfileView(friendId: "67ad36ed4f59c3ecd1434482")
 }

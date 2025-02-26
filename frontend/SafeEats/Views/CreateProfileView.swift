@@ -60,9 +60,21 @@ struct CreateProfileView: View {
 //    @State private var isCameraRoll: Bool = false
     @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
     private let fieldWidth: CGFloat = 265
-    @State private var selectedCuisines = Set<String>([])
+    
+    @State private var selectedCuisines: Set<String> = []
     @State private var selectedDietaryRestrictions: Set<String> = []
     @State private var selectedAllergies: Set<String> = []
+    @AppStorage("user") var userData : Data?
+    
+    var user: User? {
+        get {
+            guard let userData else { return nil }
+            return try? JSONDecoder().decode(User.self, from: userData)
+        }
+        set {
+            userData = try? JSONEncoder().encode(newValue)
+        }
+    }
     
     
 
@@ -102,7 +114,7 @@ struct CreateProfileView: View {
 //    }
 
     var body: some View {
-        
+        NavigationStack {
             ScrollView{
                 VStack{
                     HStack{
@@ -131,7 +143,7 @@ struct CreateProfileView: View {
                             Button(action: {
                                 sourceType = .camera
                                 isImagePickerPresented = true
-                                  // Set to camera
+                                // Set to camera
                             }) {
                                 Text("Take Photo")
                                     .font(.footnote)
@@ -155,7 +167,7 @@ struct CreateProfileView: View {
                                             .stroke(Color.mainGreen)
                                     )
                             }
-
+                            
                         }.padding(20)
                         Spacer()
                     }.padding(20)
@@ -223,22 +235,27 @@ struct CreateProfileView: View {
                     
                     HStack() {
                         Button(action: {
-//                            print("Saved: \(firstName) \(lastName), Bio: \(bio)")
-                            viewModel.isCreated = true
+                            //                            print("Saved: \(firstName) \(lastName), Bio: \(bio)")
+                            
                             let base64Image = convertImageToBase64(image: image) ?? ""
-                                
-                                let profileData: [String: Any] = [
-                                    "name": firstName + " " + lastName,
-                                    "bio": bio,
-                                    "image": base64Image,  // Encoded Base64 image string
-//                                    "cuisines": Array(selectedCuisines),
-//                                    "dietaryRestrictions": Array(selectedDietaryRestrictions),
-//                                    "allergies": Array(selectedAllergies)
-                                    "friend_count" : 0,
-                                    "review_count": 0
-                                ]
-                                
+                            
+                            let preferences = selectedAllergies.map { ["preference": $0, "preference_type": "Allergy"] } +
+                                                  selectedDietaryRestrictions.map { ["preference": $0, "preference_type": "Dietary Restriction"] }
+                            
+                            let profileData: [String: Any] = [
+                                "name": firstName + " " + lastName,
+                                "bio": bio,
+                                "image": base64Image,  // Encoded Base64 image string
+                                //                                    "cuisines": Array(selectedCuisines),
+                                //                                    "dietaryRestrictions": Array(selectedDietaryRestrictions),
+                                //                                    "allergies": Array(selectedAllergies)
+                                "friend_count" : 0,
+                                "review_count": 0,
+                                "preferences": preferences
+                            ]
+                            
                             viewModel.sendProfileDataToBackend(profileData)
+//                            viewModel.createdProfile = true
                             navigateToLandingPage = true
                         }) {
                             Text("Save")
@@ -248,11 +265,15 @@ struct CreateProfileView: View {
                             
                                 .background(Color.mainGreen)
                                 .cornerRadius(10)
+
                         }
-                        NavigationLink(destination: LandingPage(), isActive: $navigateToLandingPage) {
-                                        EmptyView()
-                                    }
-                                    .hidden()
+                        .navigationDestination(isPresented: $navigateToLandingPage) {
+                            ContentView().navigationBarBackButtonHidden(true)
+                        }
+//                        NavigationLink(destination: ContentView(), isActive: $navigateToLandingPage) {
+//                            EmptyView()
+//                        }
+          
                     }
                     
                 }.padding(10)
@@ -263,10 +284,11 @@ struct CreateProfileView: View {
                             sourceType: $sourceType // Ensures correct source type is passed
                         )
                     }
-
-
+                
+                
             }
         }
+    }
 }
 
 #Preview {

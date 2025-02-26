@@ -15,11 +15,28 @@ class Sender(BaseModel):
     name: str
 
 class NotificationResponse(BaseModel):
+    notification_id: PyObjectId
     recipient_id: PyObjectId
-    sender: Sender
+    sender_id: PyObjectId
+    sender_username: str  # Add sender_name to the response model
     type: NotificationEnum
     content: str = None
     timestamp: float
+
+class CreateNotificationResponse(BaseModel):
+    recipient_id: PyObjectId
+    sender_id: PyObjectId
+    type: NotificationEnum
+    content: str = None
+    timestamp: float
+
+
+# class NotificationResponse(BaseModel):
+#     recipient_id: PyObjectId
+#     sender: Sender
+#     type: NotificationEnum
+#     content: str = None
+#     timestamp: float
 
     class Config:
         arbitrary_types_allowed = True

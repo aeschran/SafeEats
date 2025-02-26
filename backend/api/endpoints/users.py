@@ -1,9 +1,11 @@
-from fastapi import APIRouter, Depends
+from typing import Annotated
+from fastapi import APIRouter, Depends, Body, Request
+from fastapi.security import OAuth2PasswordBearer
 from motor.motor_asyncio import AsyncIOMotorDatabase
-from schemas.user import UserCreate, UserResponse
+from schemas.user import UserCreate, UserResponse, UserChangePassword
 from services.user_service import UserService
 from core.security import credentials_exception
-from services.jwttoken import verify_token, get_token
+from services.jwttoken import verify_token, get_token, get_token_protected
 
 router = APIRouter(tags=["Users"])
 
@@ -36,4 +38,17 @@ async def get_user_endpoint(email: str,
 @router.delete("/{_id}")
 async def delete_user_endpoint(_id: str):
     return await user_service.delete_user(_id)
+
+
+
+@router.post("/change_password")
+async def change_password_endpoint(request: Request,
+user: UserChangePassword):
+    # TODO: readd token stuff
+    headers = request.headers
+    token = headers.get("Authorization")
+    print("Token:", token)
+    # access = verify_token(token, credentials_exception)
+    result = await user_service.change_user_password(user)
+    return result   
 

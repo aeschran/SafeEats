@@ -2,14 +2,36 @@ import SwiftUI
 
 @MainActor
 class AuthViewModel: ObservableObject {
+    @Published var id: String = ""
     @Published var email: String = ""
     @Published var password: String = ""
     @Published var username: String = ""
-    @Published var phoneNumber: String = ""
+    @Published var name: String = ""
+    @Published var phone: String = ""
+    @Published var isVerified: Bool?
+    
     @Published var isAuthenticated: Bool = false
     @Published var errorMessage: String?
-    @Published var createProfileViewModel = CreateProfileViewModel()
-    @AppStorage("isUserCreated") var isCreated: Bool = false 
+//    @Published var createProfileViewModel = CreateProfileViewModel()
+    @AppStorage("user") var userData : Data?
+    @AppStorage("createdProfile") var createdProfile: Bool = false
+    @AppStorage("userType") var userType: String?
+    @AppStorage("isUserCreated") var isCreated: Bool = false
+ 
+
+    
+    var user: User? {
+            get {
+                guard let userData else { return nil }
+                return try? JSONDecoder().decode(User.self, from: userData)
+            }
+            set {
+                guard let newValue = newValue else { return }
+                if let encodedUser = try? JSONEncoder().encode(newValue) {
+                    self.userData = encodedUser
+                }
+            }
+        }
     
     private let baseURL = "http://127.0.0.1:8000"
     
@@ -29,7 +51,7 @@ class AuthViewModel: ObservableObject {
             return false
         }
         
-        if !isValidPhoneNumber(phoneNumber) {
+        if !isValidPhoneNumber(phone) {
             errorMessage = "Invalid phone number format. Use (XXX) XXX-XXXX or XXX-XXX-XXXX."
             return false
         }
@@ -78,14 +100,28 @@ class AuthViewModel: ObservableObject {
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 200 {
                     // success case
-                    if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-                       let token = json["access_token"] as? String {
-                        DispatchQueue.main.async {
-                            UserDefaults.standard.set(token, forKey: "authToken")
-                            self.isAuthenticated = true
-                            print("Success: authenticated")
+                    if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                        if let accessToken = json["access_token"] as? String,
+                           let id = json["id"] as? String,
+                           let name = json["name"] as? String,
+                           let email = json["email"] as? String,
+                           let phone = json["phone"] as? String,
+                           let username = json["username"] as? String {
+                            DispatchQueue.main.async {
+                                self.id = id
+                                self.username = username
+                                self.email = email
+                                self.phone = phone
+                                self.name = name
+                                self.isAuthenticated = true
+                                self.createdProfile = true
+                                print("Success: registered")
+                            }
+                        } else {
+                            DispatchQueue.main.async {
+                                self.errorMessage = "Invalid response data"
+                            }
                         }
-                        print(token)
                     }
                     
                 } else if httpResponse.statusCode == 400 {
@@ -125,6 +161,7 @@ class AuthViewModel: ObservableObject {
         let requestBody: [String: Any] = [
             "name": username,
             "email": email.lowercased(),
+            "phone": phone,
             "password": password,
             "username": username // TODO: talk to group about this
         ]
@@ -135,10 +172,12 @@ class AuthViewModel: ObservableObject {
         request.httpMethod = "POST"
         request.httpBody = jsonData
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
+        
+        print(request.httpBody)
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
 
+            print(data)
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
                 print("Response Status Code: \(httpResponse.statusCode)")
                 DispatchQueue.main.async {
@@ -146,11 +185,29 @@ class AuthViewModel: ObservableObject {
                 }
                 return
             }
-
-            
-                self.isAuthenticated = true
-                print("Successful: registration")
-            
+            if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+                if let accessToken = json["access_token"] as? String,
+                   let id = json["id"] as? String,
+                   let name = json["name"] as? String,
+                   let email = json["email"] as? String,
+                   let phone = json["phone"] as? String,
+                   let username = json["username"] as? String {
+                    DispatchQueue.main.async {
+                        self.id = id
+                        self.name = name
+                        self.username = username
+                        self.email = email
+                        self.phone = phone
+                        self.isAuthenticated = true
+                        self.createdProfile = false
+                        print("Success: registered")
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self.errorMessage = "Invalid response data"
+                    }
+                }
+            }
         } catch {
             DispatchQueue.main.async {
                 self.errorMessage = "Network error: \(error.localizedDescription)"
@@ -205,17 +262,18 @@ class AuthViewModel: ObservableObject {
             if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
                 if let accessToken = json["access_token"] as? String,
                    let id = json["id"] as? String,
-                   let businessName = json["name"] as? String,
+                   let username = json["name"] as? String,
                    let email = json["email"] as? String,
+                   let phone = json["phone"] as? String,
                    let isVerified = json["isVerified"] as? Bool {
-                
-                    // setting up user defaults
                     DispatchQueue.main.async {
-                        UserDefaults.standard.set(accessToken, forKey: "authToken")
-                        UserDefaults.standard.set(id, forKey: "userID")
-                        UserDefaults.standard.set(businessName, forKey: "userName")
-                        UserDefaults.standard.set(email, forKey: "userEmail")
-                        UserDefaults.standard.set(isVerified, forKey: "isVerified")
+                        self.id = id
+                        self.username = username
+                        self.email = email
+                        self.phone = phone
+                        self.isVerified = isVerified
+                        print(self.email + " EMAIL")
+                        print(self.id)
                         self.isAuthenticated = true
                         print("Success: authenticated")
                     }
@@ -241,7 +299,7 @@ class AuthViewModel: ObservableObject {
             "name": username,
             "email": email.lowercased(),
             "password": password,
-            "phone_number": phoneNumber,
+            "phone": phone,
             "isVerified": false
         ]
         
@@ -275,18 +333,18 @@ class AuthViewModel: ObservableObject {
             if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
                 if let accessToken = json["access_token"] as? String,
                    let id = json["id"] as? String,
-                   let businessName = json["name"] as? String,
+                   let username = json["name"] as? String,
                    let email = json["email"] as? String,
+                   let phone = json["phone"] as? String,
                    let isVerified = json["isVerified"] as? Bool {
-                
-                    // setting up user defaults
                     DispatchQueue.main.async {
-                        UserDefaults.standard.set(accessToken, forKey: "authToken")
-                        UserDefaults.standard.set(id, forKey: "userID")
-                        UserDefaults.standard.set(businessName, forKey: "userName")
-                        UserDefaults.standard.set(email, forKey: "userEmail")
-                        UserDefaults.standard.set(isVerified, forKey: "isVerified")
+                        self.id = id
+                        self.username = username
+                        self.email = email
+                        self.phone = phone
+                        self.isVerified = isVerified
                         self.isAuthenticated = true
+                        print("ID\(self.id)")
                         print("Success: authenticated")
                     }
                 } else {
@@ -303,7 +361,52 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    
+    func delete_account() async {
+
+        var url: URL?
+        if self.userType == "User" {
+            url = URL(string: "\(baseURL)/users/\(self.id)")
+        } else if self.userType == "Business" {
+            url = URL(string: "\(baseURL)/business_owners/\(self.id)")
+        }
+
+        guard let url = url else {
+            print("Invalid URL")
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                if httpResponse.statusCode == 200 {
+                    DispatchQueue.main.async {
+                        self.userData = nil
+                        self.isAuthenticated = false
+                        self.email = ""
+                        self.username = ""
+                        self.phone = ""
+                        self.password = ""
+                        self.errorMessage = nil
+                        self.createdProfile = false
+                        print("Account successfully deleted")
+                    }
+                } else {
+                    DispatchQueue.main.async {
+                        self.errorMessage = "Failed to delete account. Status code: \(httpResponse.statusCode)"
+                    }
+                }
+            }
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Network error: \(error.localizedDescription)"
+            }
+        }
+    }
 
     
     /**
@@ -311,22 +414,18 @@ class AuthViewModel: ObservableObject {
      */
     func logout() {
         
-        UserDefaults.standard.removeObject(forKey: "authToken")
-        UserDefaults.standard.removeObject(forKey: "userID")
-        UserDefaults.standard.removeObject(forKey: "userName")
-        UserDefaults.standard.removeObject(forKey: "userEmail")
-        UserDefaults.standard.removeObject(forKey: "isVerified")
+        self.userData = nil
         DispatchQueue.main.async {
             self.isAuthenticated = false
             self.email = ""
             self.username = ""
-            self.phoneNumber = ""
+            self.phone = ""
             self.password = ""
             self.errorMessage = nil
-            self.isCreated = false
+            self.createdProfile = false
+//            self.createProfileViewModel = CreateProfileViewModel()
+//            self.createProfileViewModel.createdProfile = false
         }
     }
+    
 }
-
-
-
