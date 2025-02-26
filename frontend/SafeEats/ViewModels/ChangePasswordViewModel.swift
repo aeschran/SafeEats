@@ -10,25 +10,17 @@ import SwiftUI
 
 @MainActor
 class ChangePasswordViewModel: ObservableObject {
-    @AppStorage("user") var userData : Data?
     @AppStorage("authToken") private var token: String = ""
     @Published var oldPassword : String = ""
     @Published var newPassword : String = ""
     @Published var confirmNewPassword : String = ""
     @Published var isAuthenticated = false
     @Published var errorMessage : String?
+    @AppStorage("username") var username: String?
     
     private let baseUrl = "http://127.0.0.1:8000"
     
-    var user: User? {
-        get {
-            guard let userData else { return nil }
-            return try? JSONDecoder().decode(User.self, from: userData)
-        }
-        set {
-            userData = try? JSONEncoder().encode(newValue)
-        }
-    }
+    
     
     var isValid : Bool {
         !oldPassword.isEmpty && !newPassword.isEmpty && !confirmNewPassword.isEmpty
@@ -66,7 +58,7 @@ class ChangePasswordViewModel: ObservableObject {
         
         guard let jsonData = try? JSONEncoder().encode([
             "password": oldPassword,
-            "username": user?.username ?? "",
+            "username": username ?? "",
             "new_password": newPassword
         ]) else {
             return

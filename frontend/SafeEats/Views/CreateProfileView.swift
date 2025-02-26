@@ -64,18 +64,7 @@ struct CreateProfileView: View {
     @State private var selectedCuisines: Set<String> = []
     @State private var selectedDietaryRestrictions: Set<String> = []
     @State private var selectedAllergies: Set<String> = []
-    @AppStorage("user") var userData : Data?
-    
-    var user: User? {
-        get {
-            guard let userData else { return nil }
-            return try? JSONDecoder().decode(User.self, from: userData)
-        }
-        set {
-            userData = try? JSONEncoder().encode(newValue)
-        }
-    }
-    
+    @AppStorage("id") var id: String?
     
 
     

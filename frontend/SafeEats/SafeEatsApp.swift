@@ -13,7 +13,7 @@ struct SafeEatsApp: App {
     @StateObject private var createProfile = CreateProfileViewModel()
     var body: some Scene {
         WindowGroup {
-            if viewModel.isAuthenticated {
+            if viewModel.isAuthenticated ?? false {
                 if viewModel.createdProfile {
                     ContentView()
                         .environmentObject(viewModel)

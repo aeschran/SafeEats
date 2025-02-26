@@ -9,37 +9,27 @@ import Foundation
 import SwiftUI
 
 class MyProfileViewModel: ObservableObject {
+    
     @Published var name: String = "loading..."
     @Published var username: String = "loading..."
     @Published var bio: String = "loading..."
     @Published var friendCount: Int = 0
     @Published var reviewCount: Int = 0
     @Published var imageBase64: UIImage? = nil
-    @AppStorage("user") var userData : Data?
+    @AppStorage("id") var id_ : String?
     
-    var user: User? {
-            get {
-                guard let userData else { return nil }
-                return try? JSONDecoder().decode(User.self, from: userData)
-            }
-            set {
-                guard let newValue = newValue else { return }
-                if let encodedUser = try? JSONEncoder().encode(newValue) {
-                    self.userData = encodedUser
-                }
-            }
-        }
+   
     
     private let baseURL = "http://127.0.0.1:8000"
     
       // Replace with your actual backend API URL
 
     func fetchUserProfile() async {
-        guard let user = user else {
-                print("Error: User data is not available")
-                return
-            }
-        guard let url = URL(string: "\(baseURL)/profile/\(user.id)") else { return }
+        guard let id = id_ else {
+            print("ID is nil")
+            return
+        }
+        guard let url = URL(string: "\(baseURL)/profile/\(id)") else { return }
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
