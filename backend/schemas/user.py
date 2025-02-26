@@ -17,7 +17,7 @@ class UserChangePassword(BaseModel):
 class UserResponse(BaseModel):
     name: str
     email: EmailStr
-    phone: str
+    phone: Optional[str] = ""
     username: str
     
 class Token(BaseModel):
