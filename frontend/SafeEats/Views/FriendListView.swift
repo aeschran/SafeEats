@@ -49,6 +49,9 @@ struct FriendListView: View {
                     FriendRow(friend: friend)
                 }
             }
+            .navigationDestination(for: String.self) { friendId in
+                            ProfileView(friendId: friendId)
+                        }
 
                 .navigationTitle("Friends")
                 .navigationBarTitleDisplayMode(.inline)
