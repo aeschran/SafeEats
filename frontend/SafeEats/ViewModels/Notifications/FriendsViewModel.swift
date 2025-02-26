@@ -16,7 +16,7 @@ class FriendsViewModel {
     }
     
     func fetchRequests() {
-        guard let url = URL(string: "http://localhost:8000/notifications/67ac266c4a7e2c0dbc97bdaa") else { return }
+        guard let url = URL(string: "http://localhost:8000/notifications/67be93f783402626a81f76da") else { return }
         
         Task {
             do {

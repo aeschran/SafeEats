@@ -15,6 +15,9 @@ class NotificationsViewModel: ObservableObject {
     @Published var notifications: [Notification] = []
     @AppStorage("user") var userData : Data?
     
+    @Published var senderID: String? = nil
+    @Published var navigateToProfile: Bool = false
+    
     var user: User? {
             get {
                 guard let userData else { return nil }
@@ -36,6 +39,7 @@ class NotificationsViewModel: ObservableObject {
                 print("Error: User data is not available")
                 return
             }
+        
         guard let url = URL(string: "\(baseURL)/notifications/\(user.id)") else { return }
 
         Task {
