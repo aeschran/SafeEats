@@ -20,16 +20,45 @@ class FriendService(BaseService):
     async def get_friends(self, user_id: str):
         user_id = ObjectId(user_id)
         pipeline = [
-        {"$match": {"user_id": user_id}},  # Filter by user ID
-        {
-            "$lookup": {
-                "from": "users",  # Users collection
-                "localField": "friend_id",  # Field in friends
-                "foreignField": "_id",  # Matching field in users
-                "as": "friend"
+            {
+                "$match": {
+                    "$or": [
+                        {"user_id": user_id},
+                        {"friend_id": user_id}
+                    ]
+                }
+            },
+            {
+                "$addFields": {
+                    "friend_ref": {
+                        "$cond": {
+                            "if": {"$eq": ["$user_id", user_id]},
+                            "then": "$friend_id",
+                            "else": "$user_id"
+                        }
+                    }
+                }
+            },
+            {
+                "$lookup": {
+                    "from": "users",  # Users collection
+                    "localField": "friend_ref",  # The actual friend's ID
+                    "foreignField": "_id",  # Matching field in users
+                    "as": "friend"
+                }
+            },
+            {"$unwind": "$friend"},  # Convert friend array to an object
+            {
+                "$project": {
+                    "friend_id": 1,
+                    "user_id": 1,
+                    "friend.name": 1,
+                    "friend.email": 1,
+                    "friend.username": 1,
+                    "friend.preferences": 1,
+                    "friend_since": 1
+                }
             }
-        },
-        {"$unwind": "$friend"}  # Convert friend array to an object
         ]
         friends = await self.db.friends.aggregate(pipeline).to_list(100)
         friends = [FriendResponse(**friend) for friend in friends]
