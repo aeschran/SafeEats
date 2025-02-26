@@ -1,10 +1,12 @@
 # app/services/user_service.py
 import bcrypt
 from models.profile import Profile
-from schemas.profile import ProfileResponse, ProfileCreate, OtherProfileResponse
+from schemas.profile import ProfileResponse, ProfileCreate, OtherProfileResponse, ProfileSearchResponse
 from services.base_service import BaseService
 import logging
 from bson import ObjectId
+from typing import List
+from fastapi import HTTPException
 
 
 logging.basicConfig(level=logging.INFO)
@@ -87,3 +89,31 @@ class UserProfileService(BaseService):
         
         self.db.users.find_one_and_update({"_id": ObjectId(_id)}, {"$set": { "imageUrl": imageUrl }})
         return True
+
+    async def get_profile_search(self, _id: str, query: str) -> List[ProfileSearchResponse]:
+        try:
+            # user_id = ObjectId(_id)
+            search_results = await self.db.users.find(
+            {
+                    "$and": [
+                        {"$or": [
+                            {"name": {"$regex": query, "$options": "i"}},  # Case-insensitive name search
+                            {"username": {"$regex": query, "$options": "i"}}  # Case-insensitive username search
+                        ]},
+                        {"_id": {"$ne": ObjectId(_id)}}  # Exclude the current user by ID
+                    ]
+                },
+                {"_id": 1, "name": 1, "username": 1}
+            ).to_list(length=10)  # Limit to 10 results
+            profiles = [{"id": str(user["_id"]), "name": user["name"], "username": user["username"]} for user in search_results]
+            return profiles
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    # Convert MongoDB documents into Pydantic response model
+        return [
+        ProfileSearchResponse(id=str(user["_id"]), name=user["name"], username=user["username"])
+        for user in search_results
+        ]
+

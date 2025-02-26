@@ -30,3 +30,7 @@ class OtherProfileResponse(BaseModel):
     is_following: bool | None = None
     # image: str
 
+class ProfileSearchResponse(BaseModel):
+    id: str
+    name: str
+    username: str

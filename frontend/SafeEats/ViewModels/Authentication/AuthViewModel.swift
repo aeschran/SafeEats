@@ -369,7 +369,7 @@ class AuthViewModel: ObservableObject {
             self.phone = ""
             self.password = ""
             self.errorMessage = nil
-            self.isCreated = false
+//            self.createProfileViewModel.createdProfile = false
         }
     }
 }

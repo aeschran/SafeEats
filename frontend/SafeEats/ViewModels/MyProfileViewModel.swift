@@ -9,26 +9,44 @@ import Foundation
 import SwiftUI
 
 class MyProfileViewModel: ObservableObject {
-    @Published var name: String = ""
-    @Published var username: String = ""
-    @Published var bio: String = ""
+    @Published var name: String = "loading..."
+    @Published var username: String = "loading..."
+    @Published var bio: String = "loading..."
     @Published var friendCount: Int = 0
     @Published var reviewCount: Int = 0
     @Published var imageBase64: UIImage? = nil
+    @AppStorage("user") var userData : Data?
+    
+    var user: User? {
+            get {
+                guard let userData else { return nil }
+                return try? JSONDecoder().decode(User.self, from: userData)
+            }
+            set {
+                guard let newValue = newValue else { return }
+                if let encodedUser = try? JSONEncoder().encode(newValue) {
+                    self.userData = encodedUser
+                }
+            }
+        }
     
     private let baseURL = "http://127.0.0.1:8000"
     
       // Replace with your actual backend API URL
 
     func fetchUserProfile() async {
-        guard let url = URL(string: "\(baseURL)/profile/67bcca4cff7e518d9926f5bd") else { return }
+        guard let user = user else {
+                print("Error: User data is not available")
+                return
+            }
+        guard let url = URL(string: "\(baseURL)/profile/\(user.id)") else { return }
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             if let jsonString = String(data: data, encoding: .utf8) {
                     print("Response JSON: \(jsonString)")
                 }
-            let decodedProfile = try JSONDecoder().decode(ProfileResponse.self, from: data)
+            let decodedProfile = try JSONDecoder().decode(MyProfileResponse.self, from: data)
             
             DispatchQueue.main.async {
                 self.name = decodedProfile.name
@@ -49,7 +67,7 @@ class MyProfileViewModel: ObservableObject {
     }
 }
 
-struct ProfileResponse: Codable {
+struct MyProfileResponse: Codable {
     let name: String
     let bio: String
     let username: String

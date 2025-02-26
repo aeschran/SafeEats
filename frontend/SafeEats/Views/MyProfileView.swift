@@ -9,41 +9,11 @@ import SwiftUI
 
 struct MyProfileView: View {
     @StateObject private var viewModel = MyProfileViewModel()
-    
+
     var body: some View {
         NavigationStack {
             ScrollView{
                 VStack{
-                    
-//                        HStack {
-//
-//                                Spacer()
-//                                Thbext(viewModel.username)
-//                                    .font(.subheadline)
-//                                    .fontWeight(.semibold)
-//                                    .multilineTextAlignment(.leading)
-////                                    .frame(maxWidth: .infinity, alignment: .center)
-//                                    Spacer()
-//                            
-//                            
-//                            
-//                        }
-//                    HStack {
-//                        Spacer()
-//                            
-//
-//                                NavigationLink(destination: SettingsView()) {
-//                                    Image(systemName: "line.3.horizontal")
-//                                        .font(.title2)
-//                                    
-//                                }
-//                                .accentColor(.black)
-//                                .padding(.trailing, 2)
-//                            
-//                        
-//                    }
-//                    .padding(8)
-                    
                     HStack{
                         if let profileImage = viewModel.imageBase64 {
                             Image(uiImage: profileImage)
@@ -59,14 +29,10 @@ struct MyProfileView: View {
                                 .clipShape(Circle())
                         }
                         
-//                        Image("blank-profile")
-//                            .resizable()
-//                            .scaledToFill()
-//                            .frame(width:88, height:88)
-//                            .clipShape(Circle())
                         Spacer()
                         HStack(spacing: 32) {
                             VStack(spacing: 2){
+                                
                                 Text("\(viewModel.reviewCount)")
                                     .font(.subheadline)
                                     .fontWeight(.semibold)
@@ -74,12 +40,21 @@ struct MyProfileView: View {
                                     .font(.caption)
                             }
                             VStack(spacing: 2){
-                                Text("\(viewModel.friendCount)")
-                                    .font(.subheadline)
-                                    .fontWeight(.semibold)
+                                NavigationLink(destination: FriendListView()) {
+                                    Text("\(viewModel.friendCount)")
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.black)
+//                                        .underline()
+                                }
+//                                Text("\(viewModel.friendCount)")
+//                                    .font(.subheadline)
+//                                    .fontWeight(.semibold)
                                 Text("Friends")
                                     .font(.caption)
                             }
+                            .navigationBarTitleDisplayMode(.inline)
+                            .tint(.black)
                         }.padding(.horizontal, 30)
                         Spacer()
                     }.padding(5)
@@ -150,6 +125,7 @@ struct MyProfileView: View {
                 }
             }
         }
+        .tint(.black)
     }
 }
 
