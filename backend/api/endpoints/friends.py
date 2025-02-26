@@ -37,3 +37,12 @@ async def deny_friend(friend_create: FriendCreate):
     if not notification:
         raise HTTPException(status_code=500, detail="Failed to deny friend")
     return notification
+
+@router.delete("/unfollow")
+async def unfollow_friend(friend_create: FriendCreate):
+    success = await friend_service.unfollow_friend(friend_create.user_id, friend_create.friend_id)
+
+    if not success:
+            raise HTTPException(status_code=500, detail="Failed to unfollow friend")
+    return {"message": "Friend removed successfully"}
+

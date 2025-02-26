@@ -53,7 +53,8 @@ class FriendService(BaseService):
                     "friend_id": 1,
                     "user_id": 1,
                     "username": "$friend.username",
-                    "friend_since": 1
+                    "friend_since": 1,
+                    "name": "$friend.name"
                 }
             }
         ]
@@ -69,3 +70,21 @@ class FriendService(BaseService):
         user_id = ObjectId(user_id)
         result = await self.db.friends.delete_many({"user_id": user_id})
         return result.deleted_count > 0
+    
+    async def unfollow_friend(self, user_id: str, friend_id: str) -> bool:
+        user_obj_id = ObjectId(user_id)
+        friend_obj_id = ObjectId(friend_id)
+
+        # delete the friend relationship
+        result = await self.db.friends.delete_one({
+            "user_id": user_obj_id,
+            "friend_id": friend_obj_id
+        })
+        
+        if result.deleted_count == 1:
+            # decrement friend count for both users
+            await self.db.users.update_one({"_id": user_obj_id}, {"$inc": {"friend_count": -1}})
+            await self.db.users.update_one({"_id": friend_obj_id}, {"$inc": {"friend_count": -1}})
+            return True
+
+        return False
