@@ -8,7 +8,6 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @AppStorage("user") var userData : Data?
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     @State private var showChangePassword = false
     @State private var showDeleteAccountAlert = false
@@ -16,15 +15,7 @@ struct SettingsView: View {
     @State private var tags : [Tag] = []
     
     // use this function to access user data in future views
-    var user: User? {
-        get {
-            guard let userData else { return nil }
-            return try? JSONDecoder().decode(User.self, from: userData)
-        }
-        set {
-            userData = try? JSONEncoder().encode(newValue)
-        }
-    }
+    
     
     @EnvironmentObject var authViewModel: AuthViewModel
     
@@ -51,9 +42,8 @@ struct SettingsView: View {
                             Alert(title: Text("Log Out"),
                                   message: Text("Are you sure you want to log out?"),
                                   primaryButton: .destructive(Text("Log Out")) {
-                                userData = nil
+                               
                                 authViewModel.logout()
-                                userData = nil
                             },
                                   secondaryButton: .cancel())
                         }

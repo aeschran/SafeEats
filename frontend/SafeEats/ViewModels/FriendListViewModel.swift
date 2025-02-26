@@ -10,28 +10,17 @@ import Combine
 
 class FriendListViewModel: ObservableObject {
     @Published var friends: [Friend] = []
-    @AppStorage("user") var userData : Data?
+    
     private let baseURL = "http://127.0.0.1:8000"
-    var user: User? {
-            get {
-                guard let userData else { return nil }
-                return try? JSONDecoder().decode(User.self, from: userData)
-            }
-            set {
-                guard let newValue = newValue else { return }
-                if let encodedUser = try? JSONEncoder().encode(newValue) {
-                    self.userData = encodedUser
-                }
-            }
-        }
+    @AppStorage("id") var id_: String?
 
     func fetchFriends() {
-        guard let user = user else {
+        guard let id = id_ else {
                 print("Error: User data is not available")
                 return
             }
         // Replace this URL with the actual URL for your backend endpoint
-        guard let url = URL(string: "\(baseURL)/friends/\(user.id)") else { return }
+        guard let url = URL(string: "\(baseURL)/friends/\(id)") else { return }
         
         // Start the network request
         URLSession.shared.dataTask(with: url) { data, response, error in
