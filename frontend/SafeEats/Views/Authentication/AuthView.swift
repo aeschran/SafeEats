@@ -159,12 +159,12 @@ struct AuthView: View {
                     .onChange(of: viewModel.isAuthenticated) {
                         if viewModel.isAuthenticated {
                             // Setting user object (after authentication is finsihed, why it's moved to here)
-                            let loggedInUser = User(id: viewModel.id, name: viewModel.username, email: viewModel.email, phone: viewModel.phone, username: viewModel.username, isVerified: viewModel.isVerified, createdProfile: createProfileViewModel.createdProfile)
+                            let loggedInUser = User(id: viewModel.id, name: viewModel.username, email: viewModel.email, phone: viewModel.phone, username: viewModel.username, isVerified: viewModel.isVerified, createdProfile: viewModel.createdProfile)
                             
                             print("ID:\(viewModel.id)")
                             
                             userData = try? JSONEncoder().encode(loggedInUser)
-                            if user?.createdProfile == false {
+                            if loggedInUser.createdProfile == false {
                                 navigateToCreateProfile = true
                             } else {
                                 navigateToLanding = true
@@ -197,12 +197,15 @@ struct AuthView: View {
                             LandingPage().navigationBarBackButtonHidden(true)
                         }
                     }
-//                    .navigationDestination(isPresented: $navigateToCreateProfile) {
-//                        CreateProfileView().navigationBarBackButtonHidden(true)
-//                    }
-//                    .navigationDestination(isPresented: $navigateToLanding) {
-//                        LandingPage().navigationBarBackButtonHidden(true)
-//                    }
+                  /*
+                    
+                    .navigationDestination(isPresented: $navigateToCreateProfile) {
+                        CreateProfileView().navigationBarBackButtonHidden(true)
+                    }
+                    .navigationDestination(isPresented: $navigateToLanding) {
+                        LandingPage().navigationBarBackButtonHidden(true)
+                    }
+                   */
 //
 //                        .navigationDestination(isPresented: $navigateToLanding) {
 //                            LandingPage().navigationBarBackButtonHidden(true)

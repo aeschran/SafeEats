@@ -254,7 +254,7 @@ struct CreateProfileView: View {
                             
                             viewModel.sendProfileDataToBackend(profileData)
 //                            viewModel.createdProfile = true
-//                            navigateToLandingPage = true
+                            navigateToLandingPage = true
                         }) {
                             Text("Save")
                                 .foregroundColor(.white)
@@ -263,11 +263,15 @@ struct CreateProfileView: View {
                             
                                 .background(Color.mainGreen)
                                 .cornerRadius(10)
+
                         }
-                        NavigationLink(destination: LandingPage(), isActive: $navigateToLandingPage) {
-                            EmptyView()
+                        .navigationDestination(isPresented: $navigateToLandingPage) {
+                            ContentView().navigationBarBackButtonHidden(true)
                         }
-                        .hidden()
+//                        NavigationLink(destination: ContentView(), isActive: $navigateToLandingPage) {
+//                            EmptyView()
+//                        }
+          
                     }
                     
                 }.padding(10)
