@@ -56,6 +56,7 @@ class FriendListViewModel: ObservableObject {
         }.resume()
     }
     
+    
     private func convertDateToString(friendSince: Double) -> String {
         // Convert the friend_since timestamp to a readable date string
         let date = Date(timeIntervalSince1970: friendSince)

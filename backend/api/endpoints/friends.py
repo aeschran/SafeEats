@@ -23,17 +23,17 @@ async def create_friend_request(friend_create: NotificationCreate):
 
 @router.post("/accept")
 async def create_friend(friend_create: FriendCreate):
-    notification = await notification_service.delete_notification(friend_create.user_id, friend_create.friend_id)
+    notification = await notification_service.delete_notification(friend_create.notification_id)
     if not notification:
-        raise HTTPException(status_code=500, detail="Failed to create friend")
+        raise HTTPException(status_code=404, detail="Failed to create friend 1")
     friend = await friend_service.create_new_friend(friend_create)
     if not friend:
-        raise HTTPException(status_code=500, detail="Failed to create friend")
+        raise HTTPException(status_code=400, detail="Failed to create friend 2")
     return friend
     
 @router.post("/deny")
 async def deny_friend(friend_create: FriendCreate):
-    notification = await notification_service.delete_notification(friend_create.user_id, friend_create.friend_id)
+    notification = await notification_service.delete_notification(friend_create.notification_id)
     if not notification:
         raise HTTPException(status_code=500, detail="Failed to deny friend")
     return notification

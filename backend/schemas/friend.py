@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from utils.pyobjectid import PyObjectId
 
 class FriendCreate(BaseModel):
+    notification_id: str
     user_id: str
     friend_id: str
 

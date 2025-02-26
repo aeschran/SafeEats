@@ -3,6 +3,8 @@ from schemas.friend import FriendCreate, FriendResponse
 from services.base_service import BaseService
 import logging
 from bson import ObjectId
+from fastapi import HTTPException
+import time
 
 class FriendService(BaseService):
     def __init__(self):
@@ -11,11 +13,16 @@ class FriendService(BaseService):
             raise Exception("Database connection failed.")
         
     async def create_new_friend(self, friend_create: FriendCreate):
-        friend = Friend(user_id=ObjectId(friend_create.user_id), friend_id=ObjectId(friend_create.friend_id))
-        result = await self.db.friends.insert_one(friend.to_dict())
-        if result.inserted_id:
-            return FriendResponse(**friend.to_dict())
-        return None
+        try :
+            friend = Friend(user_id=ObjectId(friend_create.user_id), friend_id=ObjectId(friend_create.friend_id))
+            result = await self.db.friends.insert_one(friend.to_dict())
+            update_user_count = await self.db.users.update_one({"_id": ObjectId(friend_create.user_id)}, {"$inc": {"friend_count" : 1}})
+            update_friend_count = await self.db.users.update_one({"_id": ObjectId(friend_create.friend_id)}, {"$inc": {"friend_count" : 1}})
+            if result.inserted_id:
+                return FriendResponse(**friend.to_dict())
+            return None
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
     
     async def get_friends(self, user_id: str):
         # user_id = ObjectId(user_id)
