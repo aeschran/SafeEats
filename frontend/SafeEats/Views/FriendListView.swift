@@ -33,7 +33,9 @@ struct FriendRow: View {
 }
 
 struct FriendListView: View {
+//    @StateObject private var viewModel = FriendListViewModel()
     @StateObject private var viewModel = FriendListViewModel()
+
 //    let friends: [Friend] = [
 //        Friend(id: "123", name: "John Doe", username: "@johndoe", friendSince: "January 2021"),
 //        Friend(id: "456", name: "Jane Smith", username: "@janesmith", friendSince: "March 2020"),
