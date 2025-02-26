@@ -8,7 +8,6 @@ class UserCreate(BaseModel):
     phone: str
     password: str
     username: str
-    
 
 class UserChangePassword(BaseModel):
     password: str
@@ -20,7 +19,6 @@ class UserResponse(BaseModel):
     email: EmailStr
     phone: str
     username: str
-    
     
 class Token(BaseModel):
     access_token: str

@@ -96,6 +96,10 @@ struct ProfileView: View {
                     } else {
                         Button(action: {
                             didTap = true
+                            Task {
+                                    await viewModel.sendFriendRequest()
+                            }
+                            
                         }) {
                             Text(didTap ? "Requested" : "Follow")
                                 .foregroundColor(didTap ? Color.black : Color.black)

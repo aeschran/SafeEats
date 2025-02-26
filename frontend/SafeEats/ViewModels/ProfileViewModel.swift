@@ -16,6 +16,7 @@ class ProfileViewModel: ObservableObject {
     @Published var reviewCount: Int = 0
     @Published var imageBase64: UIImage? = nil
     @Published var isFollowing: Bool = false
+    @Published var didTap: Bool = false
     private var friendId: String
     @AppStorage("user") var userData : Data?
     
@@ -149,6 +150,45 @@ class ProfileViewModel: ObservableObject {
             }
         }
     }
+    func sendFriendRequest() async {
+        guard let user = user else {
+            print("Error: User data is not available")
+            return
+        }
+        
+        let requestBody: [String: Any] = [
+            "sender_id": user.id,
+            "recipient_id": friendId,
+            "type": 1,
+            "content": "",
+            "timestamp": Date().timeIntervalSince1970
+        ]
+        
+        guard let url = URL(string: "\(baseURL)/notifications/create") else { return }
+        
+        do {
+                let requestData = try JSONSerialization.data(withJSONObject: requestBody)
+                var request = URLRequest(url: url)
+                request.httpMethod = "POST"
+                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                request.httpBody = requestData
+                
+                let (_, response) = try await URLSession.shared.data(for: request)
+                
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                    DispatchQueue.main.async {
+                        self.didTap = true
+                        // Change the button text to "Requested" but do not change isFollowing yet
+//                        self.isFollowing = false
+                    }
+                } else {
+                    print("Failed to send friend request: \(response)")
+                }
+            } catch {
+                print("Error sending friend request: \(error.localizedDescription)")
+            }
+    }
+
 }
 
 struct ProfileResponse: Codable {

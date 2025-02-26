@@ -24,6 +24,7 @@ import SwiftUI
 
 struct SearchBarView: View {
     @Binding var searchText: String
+    var onNotificationsTap: () -> Void
     
     var body: some View {
         HStack {
@@ -43,6 +44,12 @@ struct SearchBarView: View {
                         .foregroundColor(.gray)
                 }
             }
+            Button(action: {
+                            onNotificationsTap() // Calls the function passed from FeedView
+                        }) {
+                            Image(systemName: "bell")
+                                .foregroundColor(.black)
+                        }
         }
 //        .padding(.horizontal)
         .padding(10)
@@ -51,8 +58,18 @@ struct SearchBarView: View {
     }
 }
 
+struct SearchBarView_PreviewContainer: View {
+    @State private var searchText = ""
+
+    var body: some View {
+        SearchBarView(searchText: $searchText, onNotificationsTap: {
+            print("Notifications button tapped")
+        })
+    }
+}
+
 
 #Preview {
-    @State var searchText = ""  // Define a local state for preview
-    return SearchBarView(searchText: $searchText)
+//    @State var searchText = ""  // Define a local state for preview
+    SearchBarView_PreviewContainer()
 }
