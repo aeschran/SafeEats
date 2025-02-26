@@ -55,7 +55,7 @@ class UserProfileService(BaseService):
             return None
         user_image = await self.db.user_profile_images.find_one({"user_id": str(friend_id)})
         user = OtherProfileResponse(**user_data)
-        friend_data = await self.db.friends.find_one({"user_id": str(_id), "friend_id": str(friend_id)})
+        friend_data = await self.db.friends.find_one({"user_id": ObjectId(_id), "friend_id": ObjectId(friend_id)})
         if friend_data:
             print(friend_data)
         else:
@@ -75,7 +75,6 @@ class UserProfileService(BaseService):
                 else:
                     print("4")
                     user = user.copy(update={"is_following": False, "image": None})
-            print("Updated user:", user)
             return user
         return None
 

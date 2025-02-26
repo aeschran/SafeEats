@@ -19,10 +19,11 @@ class FriendService(BaseService):
     
     async def get_friends(self, user_id: str):
         # user_id = ObjectId(user_id)
+        # user_id = ObjectId(user_id)
 
         friends = await self.db.friends.aggregate([
             {
-                "$match": { "user_id": user_id }
+                "$match": { "user_id": ObjectId(user_id) }
             },
             {
                 "$project": {
@@ -41,25 +42,25 @@ class FriendService(BaseService):
                 "$project": { "_id": 0, "friends": 1 }
             }
             ]).to_list(length=None)
-        
-        for friend in friends[0]["friends"]:
-            friend_id = friend["friend_id"]
-            print(friend_id)
-            user_data = await self.db.users.find_one({"_id": ObjectId(friend_id)}, {"name": 1, "username": 1})
-            if user_data:
-                friend["name"] = user_data["name"]
-                print(friend["name"])
-                friend["username"] = user_data["username"]
-                print(friend["username"])
-            print(user_data)
-
-        # friends = await self.db.friends.aggregate(pipeline).to_list(100)
-        
-        # friends = [FriendResponse(**friend) for friend in friends]
-        # if friends:
-        #     print(":")
-        print(friends[0]["friends"][0])
-        return friends
+        friends_list = []
+        if not friends:
+            return friends_list
+        else:
+            
+            for friend in friends[0]["friends"]:
+                friend_id = friend["friend_id"]
+                user_data = await self.db.users.find_one(
+                    {"_id": ObjectId(friend_id)},
+                    {"name": 1, "username": 1}
+                )
+                if user_data:
+                    friends_list.append({
+                        "friend_id": str(friend_id),  # Convert to string for JSON compatibility
+                        "friend_since": friend["friend_since"],
+                        "name": user_data["name"],
+                        "username": user_data["username"],
+                    })
+        return friends_list
     
     async def delete_friend(self, _id: str) -> bool:
         result = await self.db.friends.delete_one({"_id": ObjectId(_id)})

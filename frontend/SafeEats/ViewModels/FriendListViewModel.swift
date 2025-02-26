@@ -37,11 +37,10 @@ class FriendListViewModel: ObservableObject {
         URLSession.shared.dataTask(with: url) { data, response, error in
             if let data = data, error == nil {
                 do {
-                    // Decode the JSON response into your model
-                    let decodedResponse = try JSONDecoder().decode([FriendsResponse].self, from: data)
-                    if let friendsData = decodedResponse.first?.friends {
+                        // Decode JSON directly into an array of FriendData
+                        let decodedResponse = try JSONDecoder().decode([FriendData].self, from: data)
                         DispatchQueue.main.async {
-                            self.friends = friendsData.map { friend in
+                            self.friends = decodedResponse.map { friend in
                                 Friend(
                                     id: friend.friend_id,
                                     name: friend.name,
@@ -50,7 +49,6 @@ class FriendListViewModel: ObservableObject {
                                 )
                             }
                         }
-                    }
                 } catch {
                     print("Error decoding response: \(error)")
                 }
@@ -67,10 +65,12 @@ class FriendListViewModel: ObservableObject {
     }
 }
 
-// Models to decode the response
-struct FriendsResponse: Codable {
-    let friends: [FriendData]
-}
+//struct FriendList: Codable, Identifiable {
+//    let id: String
+//    let name: String
+//    let username: String
+//    let friendSince: String
+//}
 
 struct FriendData: Codable {
     let friend_id: String
