@@ -60,6 +60,8 @@ struct CreateProfileView: View {
 //    @State private var isCameraRoll: Bool = false
     @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
     private let fieldWidth: CGFloat = 265
+    
+    @State private var selectedCuisines: Set<String> = []
     @State private var selectedDietaryRestrictions: Set<String> = []
     @State private var selectedAllergies: Set<String> = []
     @AppStorage("user") var userData : Data?
@@ -227,7 +229,7 @@ struct CreateProfileView: View {
                         Text("Pick Your Preferences")
                             .font(.headline)
                             .fontWeight(.semibold)
-                        PickPreferences( selectedAllergies: $selectedAllergies, selectedDietaryRestrictions: $selectedDietaryRestrictions)
+                        PickPreferences(selectedCuisines: $selectedCuisines, selectedAllergies: $selectedAllergies, selectedDietaryRestrictions: $selectedDietaryRestrictions)
                     }
                     .padding(.vertical, 20)
                     
