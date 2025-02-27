@@ -44,9 +44,11 @@ struct BusinessSearchView: View {
                 }
             }
             .sheet(isPresented: $showFilters) {
-                FilterView(selectedCuisines: $selectedCuisines, selectedAllergies: $selectedAllergies, selectedDietaryRestrictions: $selectedDietaryRestrictions)
+                PickPreferences(selectedCuisines: $selectedCuisines, selectedAllergies: $selectedAllergies, selectedDietaryRestrictions: $selectedDietaryRestrictions)
                     .presentationDetents([.medium, .large])
+                    .padding(.top, 40)
             }
+            
         }
     }
 }
