@@ -364,12 +364,12 @@ class AuthViewModel: ObservableObject {
     }
     
     func delete_account() async {
-
+        guard let id = id_ else {return}
         var url: URL?
         if self.userType == "User" {
-            url = URL(string: "\(baseURL)/users/\(self.id)")
+            url = URL(string: "\(baseURL)/users/\(id)")
         } else if self.userType == "Business" {
-            url = URL(string: "\(baseURL)/business_owners/\(self.id)")
+            url = URL(string: "\(baseURL)/business_owners/\(id)")
         }
 
         guard let url = url else {
