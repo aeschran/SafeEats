@@ -1,7 +1,7 @@
 import requests
 from core.config import settings
 from services.base_service import BaseService
-from schemas.business import BusinessCreate, BusinessResponse
+from schemas.business import BusinessCreate, BusinessResponse, BusinessSearch
 from services.business_service import BusinessService
 
 class BusinessSearchService(BaseService):
@@ -26,16 +26,17 @@ class BusinessSearchService(BaseService):
 
         return response.json()
     
-    async def search_by_lat_long(self, lat: float, long: float, query: str = "restaurant"):
+    async def search_by_lat_long(self, business_search: BusinessSearch):
         url = "https://api.foursquare.com/v3/places/search"
         params = {
-            "ll": f"{lat},{long}",
-            "query": query,
-            "limit": self.limit
+            "ll": f"{business_search.lat},{business_search.lon}",
+            "query": business_search.query,
+            "limit": self.limit,
+            "fields": "name,website,description,categories,menu,geocodes,location"
         }
 
         response = requests.get(self.url, params=params, headers=self.headers)
-
+        print(response.json())
         results_dict = []
         for result in response.json()['results']:
             results_dict.append({
@@ -45,7 +46,7 @@ class BusinessSearchService(BaseService):
                 "description": result['description'] if 'description' in result else None,
                 "cuisines": [result['categories'][i]['name'] for i in range(len(result['categories']))] if 'categories' in result else [],
                 "menu": result['menu'] if 'menu' in result else None,
-                "address": result['location']['address'] if 'location' in result and 'address' in result['location'] else None,
+                "address": result['location']['formatted_address'] if 'location' in result and 'formatted_address' in result['location'] else None,
                 "location": {
                     "lat": result['geocodes']['main']['latitude'] if 'geocodes' in result and 'main' in result['geocodes'] and 'latitude' in result['geocodes']['main'] else 0.0,
                     "lon": result['geocodes']['main']['longitude'] if 'geocodes' in result and 'main' in result['geocodes'] and 'longitude' in result['geocodes']['main'] else 0.0
@@ -54,7 +55,7 @@ class BusinessSearchService(BaseService):
             })
         businesses_to_create = [BusinessCreate(**result) for result in results_dict]
         for business in businesses_to_create:
-            print(business)
             await self.business_service.create_business(business)
-        return [BusinessResponse(**result) for result in results_dict]
+        results = [BusinessResponse(**result) for result in results_dict]
+        return results
 

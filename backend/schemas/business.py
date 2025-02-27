@@ -2,6 +2,7 @@ from pydantic import BaseModel, field_validator
 from typing import Optional, Dict, List
 from schemas.location import LocationCreate
 from utils.pyobjectid import PyObjectId
+from schemas.preference import PreferenceResponse
     
 
 class BusinessCreate(BaseModel):
@@ -13,7 +14,7 @@ class BusinessCreate(BaseModel):
     menu: Optional[str] = None
     address: Optional[str] = None
     location: Optional[LocationCreate] = None
-    dietary_restrictions: List[str] = []
+    dietary_restrictions: List[PreferenceResponse] = []
 
 class BusinessResponse(BaseModel):
     name: str
@@ -22,4 +23,10 @@ class BusinessResponse(BaseModel):
     cuisines: List[str] = []
     menu: Optional[str] = None
     address: Optional[str] = None
-    dietary_restrictions: List[str] = []
+    dietary_restrictions: List[PreferenceResponse] = []
+
+
+class BusinessSearch(BaseModel):
+    lat: float
+    lon: float
+    query: Optional[str] = "restaurant"

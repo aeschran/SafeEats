@@ -36,7 +36,8 @@ class BusinessService(BaseService):
         if not existing_doc:
             await self.db.businesses.insert_one(new_business.to_dict())
             return BusinessResponse(**new_business.to_dict())
-        return None
+        else:
+            return self.update_business(business_id=existing_doc["_id"], business=business)
 
     def get_businesses(self):
         businesses = self.db.businesses.find()
@@ -65,7 +66,7 @@ class BusinessService(BaseService):
             dietary_restrictions=business.dietary_restrictions
         )
         result = self.db.businesses.update_one({"_id": business_id}, {"$set": updated_business.to_dict()})
-        if result.matched_count == 0:
+        if result is None:
             return None
         return BusinessResponse(**updated_business.to_dict())
     def delete_business(self, business_id: ObjectId):

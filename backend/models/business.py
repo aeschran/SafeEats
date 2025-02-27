@@ -1,5 +1,6 @@
 from bson import ObjectId
 from typing import Optional, List, Dict
+from models.preference import Preference
 
 class Business:
     def __init__(self, name, owner_id: Optional[ObjectId] = None, website: Optional[str] = None, phone_number: Optional[str] = None, description: Optional[str] = None, cuisines: List[str] = [], menu: Optional[str] = None, address: Optional[str] = None, location: Dict[str, float] = {}, dietary_restrictions: List[str] = []):
