@@ -74,6 +74,7 @@ struct CreateProfileView: View {
             "Other"
         ]
     
+    @State private var showSuccessMessage = false
 
     
     
@@ -294,7 +295,9 @@ struct CreateProfileView: View {
                             
                             viewModel.sendProfileDataToBackend(profileData)
 //                            viewModel.createdProfile = true
-                            navigateToLandingPage = true
+                            showSuccessMessage = true
+//                            navigateToLandingPage = true
+                                    
                         }) {
                             Text("Save")
                                 .foregroundColor(.white)
@@ -305,6 +308,11 @@ struct CreateProfileView: View {
                                 .cornerRadius(10)
 
                         }
+                        .alert("Your account has been created!", isPresented: $showSuccessMessage) {
+                                Button("OK") {
+                                    navigateToLandingPage = true 
+                                }
+                            }
                         .navigationDestination(isPresented: $navigateToLandingPage) {
                             ContentView().navigationBarBackButtonHidden(true)
                         }
@@ -313,7 +321,7 @@ struct CreateProfileView: View {
 //                        }
           
                     }
-                    
+            
                 }.padding(10)
                     .sheet(isPresented: $isImagePickerPresented) {
                         ImagePicker(
