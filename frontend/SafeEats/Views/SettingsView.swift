@@ -12,6 +12,8 @@ struct SettingsView: View {
     @State private var showChangePassword = false
     @State private var showDeleteAccountAlert = false
     @State private var showLogoutConfirmation = false
+    @AppStorage("userType") private var userType: String?
+    @AppStorage("showDeleteConfirmation") private var showDeleteConfirmation = false
     @State private var tags : [Tag] = []
     
     // use this function to access user data in future views
@@ -60,23 +62,37 @@ struct SettingsView: View {
                                   message: Text("Are you sure you want to delete your account? This action cannot be undone."),
                                   primaryButton: .destructive(Text("Delete")) {
                                 Task {
-                                    await authViewModel.delete_account()
+                                   await authViewModel.delete_account()
+                                   
                                 }
+                                showDeleteConfirmation = true
                                 
                             },
                                   secondaryButton: .cancel())
                         }
+                        
                     }
-                    
-                    GroupBox(label: Label("Suggest New Preferences", systemImage: "fork.knife.circle.fill")) {
-                        TagField().environmentObject(settingsViewModel)
+                    if (userType == "User") {
+                        
+                        GroupBox(label: Label("Suggest New Preferences", systemImage: "fork.knife.circle.fill")) {
+                            TagField().environmentObject(settingsViewModel)
                         }
+                    }
                     
                     
                 }
                 .scrollContentBackground(.hidden)
                 .background(Color.mainGray)
 
+            }
+            .alert(isPresented: $showDeleteConfirmation) {
+                    Alert(
+                        title: Text("Account Deleted"),
+                        message: Text("Your account has been successfully deleted."),
+                        dismissButton: .default(Text("OK")) {
+                            showDeleteConfirmation = false // Reset after dismissal
+                        }
+                    )
                 }
                 Text("Have any questions? Email us at safeeats.dev@gmail.com!")
             }
@@ -152,7 +168,7 @@ struct TagField: View {
                     title: Text("Error"),
                     message: Text(settingsViewModel.errorMessage ?? "Unknown error"),
                     dismissButton: .default(Text("OK")) {
-                        settingsViewModel.errorMessage = nil  
+                        settingsViewModel.errorMessage = nil
                     }
                 )
             }

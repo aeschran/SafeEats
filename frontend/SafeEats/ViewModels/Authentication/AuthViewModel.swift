@@ -220,7 +220,7 @@ class AuthViewModel: ObservableObject {
         //TODO: is there a reason we are using email to login vs username? might be good to keep consistent with reg user login
         guard let url = URL(string: "\(baseURL)/business_auth/login") else { return }
         
-        let body = "username=\(username.lowercased())&password=\(password)".data(using: .utf8)
+        let body = "username=\(email.lowercased())&password=\(password)".data(using: .utf8)
         print(username)
         print(password)
         
@@ -364,12 +364,12 @@ class AuthViewModel: ObservableObject {
     }
     
     func delete_account() async {
-
+        guard let id = id_ else {return}
         var url: URL?
         if self.userType == "User" {
-            url = URL(string: "\(baseURL)/users/\(self.id)")
+            url = URL(string: "\(baseURL)/users/\(id)")
         } else if self.userType == "Business" {
-            url = URL(string: "\(baseURL)/business_owners/\(self.id)")
+            url = URL(string: "\(baseURL)/business_owners/\(id)")
         }
 
         guard let url = url else {

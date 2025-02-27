@@ -29,7 +29,10 @@ struct ContentView: View {
 //                            MapView()
                         case .person:
                             MyProfileView()
+                        case .building:
+                            LandingPage()
                         }
+                        
                     }
                     .animation(.none, value: tabSelected)
                 }
