@@ -3,7 +3,7 @@ from schemas.business import BusinessCreate, BusinessResponse
 from services.base_service import BaseService
 from typing import List
 from bson import ObjectId
-
+from models.location import Location
 
 class BusinessService(BaseService):
     def __init__(self):
@@ -12,10 +12,7 @@ class BusinessService(BaseService):
             raise Exception("Database connection failed.")
 
     async def create_business(self, business: BusinessCreate):
-        updated_location = {
-            "lat": business.location.lat,
-            "lon": business.location.lon
-        }
+        updated_location = Location(coordinates=[business.location.coordinates[0], business.location.coordinates[1]])
         new_business = Business(
             name=business.name,
             owner_id=business.owner_id,
@@ -29,8 +26,7 @@ class BusinessService(BaseService):
         )
         existing_doc = await self.db.businesses.find_one({
             "name": business.name,
-            "location.lat": business.location.lat,
-            "location.lon": business.location.lon
+            "location": updated_location.to_dict()
         })
 
         if not existing_doc:
@@ -50,10 +46,7 @@ class BusinessService(BaseService):
         return None
 
     def update_business(self, business_id: ObjectId, business: BusinessCreate):
-        updated_location = {
-            "lat": business.location.lat,
-            "lon": business.location.lon
-        }
+        updated_location = Location(coordinates=[business.location.coordinates[0], business.location.coordinates[1]])
         updated_business = Business(
             name=business.name,
             owner_id=business.owner_id,

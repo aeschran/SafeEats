@@ -1,9 +1,11 @@
 from bson import ObjectId
 from typing import Optional, List, Dict
 from models.preference import Preference
+from models.cuisine import Cuisine
+from models.location import Location
 
 class Business:
-    def __init__(self, name, owner_id: Optional[ObjectId] = None, website: Optional[str] = None, phone_number: Optional[str] = None, description: Optional[str] = None, cuisines: List[str] = [], menu: Optional[str] = None, address: Optional[str] = None, location: Dict[str, float] = {}, dietary_restrictions: List[str] = []):
+    def __init__(self, name, location: Location, owner_id: Optional[ObjectId] = None, website: Optional[str] = None, phone_number: Optional[str] = None, description: Optional[str] = None, cuisines: List[int] = [], menu: Optional[str] = None, address: Optional[str] = None, dietary_restrictions: List[str] = []):
         self.name = name
         self.owner_id = owner_id
         self.website = website
@@ -22,6 +24,6 @@ class Business:
             "cuisines": self.cuisines,
             "menu": self.menu,
             "address": self.address,
-            "location": self.location,
+            "location": self.location.to_dict(),
             "dietary_restrictions": self.dietary_restrictions
         }

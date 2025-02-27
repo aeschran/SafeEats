@@ -1,9 +1,9 @@
 from pydantic import BaseModel
 
 class LocationCreate(BaseModel):
-    lat: float
-    lon: float
+    type: str
+    coordinates: list
 
 class LocationResponse(BaseModel):
-    lat: float
-    lon: float
+    type: str
+    coordinates: list

@@ -19,7 +19,9 @@ class BusinessSearchService(BaseService):
         params = {
             "near": near,
             "query": query,
-            "limit": self.limit
+            "limit": self.limit,
+            "fields": "name,website,description,categories,menu,geocodes,location"
+
         }
 
         response = requests.get(self.url, params=params, headers=self.headers)
@@ -36,7 +38,7 @@ class BusinessSearchService(BaseService):
         }
 
         response = requests.get(self.url, params=params, headers=self.headers)
-        print(response.json())
+
         results_dict = []
         for result in response.json()['results']:
             results_dict.append({
@@ -44,18 +46,19 @@ class BusinessSearchService(BaseService):
                 "owner_id": None,
                 "website": result['website'] if 'website' in result else None,
                 "description": result['description'] if 'description' in result else None,
-                "cuisines": [result['categories'][i]['name'] for i in range(len(result['categories']))] if 'categories' in result else [],
+                "cuisines": [result['categories'][i]['id'] for i in range(len(result['categories']))] if 'categories' in result else [],
                 "menu": result['menu'] if 'menu' in result else None,
                 "address": result['location']['formatted_address'] if 'location' in result and 'formatted_address' in result['location'] else None,
                 "location": {
-                    "lat": result['geocodes']['main']['latitude'] if 'geocodes' in result and 'main' in result['geocodes'] and 'latitude' in result['geocodes']['main'] else 0.0,
-                    "lon": result['geocodes']['main']['longitude'] if 'geocodes' in result and 'main' in result['geocodes'] and 'longitude' in result['geocodes']['main'] else 0.0
+                    "type": "Point",
+                    "coordinates": [result['geocodes']['main']['latitude'] if 'geocodes' in result and 'main' in result['geocodes'] and 'latitude' in result['geocodes']['main'] else 0.0,
+                    result['geocodes']['main']['longitude'] if 'geocodes' in result and 'main' in result['geocodes'] and 'longitude' in result['geocodes']['main'] else 0.0
+                    ]
                 },
                 "dietary_restrictions": result['dietary_restrictions'] if 'dietary_restrictions' in result else []
             })
         businesses_to_create = [BusinessCreate(**result) for result in results_dict]
         for business in businesses_to_create:
             await self.business_service.create_business(business)
-        results = [BusinessResponse(**result) for result in results_dict]
-        return results
+        return [BusinessResponse(**result) for result in results_dict]
 

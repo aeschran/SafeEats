@@ -16,7 +16,7 @@ class Business: Decodable, Identifiable {
     let name: String?
     let website: String?
     let description: String?
-    let cuisines: [String]?
+    let cuisines: [Int]?
     let menu: String?
     let address: String?
     let dietary_restrictions: [PreferenceResponse]?
