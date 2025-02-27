@@ -39,3 +39,7 @@ struct FriendRequestView: View {
         .padding()
     }
 }
+
+#Preview {
+    FriendRequestsView()
+}
