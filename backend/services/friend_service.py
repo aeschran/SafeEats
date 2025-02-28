@@ -155,12 +155,13 @@ class FriendService(BaseService):
     async def unfollow_friend(self, user_id: str, friend_id: str) -> bool:
         user_obj_id = ObjectId(user_id)
         friend_obj_id = ObjectId(friend_id)
-
-        # delete the friend relationship
+        
         result = await self.db.friends.delete_one({
-            "user_id": user_obj_id,
-            "friend_id": friend_obj_id
-        })
+        "$or": [
+            {"user_id": user_obj_id, "friend_id": friend_obj_id},
+            {"user_id": friend_obj_id, "friend_id": user_obj_id}
+        ]
+    })
         
         if result.deleted_count == 1:
             # decrement friend count for both users
