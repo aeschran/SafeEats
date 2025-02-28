@@ -115,7 +115,7 @@ class BusinessSearchService(BaseService):
                 "$near": {
                     "$geometry": {
                         "type": "Point",
-                        "coordinates": [business_search.lat, business_search.lon]
+                        "coordinates": [business_search.lon, business_search.lat]
                     }
                 }
             }
