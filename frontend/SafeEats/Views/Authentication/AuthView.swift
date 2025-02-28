@@ -412,6 +412,8 @@ struct BottomView: View {
     
     var body: some View {
         HStack(spacing: 3) {
+            Text(authType == .login ? "Don't have an account?" : "Already have an account?")
+                            .font(.system(size: 15, weight: .medium))
             
             Button {
                 if authType == .login {
