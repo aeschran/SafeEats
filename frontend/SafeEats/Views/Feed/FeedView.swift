@@ -65,12 +65,15 @@ struct FeedView: View {
                     ProfileView(friendId: userId)
                 }
             }
-            .navigationDestination(isPresented: $navigateToNotifications) {
-                    NotificationsView()
-//                Text("Notifications Page (Coming Soon)") // Placeholder for future implementation
-//                    .font(.largeTitle)
-//                    .foregroundColor(.gray)
+            NavigationLink(destination: NotificationsView(), isActive: $navigateToNotifications) {
+                
             }
+//            .navigationDestination(isPresented: $navigateToNotifications) {
+//                    NotificationsView()
+////                Text("Notifications Page (Coming Soon)") // Placeholder for future implementation
+////                    .font(.largeTitle)
+////                    .foregroundColor(.gray)
+//            }
         }
         .background(Color.white)
     }

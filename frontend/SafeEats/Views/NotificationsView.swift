@@ -50,20 +50,6 @@ struct NotificationsView: View {
             .onAppear {
                 viewModel.fetchNotifications()
             }
-            //.navigationBarBackButtonHidden()
-//            .toolbar {
-//                ToolbarItem(placement: .topBarLeading) {
-//                    Button(action: {
-//                        // Go back in the navigation stack
-//                        presentationMode.wrappedValue.dismiss()
-//                    }) {
-//                        HStack {
-//                            Image(systemName: "chevron.left")
-//                            Text("Back")
-//                        }
-//                    }
-//                }
-//        }
         }
     }
 }
