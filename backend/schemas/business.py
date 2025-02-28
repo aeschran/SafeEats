@@ -30,3 +30,5 @@ class BusinessSearch(BaseModel):
     lat: float
     lon: float
     query: Optional[str] = "restaurant"
+    cuisines: Optional[List[int]] = []
+    preferences: Optional[List[PreferenceResponse]] = []

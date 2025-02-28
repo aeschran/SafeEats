@@ -7,6 +7,8 @@ from services.business_service import BusinessService
 class BusinessSearchService(BaseService):
     def __init__(self, limit: int = 10):
         super().__init__()
+        if self.db is None:
+            raise Exception("Database connection failed.")
         self.business_service = BusinessService()
         self.limit = limit
         self.headers = {
@@ -14,6 +16,15 @@ class BusinessSearchService(BaseService):
             "Authorization": settings.FOURSQUARE_SECRET
         }
         self.url = "https://api.foursquare.com/v3/places/search"
+        self.cuisine_ranges = []
+
+    async def search_operator(self, business_search: BusinessSearch):
+        if business_search.cuisines != []:
+            self.cuisine_ranges = await self.get_cuisine_ranges(business_search.cuisines)
+        if business_search.query != "restaurant" and business_search.query != "":
+            return await self.search_by_lat_long(business_search)
+        else:
+            return await self.query_db_by_lat_long(business_search)
 
     async def search_by_near_address(self, near: str = "West Lafayette, IN", query: str = "restaurant"):
         params = {
@@ -21,7 +32,6 @@ class BusinessSearchService(BaseService):
             "query": query,
             "limit": self.limit,
             "fields": "name,website,description,categories,menu,geocodes,location"
-
         }
 
         response = requests.get(self.url, params=params, headers=self.headers)
@@ -58,7 +68,79 @@ class BusinessSearchService(BaseService):
                 "dietary_restrictions": result['dietary_restrictions'] if 'dietary_restrictions' in result else []
             })
         businesses_to_create = [BusinessCreate(**result) for result in results_dict]
+        db_businesses = []
         for business in businesses_to_create:
             await self.business_service.create_business(business)
-        return [BusinessResponse(**result) for result in results_dict]
+        for business in businesses_to_create:
+            if self.cuisine_ranges == []:
+                    db_businesses.append(await self.business_service.get_business_by_name_and_location(business))
+            else:
+                for cuisine in business.cuisines:
+                    found = False
+                    for cuisine_type in self.cuisine_ranges:
+                        for cuisine_range in cuisine_type['ranges']:
+                            if cuisine <= cuisine_range['max'] and cuisine >= cuisine_range['min']:
+                                found = True
+                                break
+                        if found:
+                            db_businesses.append(await self.business_service.get_business_by_name_and_location(business))
+                            break
+        return [BusinessResponse(**business) for business in db_businesses]
+    
+    async def query_db_by_lat_long(self, business_search: BusinessSearch):
+        db_results = await self.db.businesses.find({
+            "location.coordinates": {
+                "$near": {
+                    "$geometry": {
+                        "type": "Point",
+                        "coordinates": [business_search.lat, business_search.lon]
+                    }
+                }
+            }
+        }).to_list(10)
+        if self.cuisine_ranges == []:
+            return [BusinessResponse(**business) for business in db_results]
+        else:
+            db_businesses = []
+            for business in db_results:
+                for cuisine in business['cuisines']:
+                    found = False
+                    for cuisine_type in self.cuisine_ranges:
+                        for cuisine_range in cuisine_type['ranges']:
+                            if cuisine <= cuisine_range['max'] and cuisine >= cuisine_range['min']:
+                                found = True
+                                break
+                        if found:
+                            db_businesses.append(business)
+                            break
+            return [BusinessResponse(**business) for business in db_businesses]
+        
+    
 
+    async def find_list_of_businesses_in_db(self, businesses: list):
+        return [await self.business_service.get_business_by_name_and_location(business) for business in businesses]
+
+    async def get_all_cuisine_ranges(self):
+        results = await self.db.cuisines.find().to_list()
+        return results
+    
+    async def get_cuisine_ranges(self, cuisine_numbers: list):
+        cuisines = []
+        
+        # Iterate through the cuisine_numbers and check against the ranges
+        for number in cuisine_numbers:
+            # Query the database to find all cuisines where the number falls within any range
+            async for cuisine in self.db.cuisines.find({
+                "ranges": {
+                    "$elemMatch": {
+                        "$and": [
+                            {"min": {"$lte": number}},  # The number must be greater than or equal to the "min"
+                            {"max": {"$gte": number}}   # The number must be less than or equal to the "max"
+                        ]
+                    }
+                }
+            }):
+                cuisines.append(cuisine)
+
+        return cuisines
+            
