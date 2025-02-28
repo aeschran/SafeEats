@@ -15,8 +15,13 @@ struct Friend: Identifiable {
 }
     
 struct FriendRow: View {
+//    @AppStorage("id") var id_: String?
+//    guard let user_id = id_ else {
+//        print("Error: User data is not available")
+//        return
+//    }
     let friend: Friend
-
+        
     var body: some View {
         VStack(alignment: .leading) {
             Text(friend.name)

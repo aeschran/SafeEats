@@ -28,6 +28,7 @@ class OtherProfileResponse(BaseModel):
     image: str | None = None
     preferences: List[PreferenceCreate] = []
     is_following: bool | None = None
+    is_requested: bool | None = None
     # image: str
 
 class ProfileSearchResponse(BaseModel):

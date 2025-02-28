@@ -16,6 +16,7 @@ class ProfileViewModel: ObservableObject {
     @Published var reviewCount: Int = 0
     @Published var imageBase64: UIImage? = nil
     @Published var isFollowing: Bool = false
+    @Published var isRequested: Bool = false
     @Published var didTap: Bool = false
     private var friendId: String
     @AppStorage("id") var id_: String?
@@ -39,6 +40,8 @@ class ProfileViewModel: ObservableObject {
 //        fetchUserProfile(friendId: friendId)
     }
     func fetchData() {
+        print("1")
+        print(self.friendId)
         Task {
             await fetchUserProfile(friendId: self.friendId)
         }
@@ -107,7 +110,7 @@ class ProfileViewModel: ObservableObject {
                     print("Response JSON: \(jsonString)")
                 }
                 let decodedProfile = try JSONDecoder().decode(ProfileResponse.self, from: data)
-                
+                print(decodedProfile)
                 DispatchQueue.main.async {
                     self.name = decodedProfile.name
                     self.username = decodedProfile.username
@@ -115,6 +118,8 @@ class ProfileViewModel: ObservableObject {
                     self.friendCount = decodedProfile.friendCount
                     self.reviewCount = decodedProfile.reviewCount
                     self.isFollowing = decodedProfile.isFollowing
+//                    self.isRequested = decodeProfile.isRequested
+                    self.isRequested = decodedProfile.isRequested
                     
                     // Decode Base64 Image
 //                    if let imageData = Data(base64Encoded: decodedProfile.imageBase64),
@@ -213,6 +218,7 @@ struct ProfileResponse: Codable {
     let reviewCount: Int
     let imageBase64: String?
     let isFollowing: Bool
+    let isRequested: Bool
 
     // If backend uses different naming conventions, we can map it here
     enum CodingKeys: String, CodingKey {
@@ -223,6 +229,7 @@ struct ProfileResponse: Codable {
         case reviewCount = "review_count"
         case imageBase64 = "image"
         case isFollowing = "is_following"
+        case isRequested = "is_requested"
     }
 }
 

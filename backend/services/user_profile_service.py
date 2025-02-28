@@ -56,25 +56,35 @@ class UserProfileService(BaseService):
         user_image = await self.db.user_profile_images.find_one({"user_id": str(friend_id)})
         user = OtherProfileResponse(**user_data)
         friend_data = await self.db.friends.find_one({"user_id": ObjectId(_id), "friend_id": ObjectId(friend_id)})
-        if friend_data:
-            print(friend_data)
-        else:
-            print("hi")
+        if not friend_data:
+            friend_data = await self.db.friends.find_one({"user_id": ObjectId(friend_id), "friend_id": ObjectId(_id)})
+        notifications_data = await self.db.notifications.find_one({"user_id": ObjectId(_id), "friend_id": ObjectId(friend_id)})
+        if not notifications_data:
+            notifications_data = await self.db.notifications.find_one({"sender_id": ObjectId(friend_id), "recipient_id": ObjectId(_id)})
         if user:
             if friend_data:
                 if user_image:
                     print("1")
-                    user = user.copy(update={"image": user_image["image"], "is_following": True})
-                else:
+                    user = user.copy(update={"image": user_image["image"], "is_following": True, "is_requested": False})
+                else:  
                     print("2")
-                    user = user.copy(update={"image": None, "is_following": True})
+                    user = user.copy(update={"image": None, "is_following": True, "is_requested": False})
             else:
-                if user_image:
-                    print("3")
-                    user = user.copy(update={"image": user_image["image"], "is_following": False})
+                if notifications_data:
+                    if user_image:
+                        user = user.copy(update={"image": user_image["image"], "is_following": False, "is_requested": True})
+                    else:
+                        user = user.copy(update={"is_following": False, "image": None, "is_requested": True})
                 else:
-                    print("4")
-                    user = user.copy(update={"is_following": False, "image": None})
+                    if user_image:
+                        user = user.copy(update={"image": user_image["image"], "is_following": False, "is_requested": False})
+                    else:
+                        user = user.copy(update={"is_following": False, "image": None, "is_requested": False})
+
+                    # user = user.copy(update={"image": user_image["image"], "is_following": False})
+                # else:
+                    # print("4")
+                    # user = user.copy(update={"is_following": False, "image": None})
             return user
         return None
 
