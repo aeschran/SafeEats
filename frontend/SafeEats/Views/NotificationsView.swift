@@ -16,9 +16,16 @@ struct NotificationsView: View {
         NavigationStack {
             List(viewModel.notifications) { notification in
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("\(notification.senderUsername) wants to be your friend")
-                        .font(.headline)
-
+                    Button(action: {
+                        // set navigateToProfile and senderID here
+                        viewModel.navigateToProfile = true
+                        viewModel.senderID = notification.senderId
+                    }) {
+                        Text("\(notification.senderUsername) wants to be your friend")
+                            .font(.headline)
+                            .foregroundColor(.black)
+                    }
+                    
                     HStack {
                         Button("Accept") {
                             print(notification.id)
@@ -28,7 +35,7 @@ struct NotificationsView: View {
                         }
                         .buttonStyle(.borderedProminent)
                         .tint(.green)
-
+                        
                         Button("Deny") {
                             print(notification.id)
                             viewModel.denyRequest(notificationId: notification.id, recipientId: notification.recipient_id, senderId: notification.sender_id)
@@ -43,24 +50,20 @@ struct NotificationsView: View {
             .onAppear {
                 viewModel.fetchNotifications()
             }
-            .navigationBarBackButtonHidden()
-            .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button(action: {
-                    // Navigate back to FeedView when back button is clicked
-                    let rootView = ContentView()
-                    let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
-                    let window = windowScene?.windows.first
-                    window?.rootViewController = UIHostingController(rootView: rootView)
-                    window?.makeKeyAndVisible()
-                }) {
-                    HStack {
-                        Image(systemName: "chevron.left")
-                        Text("Back")
-                    }
-                }
-            }
-        }
+            //.navigationBarBackButtonHidden()
+//            .toolbar {
+//                ToolbarItem(placement: .topBarLeading) {
+//                    Button(action: {
+//                        // Go back in the navigation stack
+//                        presentationMode.wrappedValue.dismiss()
+//                    }) {
+//                        HStack {
+//                            Image(systemName: "chevron.left")
+//                            Text("Back")
+//                        }
+//                    }
+//                }
+//        }
         }
     }
 }
@@ -68,5 +71,3 @@ struct NotificationsView: View {
 #Preview {
     NotificationsView()
 }
-
-

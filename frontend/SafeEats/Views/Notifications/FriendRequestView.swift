@@ -22,7 +22,7 @@ struct FriendRequestView: View {
             .frame(width: 50, height: 50)
             .clipShape(Circle())
 
-            Text(request.sender.name)
+            Text(request.sender_username)
                 .font(.headline)
 
             Spacer()
@@ -38,4 +38,8 @@ struct FriendRequestView: View {
         }
         .padding()
     }
+}
+
+#Preview {
+    FriendRequestsView()
 }

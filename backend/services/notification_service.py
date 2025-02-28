@@ -61,7 +61,7 @@ class NotificationService(BaseService):
                     }
                 }
             ]
-        notifications = await self.db.notifications.aggregate(pipeline).to_list(100)
+        notifications = await self.db.notifications.aggregate(pipeline).to_list()
         notifications = [NotificationResponse(**notification) for notification in notifications]
         return notifications
     

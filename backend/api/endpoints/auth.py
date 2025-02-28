@@ -21,7 +21,7 @@ async def get_username_endpoint(username: str, token: str = Depends(get_token),
 
 @router.post("/login")
 async def login(request:OAuth2PasswordRequestForm = Depends()):
-    user = await user_service.get_user_by_username(request.username) 
+    user = await user_service.get_user_by_username(request.username)
 
     if not user:
         raise HTTPException(status_code=400, detail="User does not exist")

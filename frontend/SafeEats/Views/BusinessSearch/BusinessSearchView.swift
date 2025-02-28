@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct BusinessSearchView: View {
+    @StateObject private var viewModel = BusinessSearchViewModel()
     @State private var showFilters = false
     @State private var selectedCuisines = Set<String>(["Italian"])
     @State private var selectedDietaryRestrictions: Set<String> = []
@@ -18,14 +19,20 @@ struct BusinessSearchView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                SearchBar()
+                SearchBar(viewModel: viewModel)
                 
-                List {
-                    BusinessCard(title: "Olive Garden - West Lafayette", rating: 4.7, imageName: "self.crop.circle.fill")
-                    BusinessCard(title: "Olive Garden - Greater Lafayette", rating: 4.8, imageName: "self.crop.circle.fill")
-                }
-                .listStyle(.inset)
-            }
+                if viewModel.isLoading {
+                                    ProgressView("Loading...")
+                                } else if let errorMessage = viewModel.errorMessage {
+                                    Text(errorMessage)
+                                        .foregroundColor(.red)
+                                } else {
+                                    List(viewModel.businesses, id: \.name) { business in
+                                        BusinessCard(title: business.name ?? "No Name", rating: 4.5, imageName: "self.crop.circle.fill", description: business.description ?? "No Description")
+                                    }
+                                    .listStyle(.inset)
+                                }
+                            }
             .navigationTitle("Search")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

@@ -11,6 +11,7 @@ struct BusinessCard: View {
     var title: String
     var rating: Double
     var imageName: String // Business logo
+    var description: String 
     var allergenIcons: [String] = ["Vegetarian", "Vegan", "Gluten-Free"] // Array of allergen indicator image names
 
     var body: some View {
@@ -23,7 +24,7 @@ struct BusinessCard: View {
             VStack(alignment: .leading, spacing: 5) {
                 Text(title)
                     .font(.headline)
-                Text("Lively, family-friendly chain featuring Italian standards such as pastas & salads")
+                Text(description)
 
                 // Allergen icons
                 HStack(spacing: 6) {

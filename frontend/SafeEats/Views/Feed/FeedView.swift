@@ -35,10 +35,7 @@ struct FeedView: View {
                     ScrollView {
                         VStack {
                             ForEach(viewModel.searchResults) { user in
-                                Button(action: {
-                                    selectedUserId = user.id
-                                    navigateToProfile = true
-                                }) {
+                                NavigationLink(destination: ProfileView(friendId: user.id)) {
                                     VStack(alignment: .leading) {
                                         Text(user.name)
                                             .font(.headline)

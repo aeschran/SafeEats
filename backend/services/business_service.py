@@ -3,7 +3,7 @@ from schemas.business import BusinessCreate, BusinessResponse
 from services.base_service import BaseService
 from typing import List
 from bson import ObjectId
-
+from models.location import Location
 
 class BusinessService(BaseService):
     def __init__(self):
@@ -12,10 +12,7 @@ class BusinessService(BaseService):
             raise Exception("Database connection failed.")
 
     async def create_business(self, business: BusinessCreate):
-        updated_location = {
-            "lat": business.location.lat,
-            "lon": business.location.lon
-        }
+        updated_location = Location(coordinates=[business.location.coordinates[0], business.location.coordinates[1]])
         new_business = Business(
             name=business.name,
             owner_id=business.owner_id,
@@ -29,14 +26,14 @@ class BusinessService(BaseService):
         )
         existing_doc = await self.db.businesses.find_one({
             "name": business.name,
-            "location.lat": business.location.lat,
-            "location.lon": business.location.lon
+            "location": updated_location.to_dict()
         })
 
         if not existing_doc:
             await self.db.businesses.insert_one(new_business.to_dict())
             return BusinessResponse(**new_business.to_dict())
-        return None
+        else:
+            return self.update_business(business_id=existing_doc["_id"], business=business)
 
     def get_businesses(self):
         businesses = self.db.businesses.find()
@@ -47,12 +44,19 @@ class BusinessService(BaseService):
         if business:
             return BusinessResponse(**business)
         return None
+    
+    async def get_business_by_name_and_location(self, business: BusinessCreate):
+        updated_location = Location(coordinates=[business.location.coordinates[0], business.location.coordinates[1]])
+        business = await self.db.businesses.find_one({
+            "name": business.name,
+            "location": updated_location.to_dict()
+        })
+        if business:
+            return BusinessResponse(**business)
+        return
 
     def update_business(self, business_id: ObjectId, business: BusinessCreate):
-        updated_location = {
-            "lat": business.location.lat,
-            "lon": business.location.lon
-        }
+        updated_location = Location(coordinates=[business.location.coordinates[0], business.location.coordinates[1]])
         updated_business = Business(
             name=business.name,
             owner_id=business.owner_id,
@@ -65,7 +69,7 @@ class BusinessService(BaseService):
             dietary_restrictions=business.dietary_restrictions
         )
         result = self.db.businesses.update_one({"_id": business_id}, {"$set": updated_business.to_dict()})
-        if result.matched_count == 0:
+        if result is None:
             return None
         return BusinessResponse(**updated_business.to_dict())
     def delete_business(self, business_id: ObjectId):
