@@ -68,8 +68,8 @@ class BusinessSearchService(BaseService):
                 "address": result['location']['formatted_address'] if 'location' in result and 'formatted_address' in result['location'] else None,
                 "location": {
                     "type": "Point",
-                    "coordinates": [result['geocodes']['main']['latitude'] if 'geocodes' in result and 'main' in result['geocodes'] and 'latitude' in result['geocodes']['main'] else 0.0,
-                    result['geocodes']['main']['longitude'] if 'geocodes' in result and 'main' in result['geocodes'] and 'longitude' in result['geocodes']['main'] else 0.0
+                    "coordinates": [result['geocodes']['main']['longitude'] if 'geocodes' in result and 'main' in result['geocodes'] and 'longitude' in result['geocodes']['main'] else 0.0,
+                    result['geocodes']['main']['latitude'] if 'geocodes' in result and 'main' in result['geocodes'] and 'latitude' in result['geocodes']['main'] else 0.0
                     ]
                 },
                 "dietary_restrictions": result['dietary_restrictions'] if 'dietary_restrictions' in result else []
