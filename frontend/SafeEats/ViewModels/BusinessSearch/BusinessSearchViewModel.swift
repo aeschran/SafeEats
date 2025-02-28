@@ -9,10 +9,21 @@ import SwiftUI
 import Combine
 import CoreLocation
 
+struct PreferenceStruct: Codable {
+    let preference: String
+    let preference_type: String
+}
+
+struct UserPreferences: Codable {
+    let dietary_restrictions: [PreferenceStruct]
+}
+
 struct BusinessSearchRequest: Codable {
     let lat: Double
     let lon: Double
     let query: String
+    var cuisines: [String]? = nil
+    var dietary_restrictions: [PreferenceStruct]? = nil
 }
 
 class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
@@ -25,6 +36,7 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
     @Published var selectedAllergies: Set<String> = []
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
+    @Published var preferencesLoaded: Bool = false
 
     private var cancellables = Set<AnyCancellable>()
     private var locationManager = CLLocationManager()
@@ -33,12 +45,60 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
         super.init()
         locationManager.delegate = self
         requestLocation()
+        
+        fetchUserPreferences(userId: UserDefaults.standard.string(forKey: "id") ?? "")
+
     }
 
     // Request location permission
     func requestLocation() {
         locationManager.requestWhenInUseAuthorization()
         locationManager.startUpdatingLocation()
+    }
+    
+    func fetchUserPreferences(userId: String) {
+        guard let url = URL(string: "http://localhost:8000/profile/preferences/\(userId)") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                DispatchQueue.main.async {
+                    self.errorMessage = "Request failed: \(error.localizedDescription)"
+                }
+                return
+            }
+            
+            if let data = data {
+                do {
+                    let userPreferences = try JSONDecoder().decode(UserPreferences.self, from: data)
+                    
+                    var allergies: [String] = []
+                    var diet: [String] = []
+                    for preference in userPreferences.dietary_restrictions {
+                        if preference.preference_type == "Allergy" {
+                            allergies.append(preference.preference)
+                        }
+                        else {
+                            diet.append(preference.preference)
+                        }
+                    }
+                    
+                    DispatchQueue.main.async {
+                        self.selectedDietaryRestrictions = Set(diet)
+                        self.selectedAllergies = Set(allergies)
+                        self.preferencesLoaded = true
+                    }
+                } catch {
+                    DispatchQueue.main.async {
+                        self.errorMessage = "Failed to parse user preferences: \(error.localizedDescription)"
+                    }
+                }
+            }
+        }
+        task.resume()
     }
 
     // CLLocationManagerDelegate - Update location
@@ -59,7 +119,7 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
 
     // Search businesses with current location
     func searchBusinesses() {
-        guard latitude != 0, longitude != 0 else { return }
+        guard latitude != 0, longitude != 0, preferencesLoaded else { return }
         
         isLoading = true
         errorMessage = nil
@@ -70,7 +130,20 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        let requestBody = BusinessSearchRequest(lat: latitude, lon: longitude, query: query)
+        var all_preferences: [PreferenceStruct] = []
+        
+        for allergy in selectedAllergies {
+            let preference = PreferenceStruct(preference: allergy, preference_type: "Allergy")
+            all_preferences.append(preference)
+        }
+        
+        for restriction in selectedDietaryRestrictions {
+            let preference = PreferenceStruct(preference: restriction, preference_type: "Dietary Restriction")
+            all_preferences.append(preference)
+        }
+        
+        let requestBody = BusinessSearchRequest(lat: latitude, lon: longitude, query: query, cuisines: Array(selectedCuisines), dietary_restrictions: all_preferences)
+        print(requestBody)
         
         do {
             request.httpBody = try JSONEncoder().encode(requestBody)
@@ -90,8 +163,6 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
             
             if let data = data {
                 do {
-                    let jsonString = String(data: data, encoding: .utf8)
-                    print(jsonString)
                     let businesses: [Business] = try JSONDecoder().decode([Business].self, from: data)
                     DispatchQueue.main.async {
                         self.businesses = businesses

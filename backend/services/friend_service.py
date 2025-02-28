@@ -19,7 +19,8 @@ class FriendService(BaseService):
             update_user_count = await self.db.users.update_one({"_id": ObjectId(friend_create.user_id)}, {"$inc": {"friend_count" : 1}})
             update_friend_count = await self.db.users.update_one({"_id": ObjectId(friend_create.friend_id)}, {"$inc": {"friend_count" : 1}})
             if result.inserted_id:
-                return FriendResponse(**friend.to_dict())
+                friend = 1
+                return friend
             return None
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))

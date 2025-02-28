@@ -10,11 +10,8 @@ import SwiftUI
 struct BusinessSearchView: View {
     @StateObject private var viewModel = BusinessSearchViewModel()
     @State private var showFilters = false
-    @State private var selectedCuisines = Set<String>(["Italian"])
-    @State private var selectedDietaryRestrictions: Set<String> = []
-    @State private var selectedAllergies: Set<String> = []
     
-    let cuisines = ["Italian", "Indian", "Mexican", "Thai"]
+    let cuisines = ["Italian", "Indian", "Mexican", "Asian"]
     
     var body: some View {
         NavigationStack {
@@ -51,7 +48,7 @@ struct BusinessSearchView: View {
                 }
             }
             .sheet(isPresented: $showFilters) {
-                PickPreferences(selectedCuisines: $selectedCuisines, selectedAllergies: $selectedAllergies, selectedDietaryRestrictions: $selectedDietaryRestrictions)
+                PickPreferences(selectedCuisines: $viewModel.selectedCuisines, selectedAllergies: $viewModel.selectedAllergies, selectedDietaryRestrictions: $viewModel.selectedDietaryRestrictions)
                     .presentationDetents([.medium, .large])
                     .padding(.top, 40)
             }

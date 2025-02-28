@@ -120,6 +120,7 @@ class UserProfileService(BaseService):
         user_data = await self.db.users.find_one({"_id": ObjectId(_id)})
         if user_data:
             user = ProfileResponse(**user_data)
-            return user.preferences
+            result = {"dietary_restrictions":user.preferences} 
+            return result
         return None
 

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct FilterView: View {
     @Binding var selectedCuisines: Set<String>
-    let cuisines = ["Italian", "Indian", "Mexican", "Thai"]
+    let cuisines = ["Italian", "Indian", "Mexican", "Asian"]
     @Binding var selectedAllergies: Set<String>
     @Binding var selectedDietaryRestrictions: Set<String>
     @Environment(\.dismiss) var dismiss

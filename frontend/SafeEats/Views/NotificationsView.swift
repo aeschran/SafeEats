@@ -16,15 +16,11 @@ struct NotificationsView: View {
         NavigationStack {
             List(viewModel.notifications) { notification in
                 VStack(alignment: .leading, spacing: 8) {
-                    Button(action: {
-                        // set navigateToProfile and senderID here
-                        viewModel.navigateToProfile = true
-                        viewModel.senderID = notification.senderId
-                    }) {
-                        Text("\(notification.senderUsername) wants to be your friend")
-                            .font(.headline)
-                            .foregroundColor(.black)
-                    }
+                    NavigationLink(destination: ProfileView(friendId: notification.senderId)) {
+                                            Text("\(notification.senderUsername) wants to be your friend!")
+                                                .font(.headline)
+                                                .foregroundColor(.black)
+                                        }
                     
                     HStack {
                         Button("Accept") {

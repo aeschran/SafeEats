@@ -52,7 +52,7 @@ class BusinessService(BaseService):
             "location": updated_location.to_dict()
         })
         if business:
-            return BusinessResponse(**business)
+            return business
         return
 
     def update_business(self, business_id: ObjectId, business: BusinessCreate):

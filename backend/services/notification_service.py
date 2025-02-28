@@ -65,9 +65,9 @@ class NotificationService(BaseService):
         notifications = [NotificationResponse(**notification) for notification in notifications]
         return notifications
     
-    async def delete_notification(self, _id: str) -> bool:
-        result = await self.db.notifications.delete_one({"_id": ObjectId(_id)})
-        return result.deleted_count == 1
+    # async def delete_notification(self, _id: str) -> bool:
+    #     result = await self.db.notifications.delete_one({"_id": ObjectId(_id)})
+    #     return result.deleted_count == 1
     
     async def delete_notification(self, notification_id: str) -> bool:
         result = await self.db.notifications.delete_one({"_id": ObjectId(notification_id)})

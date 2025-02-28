@@ -20,7 +20,7 @@ struct PickPreferences: View {
     @State private var showDietaryRestrictions = false
     
     
-    private let cuisines = ["Italian", "Indian", "Mexican", "Thai"]
+    private let cuisines = ["Italian", "Asian", "Mexican", "Indian"]
     private let allergies = ["Peanuts", "Dairy", "Gluten", "Shellfish"]
     private let dietaryRestrictions = ["Vegan", "Vegetarian", "Halal", "Kosher"]
     
