@@ -188,7 +188,7 @@ class ProfileViewModel: ObservableObject {
         request.httpMethod = "DELETE"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        let body: [String: String] = ["user_id": id, "friend_id": friendId]
+        let body: [String: String] = ["notification_id": "", "user_id": id, "friend_id": friendId]
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)
         
         do {

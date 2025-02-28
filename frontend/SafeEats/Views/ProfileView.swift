@@ -30,15 +30,15 @@ struct ProfileView: View {
             
             ScrollView{
                 VStack{
-                    HStack{
-                        Image(systemName: "chevron.left").font(.title2)
-                        Spacer()
-                        
-                        Text(viewModel.username).font(.subheadline).fontWeight(.semibold)
-                        Spacer()
-                        
-                        
-                    }.padding(2)
+//                    HStack{
+//                        Image(systemName: "chevron.left").font(.title2)
+//                        Spacer()
+//                        
+//                        Text(viewModel.username).font(.subheadline).fontWeight(.semibold)
+//                        Spacer()
+//                        
+//                        
+//                    }.padding(2)
                     HStack{
                         if let profileImage = viewModel.imageBase64 {
                             Image(uiImage: profileImage)
@@ -152,6 +152,8 @@ struct ProfileView: View {
                 // Fetch the data after the view appears
                 viewModel.fetchData()
             }
+            .navigationTitle(viewModel.username) // Centered title
+            .navigationBarTitleDisplayMode(.inline) // Ensures it's in the center
         }
     }
 }
