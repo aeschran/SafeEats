@@ -20,7 +20,7 @@ class UserProfileService(BaseService):
     async def create_new_profile(self, _id: str, profile_create: ProfileCreate):
 
         user = await self.db.users.find_one({"_id": ObjectId(_id)})
-        name = user.get("name")
+        name = user["name"]
         profile = Profile(name=name, bio=profile_create.bio, friend_count=profile_create.friend_count, review_count=profile_create.review_count, image=profile_create.image, preferences=profile_create.preferences)
         result = await self.db.users.update_one({"_id": ObjectId(_id)}, {"$set": profile.to_dict()}, upsert=False)
         image_dict = profile.get_image()

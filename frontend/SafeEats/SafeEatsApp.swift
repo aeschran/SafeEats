@@ -9,26 +9,46 @@ import SwiftUI
 
 @main
 struct SafeEatsApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var viewModel = AuthViewModel()
     @StateObject private var createProfile = CreateProfileViewModel()
+    private var login: Bool = false
+    
+//    init() {
+//        self.login = UserDefaults.standard.bool(forKey: "loggedIn")
+//    }
+    
+    //    @AppStorage("loggedIn") var loggedIn: Bool = false {
+    //        didSet {
+    //            print("loggedIn changed to:", loggedIn)
+    //        }
+    //    }
+    //    @AppStorage("createdProfile") var createdProfile : Bool = false
+    
     var body: some Scene {
         WindowGroup {
-            if viewModel.isAuthenticated ?? false {
-                if viewModel.createdProfile {
-                    ContentView()
-                        .environmentObject(viewModel)
-                        .environmentObject(createProfile)
+            if UserDefaults.standard.bool(forKey: "loggedIn") {
+                if viewModel.isAuthenticated ?? false {
+                    if UserDefaults.standard.bool(forKey: "createdProfile") {
+                        ContentView()
+                            .environmentObject(viewModel)
+                            .environmentObject(createProfile)
+                    } else {
+                        CreateProfileView()
+                            .environmentObject(createProfile)
+                            .environmentObject(viewModel)
+                    }
                 } else {
-                    CreateProfileView()
-                        .environmentObject(createProfile)
+                    AuthView()
                         .environmentObject(viewModel)
+                        .environmentObject(createProfile)
                 }
             } else {
                 AuthView()
                     .environmentObject(viewModel)
                     .environmentObject(createProfile)
             }
-//            CreateProfileView()
+            //            CreateProfileView()
         }
     }
 }

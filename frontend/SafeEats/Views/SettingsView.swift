@@ -16,8 +16,8 @@ struct SettingsView: View {
     @AppStorage("showDeleteConfirmation") private var showDeleteConfirmation = false
     @State private var tags : [Tag] = []
     
-    // use this function to access user data in future views
-    
+    @AppStorage("loggedIn") private var loggedIn: Bool = false
+    @AppStorage("staySignedIn") private var staySignedIn: Bool = false
     
     @EnvironmentObject var authViewModel: AuthViewModel
     
@@ -77,7 +77,25 @@ struct SettingsView: View {
                         GroupBox(label: Label("Suggest New Preferences", systemImage: "fork.knife.circle.fill")) {
                             TagField().environmentObject(settingsViewModel)
                         }
+                        
+                        HStack {
+                            Button(action: {
+                                staySignedIn = !staySignedIn
+                            }) {
+                                Image(systemName: staySignedIn ? "checkmark.square.fill" : "square")
+                                    .resizable()
+                                    .frame(width: 24, height: 24)
+                                    .foregroundColor(staySignedIn ? .blue : .gray)
+                            }
+                            .buttonStyle(.plain)
+                            
+                            Text("Stay Signed In")
+                                .font(.body)
+                                .onTapGesture {}
+                        }
                     }
+                    
+                    
                     
                     
                 }
@@ -165,7 +183,7 @@ struct TagField: View {
                 set: { if !$0 { settingsViewModel.errorMessage = nil } }
             )) {
                 Alert(
-                    title: Text("Error"),
+                    title: Text("Notice"),
                     message: Text(settingsViewModel.errorMessage ?? "Unknown error"),
                     dismissButton: .default(Text("OK")) {
                         settingsViewModel.errorMessage = nil

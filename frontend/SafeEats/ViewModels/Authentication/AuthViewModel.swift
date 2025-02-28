@@ -24,6 +24,7 @@ class AuthViewModel: ObservableObject {
     @AppStorage("createdProfile") var createdProfile: Bool = false
     @AppStorage("userType") var userType: String?
     @AppStorage("isUserCreated") var isCreated: Bool = false
+    @AppStorage("loggedIn") var loggedIn: Bool = false
  
 
     
@@ -112,8 +113,10 @@ class AuthViewModel: ObservableObject {
                                 //self.set_user_data()
                                 self.isAuthenticated = true
                                 self.createdProfile = true
+                                UserDefaults.standard.set(true, forKey: "loggedIn")
                                 print("Success: registered")
                             }
+                            
                         } else {
                             DispatchQueue.main.async {
                                 self.errorMessage = "Invalid response data"
@@ -152,6 +155,7 @@ class AuthViewModel: ObservableObject {
     }
     
     func user_register() async {
+        print("this is currently loggedIn: \(loggedIn == true)")
         guard validateFields() else { return }
         guard let url = URL(string: "\(baseURL)/users") else { return }
         
@@ -198,8 +202,10 @@ class AuthViewModel: ObservableObject {
                         //self.set_user_data()
                         self.isAuthenticated = true
                         self.createdProfile = false
+                        UserDefaults.standard.set(true, forKey: "loggedIn")
                         print("Success: registered")
                     }
+                    loggedIn = true
                 } else {
                     DispatchQueue.main.async {
                         self.errorMessage = "Invalid response data"
@@ -434,14 +440,22 @@ class AuthViewModel: ObservableObject {
         
         isAuthenticated = false
         clear_user_data()
+        self.email = ""
+        self.username = ""
+        self.phone = ""
+        self.password = ""
+        self.errorMessage = nil
+        self.createdProfile = false
+        self.loggedIn = false
+        
         DispatchQueue.main.async {
             
-            self.email = ""
-            self.username = ""
-            self.phone = ""
-            self.password = ""
-            self.errorMessage = nil
-            self.createdProfile = false
+//            self.email = ""
+//            self.username = ""
+//            self.phone = ""
+//            self.password = ""
+//            self.errorMessage = nil
+//            self.createdProfile = false
             self.clear_user_data()
 //            self.createProfileViewModel = CreateProfileViewModel()
 //            self.createProfileViewModel.createdProfile = false

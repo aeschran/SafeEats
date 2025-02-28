@@ -22,6 +22,8 @@ class SettingsViewModel: ObservableObject {
             if tags.isEmpty {
                 tags.append(Tag(value: "", isInitial: false))  // Ensure at least one input box is there
             }
+        
+            print("loggedIn is: \(UserDefaults.standard.bool(forKey: "loggedIn"))")
         }
     
     func fetchExistingPreferences() async {
@@ -95,7 +97,10 @@ class SettingsViewModel: ObservableObject {
                 }
             }
             
-            self.successMessage = "Your suggestions have been submitted to the developers! Keep an eye out for future updates!"
+            if (self.errorMessage == nil) {
+                self.errorMessage = "Your suggestions have been submitted to the developers! Keep an eye out for future updates!"
+            }
+            
         }
     }
 }
