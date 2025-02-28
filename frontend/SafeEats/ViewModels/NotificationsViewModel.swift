@@ -14,6 +14,8 @@ import SwiftUI
 class NotificationsViewModel: ObservableObject {
     @Published var notifications: [Notification] = []
     @Published var notificationId: String = ""
+    @Published var navigateToProfile: Bool = false
+    @Published var senderID: String? = nil
     @AppStorage("id") var id_:String?
 
     private let baseURL = "http://127.0.0.1:8000"  // Replace with your actual backend URL

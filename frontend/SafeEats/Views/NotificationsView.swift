@@ -50,24 +50,20 @@ struct NotificationsView: View {
             .onAppear {
                 viewModel.fetchNotifications()
             }
-            .navigationBarBackButtonHidden()
-            .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button(action: {
-                    // Navigate back to FeedView when back button is clicked
-                    let rootView = ContentView()
-                    let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene
-                    let window = windowScene?.windows.first
-                    window?.rootViewController = UIHostingController(rootView: rootView)
-                    window?.makeKeyAndVisible()
-                }) {
-                    HStack {
-                        Image(systemName: "chevron.left")
-                        Text("Back")
-                    }
-                }
-            }
-        }
+            //.navigationBarBackButtonHidden()
+//            .toolbar {
+//                ToolbarItem(placement: .topBarLeading) {
+//                    Button(action: {
+//                        // Go back in the navigation stack
+//                        presentationMode.wrappedValue.dismiss()
+//                    }) {
+//                        HStack {
+//                            Image(systemName: "chevron.left")
+//                            Text("Back")
+//                        }
+//                    }
+//                }
+//        }
         }
     }
 }

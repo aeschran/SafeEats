@@ -92,7 +92,7 @@ class UserService(BaseService):
         # Fetch a user from the database by username
         user_data = await self.db.users.find_one({"username": username})
         if user_data:
-            return UserResponse(**user_data)
+            return user_data
         return None
 
     async def get_users(self):
