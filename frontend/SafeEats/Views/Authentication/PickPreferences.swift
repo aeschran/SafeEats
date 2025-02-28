@@ -31,52 +31,45 @@ struct PickPreferences: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 10) {
-                    PreferenceDisclosureGroup(title: "Cuisines", isExpanded: $showCuisines, options: cuisines, selectedOptions: $selectedCuisines)
+                    preferenceDisclosureGroup(title: "Cuisines", isExpanded: $showCuisines, options: cuisines, selectedOptions: $selectedCuisines)
                     Divider().background(.gray)
-                    PreferenceDisclosureGroup(title: "Allergies", isExpanded: $showAllergies, options: allergies, selectedOptions: $selectedAllergies)
+                    preferenceDisclosureGroup(title: "Allergies", isExpanded: $showAllergies, options: allergies, selectedOptions: $selectedAllergies)
                     Divider().background(.gray)
-                    PreferenceDisclosureGroup(title: "Dietary Restrictions", isExpanded: $showDietaryRestrictions, options: dietaryRestrictions, selectedOptions: $selectedDietaryRestrictions)
+                    preferenceDisclosureGroup(title: "Dietary Restrictions", isExpanded: $showDietaryRestrictions, options: dietaryRestrictions, selectedOptions: $selectedDietaryRestrictions)
                 }
                 .background(Color.mainGray)
                 .cornerRadius(15)
                 .padding(.horizontal, 20)
-                .padding(.vertical, 10)
+                .padding(.vertical, 2)
             }
         }
         .tint(.clear)
     }
 }
 
-struct PreferenceDisclosureGroup: View {
-    let title: String
-    @Binding var isExpanded: Bool
-    let options: [String]
-    @Binding var selectedOptions: Set<String>
-    
-    private let optionsScaleEffect: CGFloat = 1.3
-    
-    var body: some View {
-        DisclosureGroup(isExpanded: $isExpanded) {
+extension View {
+    func preferenceDisclosureGroup(title: String, isExpanded: Binding<Bool>, options: [String], selectedOptions: Binding<Set<String>>) -> some View {
+        DisclosureGroup(isExpanded: isExpanded) {
             VStack() {
                 ForEach(options, id: \..self) { option in
                     HStack {
-                        Image(systemName: selectedOptions.contains(option) ? "checkmark.square" : "square")
+                        Image(systemName: selectedOptions.wrappedValue.contains(option) ? "checkmark.square" : "square")
                             .font(.footnote)
-                            .scaleEffect(optionsScaleEffect)
+                            .scaleEffect(1.3)
                         Text(option)
                             .foregroundColor(.black)
                             .font(.footnote)
-                            .scaleEffect(optionsScaleEffect)
-                            .padding(.leading, 10) // padding betwen checkbox and text
+                            .scaleEffect(1.3)
+                            .padding(.leading, 10) // padding between checkbox and text
                     }
                     .padding(.vertical, 5) // padding between options
-                    .padding(.leading, 30) // padding between the edge and checkbox
+                    .padding(.leading, 30) // padding bewteen edge and checkbox
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .onTapGesture {
-                        if selectedOptions.contains(option) {
-                            selectedOptions.remove(option)
+                        if selectedOptions.wrappedValue.contains(option) {
+                            selectedOptions.wrappedValue.remove(option)
                         } else {
-                            selectedOptions.insert(option)
+                            selectedOptions.wrappedValue.insert(option)
                         }
                     }
                 }
@@ -89,13 +82,12 @@ struct PreferenceDisclosureGroup: View {
                     .fontWeight(.medium)
                     .frame(height: 35)
                 Spacer()
-                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                Image(systemName: isExpanded.wrappedValue ? "chevron.up" : "chevron.down")
             }
-            .padding(.horizontal, 20) // padding between category title and drop-down
+            .padding(.horizontal, 20) // padding between category title and drop down
             .foregroundColor(.black)
         }
         .padding(.vertical, 5) // padding for each section
-        .animation(.easeInOut, value: isExpanded)
-                    
+        .animation(.easeInOut, value: isExpanded.wrappedValue)
     }
 }

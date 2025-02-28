@@ -8,23 +8,16 @@
 import SwiftUI
 
 struct SettingsView: View {
-    @AppStorage("user") var userData : Data?
     @EnvironmentObject var settingsViewModel: SettingsViewModel
     @State private var showChangePassword = false
     @State private var showDeleteAccountAlert = false
     @State private var showLogoutConfirmation = false
+    @AppStorage("userType") private var userType: String?
+    @AppStorage("showDeleteConfirmation") private var showDeleteConfirmation = false
     @State private var tags : [Tag] = []
     
     // use this function to access user data in future views
-    var user: User? {
-        get {
-            guard let userData else { return nil }
-            return try? JSONDecoder().decode(User.self, from: userData)
-        }
-        set {
-            userData = try? JSONEncoder().encode(newValue)
-        }
-    }
+    
     
     @EnvironmentObject var authViewModel: AuthViewModel
     
@@ -51,9 +44,8 @@ struct SettingsView: View {
                             Alert(title: Text("Log Out"),
                                   message: Text("Are you sure you want to log out?"),
                                   primaryButton: .destructive(Text("Log Out")) {
-                                userData = nil
+                               
                                 authViewModel.logout()
-                                userData = nil
                             },
                                   secondaryButton: .cancel())
                         }
@@ -70,23 +62,37 @@ struct SettingsView: View {
                                   message: Text("Are you sure you want to delete your account? This action cannot be undone."),
                                   primaryButton: .destructive(Text("Delete")) {
                                 Task {
-                                    await authViewModel.delete_account()
+                                   await authViewModel.delete_account()
+                                   
                                 }
+                                showDeleteConfirmation = true
                                 
                             },
                                   secondaryButton: .cancel())
                         }
+                        
                     }
-                    
-                    GroupBox(label: Label("Suggest New Preferences", systemImage: "fork.knife.circle.fill")) {
-                        TagField().environmentObject(settingsViewModel)
+                    if (userType == "User") {
+                        
+                        GroupBox(label: Label("Suggest New Preferences", systemImage: "fork.knife.circle.fill")) {
+                            TagField().environmentObject(settingsViewModel)
                         }
+                    }
                     
                     
                 }
                 .scrollContentBackground(.hidden)
                 .background(Color.mainGray)
 
+            }
+            .alert(isPresented: $showDeleteConfirmation) {
+                    Alert(
+                        title: Text("Account Deleted"),
+                        message: Text("Your account has been successfully deleted."),
+                        dismissButton: .default(Text("OK")) {
+                            showDeleteConfirmation = false // Reset after dismissal
+                        }
+                    )
                 }
                 Text("Have any questions? Email us at safeeats.dev@gmail.com!")
             }
@@ -162,7 +168,7 @@ struct TagField: View {
                     title: Text("Error"),
                     message: Text(settingsViewModel.errorMessage ?? "Unknown error"),
                     dismissButton: .default(Text("OK")) {
-                        settingsViewModel.errorMessage = nil  
+                        settingsViewModel.errorMessage = nil
                     }
                 )
             }
@@ -177,44 +183,64 @@ struct TagField: View {
         @Binding var allTags: [Tag]
         @FocusState private var isFocused: Bool
         @Environment(\.colorScheme) private var colorScheme
+
         var body: some View {
-            TextField("New Preference", text: $tag.value)
-                .focused($isFocused)
-                .padding(.vertical, 10)
-                .padding(.horizontal, 10)
-                .background((colorScheme == .dark ? Color.black : Color.white).opacity(isFocused ? 0 : 1), in: .rect(cornerRadius: 5))
-                .disabled(tag.isInitial)
-                .overlay {
-                    if tag.isInitial {
-                        Rectangle()
-                            .fill(.clear)
-                            .contentShape(.rect)
-                            .onTapGesture {
-                                tag.isInitial = false
-                                isFocused = true
-                            }
+            HStack {
+                TextField("New Preference", text: $tag.value)
+                    .focused($isFocused)
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 10)
+                    .background((colorScheme == .dark ? Color.black : Color.white).opacity(isFocused ? 0 : 1), in: .rect(cornerRadius: 5))
+                    .disabled(tag.isInitial)
+                    .overlay {
+                        if tag.isInitial {
+                            Rectangle()
+                                .fill(.clear)
+                                .contentShape(.rect)
+                                .onTapGesture {
+                                    tag.isInitial = false
+                                    isFocused = true
+                                }
+                        }
                     }
-                }
-                .onSubmit {
-                    addNewTag()
-                }
-            
+                    .onSubmit {
+                        addNewTag()
+                    }
+                
+                Button(action: {
+                        removeTag()
+                    }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.red)
+                    }
+                    .padding(.leading, 8)
+            }
         }
         
         private func addNewTag() {
             guard !tag.value.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-            
-            // Modify the parent array through the ViewModel instead of local binding
+
             if let index = allTags.firstIndex(where: { $0.id == tag.id }) {
-                allTags[index] = tag // Update existing tag if needed
+                allTags[index] = tag
             }
-            
+
             if allTags.last?.value != "" {
-                allTags.append(Tag(value: "", isInitial: true)) // Add a new blank tag
+                allTags.append(Tag(value: "", isInitial: true))
             }
-            
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 isFocused = false
+            }
+        }
+        
+        private func removeTag() {
+            if let index = allTags.firstIndex(where: { $0.id == tag.id }) {
+                allTags.remove(at: index)
+            }
+
+            // Ensure at least one empty tag remains
+            if allTags.isEmpty {
+                allTags.append(Tag(value: "", isInitial: true))
             }
         }
     }

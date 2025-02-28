@@ -13,34 +13,18 @@ import SwiftUI
 
 class NotificationsViewModel: ObservableObject {
     @Published var notifications: [Notification] = []
-    @AppStorage("user") var userData : Data?
-    
-    @Published var senderID: String? = nil
-    @Published var navigateToProfile: Bool = false
-    
-    var user: User? {
-            get {
-                guard let userData else { return nil }
-                return try? JSONDecoder().decode(User.self, from: userData)
-            }
-            set {
-                guard let newValue = newValue else { return }
-                if let encodedUser = try? JSONEncoder().encode(newValue) {
-                    self.userData = encodedUser
-                }
-            }
-        }
+    @Published var notificationId: String = ""
+    @AppStorage("id") var id_:String?
 
     private let baseURL = "http://127.0.0.1:8000"  // Replace with your actual backend URL
 
     // Fetch Notifications from the Backend
     func fetchNotifications() {
-        guard let user = user else {
+        guard let id = id_ else {
                 print("Error: User data is not available")
                 return
             }
-        
-        guard let url = URL(string: "\(baseURL)/notifications/\(user.id)") else { return }
+        guard let url = URL(string: "\(baseURL)/notifications/\(id)") else { return }
 
         Task {
             do {
@@ -60,38 +44,97 @@ class NotificationsViewModel: ObservableObject {
         }
     }
 
-    func respondToRequest(notificationId: String, accept: Bool) {
-        guard let url = URL(string: "\(baseURL)/notifications/\(notificationId)/response") else { return }
-        
-        let responseBody: [String: Any] = [
-            "accept": accept
-        ]
+    func acceptRequest(notificationId: String, recipientId: String, senderId: String) {
+        guard let url = URL(string: "http://localhost:8000/friends/accept") else { return }
         
         Task {
             do {
-                let requestData = try JSONSerialization.data(withJSONObject: responseBody)
-                var request = URLRequest(url: url)
-                request.httpMethod = "POST"
-                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                request.httpBody = requestData
+                var requestObj = URLRequest(url: url)
+                requestObj.httpMethod = "POST"
+                requestObj.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                requestObj.httpBody = try JSONEncoder().encode(["notification_id": notificationId, "user_id": recipientId, "friend_id": senderId])
                 
-                let (_, response) = try await URLSession.shared.data(for: request)
-                
+                let (_, response) = try await URLSession.shared.data(for: requestObj)
                 if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                    print("\(accept ? "Accepted" : "Denied") friend request successfully.")
-                    
-                    // Remove the notification after response
+//                    await MainActor.run {
+//                        print("Before removal: \(self.notifications.map { $0.id })")
+//                        self.notifications.removeAll { $0.id == notificationId }
+//                        print("After removal: \(self.notifications.map { $0.id })")
+//                    }
                     DispatchQueue.main.async {
-                        self.notifications.removeAll { $0.senderId == notificationId }
+                        print("Before removal: \(self.notifications.map { $0.id })")
+                        self.notifications.removeAll { $0.id == notificationId }
+                        print("After removal: \(self.notifications.map { $0.id })")
                     }
-                } else {
-                    print("Failed to send response: \(response)")
                 }
             } catch {
-                print("Error responding to request: \(error.localizedDescription)")
+                print("Failed to accept request: \(error)")
             }
         }
     }
+    
+    func denyRequest(notificationId: String, recipientId: String, senderId: String) {
+        guard let url = URL(string: "http://localhost:8000/friends/deny") else { return }
+        
+        Task {
+            do {
+                var requestObj = URLRequest(url: url)
+                requestObj.httpMethod = "POST"
+                requestObj.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                requestObj.httpBody = try JSONEncoder().encode(["notification_id": notificationId, "user_id": recipientId, "friend_id": senderId])
+                
+                let (_, response) = try await URLSession.shared.data(for: requestObj)
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                    DispatchQueue.main.async {
+                        print("Before removal: \(self.notifications.map { $0.id })")
+                        self.notifications.removeAll { $0.id == notificationId }
+                        print("After removal: \(self.notifications.map { $0.id })")
+                        //                        self.notifications.removeAll { $0.senderId == notificationId }
+                        //                    }
+                        //                    await MainActor.run {
+                        ////                        self.notifications = self.notifications.filter { $0.id != notificationId }
+                        //
+                        //                    }
+                    }
+                }
+            } catch {
+                print("Failed to deny request: \(error)")
+            }
+        }
+    }
+    
+//    func respondToRequest(notificationId: String, accept: Bool) {
+//        guard let url = URL(string: "\(baseURL)/notifications/\(notificationId)/response") else { return }
+//        
+//        let responseBody: [String: Any] = [
+//            "accept": accept
+//        ]
+//        
+//        Task {
+//            do {
+//                let requestData = try JSONSerialization.data(withJSONObject: responseBody)
+//                var request = URLRequest(url: url)
+//                request.httpMethod = "POST"
+//                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+//                request.httpBody = requestData
+//                
+//                let (_, response) = try await URLSession.shared.data(for: request)
+//                
+//                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+//                    print("\(accept ? "Accepted" : "Denied") friend request successfully.")
+//                    
+//                    // Remove the notification after response
+//                    DispatchQueue.main.async {
+//                        self.notifications.removeAll { $0.senderId == notificationId }
+//                    }
+//                } else {
+//                    print("Failed to send response: \(response)")
+//                }
+//            } catch {
+//                print("Error responding to request: \(error.localizedDescription)")
+//            }
+//        }
+//    }
 }
 
 struct Notification: Identifiable, Codable {
@@ -104,6 +147,8 @@ struct Notification: Identifiable, Codable {
     let timestamp: Double
 
     var id: String { notificationId }
+    var sender_id: String { senderId }
+    var recipient_id: String { recipientId }
 
     enum CodingKeys: String, CodingKey {
         case notificationId = "notification_id"

@@ -10,28 +10,24 @@ class AuthViewModel: ObservableObject {
     @Published var phone: String = ""
     @Published var isVerified: Bool?
     
-    @Published var isAuthenticated: Bool = false
+    @AppStorage("id") var id_: String?
+    @AppStorage("email") var email_: String?
+    @AppStorage("username") var username_: String?
+    @AppStorage("name") var name_: String?
+    @AppStorage("phone") var phone_: String?
+    @AppStorage("isVerified") var isVerified_: Bool?
+    
+    
+    @AppStorage("isAuthenticated") var isAuthenticated: Bool?
     @Published var errorMessage: String?
 //    @Published var createProfileViewModel = CreateProfileViewModel()
-    @AppStorage("user") var userData : Data?
     @AppStorage("createdProfile") var createdProfile: Bool = false
     @AppStorage("userType") var userType: String?
     @AppStorage("isUserCreated") var isCreated: Bool = false
  
 
     
-    var user: User? {
-            get {
-                guard let userData else { return nil }
-                return try? JSONDecoder().decode(User.self, from: userData)
-            }
-            set {
-                guard let newValue = newValue else { return }
-                if let encodedUser = try? JSONEncoder().encode(newValue) {
-                    self.userData = encodedUser
-                }
-            }
-        }
+    
     
     private let baseURL = "http://127.0.0.1:8000"
     
@@ -108,11 +104,12 @@ class AuthViewModel: ObservableObject {
                            let phone = json["phone"] as? String,
                            let username = json["username"] as? String {
                             DispatchQueue.main.async {
-                                self.id = id
-                                self.username = username
-                                self.email = email
-                                self.phone = phone
-                                self.name = name
+                                self.id_ = id
+                                self.username_ = username
+                                self.email_ = email
+                                self.phone_ = phone
+                                self.name_ = name
+                                //self.set_user_data()
                                 self.isAuthenticated = true
                                 self.createdProfile = true
                                 print("Success: registered")
@@ -193,11 +190,12 @@ class AuthViewModel: ObservableObject {
                    let phone = json["phone"] as? String,
                    let username = json["username"] as? String {
                     DispatchQueue.main.async {
-                        self.id = id
-                        self.name = name
-                        self.username = username
-                        self.email = email
-                        self.phone = phone
+                        self.id_ = id
+                        self.name_ = name
+                        self.username_ = username
+                        self.email_ = email
+                        self.phone_ = phone
+                        //self.set_user_data()
                         self.isAuthenticated = true
                         self.createdProfile = false
                         print("Success: registered")
@@ -222,7 +220,7 @@ class AuthViewModel: ObservableObject {
         //TODO: is there a reason we are using email to login vs username? might be good to keep consistent with reg user login
         guard let url = URL(string: "\(baseURL)/business_auth/login") else { return }
         
-        let body = "username=\(username)&password=\(password)".data(using: .utf8)
+        let body = "username=\(email.lowercased())&password=\(password)".data(using: .utf8)
         print(username)
         print(password)
         
@@ -267,13 +265,16 @@ class AuthViewModel: ObservableObject {
                    let phone = json["phone"] as? String,
                    let isVerified = json["isVerified"] as? Bool {
                     DispatchQueue.main.async {
-                        self.id = id
-                        self.username = username
-                        self.email = email
-                        self.phone = phone
-                        self.isVerified = isVerified
-                        print(self.email + " EMAIL")
-                        print(self.id)
+                        self.id_ = id
+                        self.username_ = username
+                        self.email_ = email
+                        self.phone_ = phone
+                        self.isVerified_ = isVerified
+                        self.createdProfile = true
+                        
+                        print((self.email_ ?? "") + " EMAIL")
+                        print(self.id_)
+                        self.isCreated = true
                         self.isAuthenticated = true
                         print("Success: authenticated")
                     }
@@ -338,13 +339,14 @@ class AuthViewModel: ObservableObject {
                    let phone = json["phone"] as? String,
                    let isVerified = json["isVerified"] as? Bool {
                     DispatchQueue.main.async {
-                        self.id = id
-                        self.username = username
-                        self.email = email
-                        self.phone = phone
-                        self.isVerified = isVerified
+                        self.id_ = id
+                        self.username_ = username
+                        self.email_ = email
+                        self.phone_ = phone
+                        self.isVerified_ = isVerified
                         self.isAuthenticated = true
-                        print("ID\(self.id)")
+                        self.createdProfile = true
+                        print("ID\(self.id_)")
                         print("Success: authenticated")
                     }
                 } else {
@@ -362,12 +364,12 @@ class AuthViewModel: ObservableObject {
     }
     
     func delete_account() async {
-
+        guard let id = id_ else {return}
         var url: URL?
         if self.userType == "User" {
-            url = URL(string: "\(baseURL)/users/\(self.id)")
+            url = URL(string: "\(baseURL)/users/\(id)")
         } else if self.userType == "Business" {
-            url = URL(string: "\(baseURL)/business_owners/\(self.id)")
+            url = URL(string: "\(baseURL)/business_owners/\(id)")
         }
 
         guard let url = url else {
@@ -385,14 +387,14 @@ class AuthViewModel: ObservableObject {
             if let httpResponse = response as? HTTPURLResponse {
                 if httpResponse.statusCode == 200 {
                     DispatchQueue.main.async {
-                        self.userData = nil
                         self.isAuthenticated = false
                         self.email = ""
                         self.username = ""
                         self.phone = ""
                         self.password = ""
                         self.errorMessage = nil
-                        self.createdProfile = false
+                        self.createdProfile = true
+                        self.clear_user_data()
                         print("Account successfully deleted")
                     }
                 } else {
@@ -408,21 +410,39 @@ class AuthViewModel: ObservableObject {
         }
     }
 
+    func set_user_data() {
+        DispatchQueue.main.async {
+            self.email_ = self.email
+            self.username_ = self.username
+            self.phone_ = self.phone
+            self.name_ = self.name
+            self.isVerified_ = self.isVerified
+        }
+    }
     
+    func clear_user_data() {
+        self.email_ = nil
+        self.username_ = nil
+        self.phone_ = nil
+        self.name_ = nil
+        self.isVerified_ = nil
+    }
     /**
      logout function to remove authToken and set isAuthenticated to false
      */
     func logout() {
         
-        self.userData = nil
+        isAuthenticated = false
+        clear_user_data()
         DispatchQueue.main.async {
-            self.isAuthenticated = false
+            
             self.email = ""
             self.username = ""
             self.phone = ""
             self.password = ""
             self.errorMessage = nil
             self.createdProfile = false
+            self.clear_user_data()
 //            self.createProfileViewModel = CreateProfileViewModel()
 //            self.createProfileViewModel.createdProfile = false
         }

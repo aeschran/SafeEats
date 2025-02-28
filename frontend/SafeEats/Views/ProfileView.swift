@@ -10,18 +10,20 @@ import SwiftUI
 struct ProfileView: View {
     @StateObject var viewModel: ProfileViewModel
     let friendId: String
-
-        // Accept the friendId
+    
+    // Accept the friendId
     init(friendId: String) {
-       self.friendId = friendId
-       _viewModel = StateObject(wrappedValue: ProfileViewModel(friendId: friendId))
+        self.friendId = friendId
+        _viewModel = StateObject(wrappedValue: ProfileViewModel(friendId: friendId))
     }
-//    friend.id
+    //    friend.id
     @State private var id: String = ""
     @State private var name: String = ""
     @State private var username: String = "Loading..."
     @State private var didTap: Bool = false
     @State private var isFollowing: Bool = false
+    @State private var showUnfollowAlert: Bool = false
+    
     var body: some View {
         ScrollView{
             VStack{
@@ -76,28 +78,41 @@ struct ProfileView: View {
                         .font(.caption)
                     
                 }.padding(6)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.vertical, 4)
-            
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, 4)
+                
                 HStack{
                     if viewModel.isFollowing {
-                        Text("Following")
-                            .foregroundColor(.black)
-                            .padding()
-                            .font(.footnote)
-                            .fontWeight(.semibold)
-                            .frame(width:400, height: 34)
-                            .background(Color.white)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 4)
-                                    .stroke(Color(.systemGray4))
+                        Button(action: {
+                            showUnfollowAlert = true
+                        }) {
+                            Text("Following")
+                                .foregroundColor(.black)
+                                .padding()
+                                .font(.footnote)
+                                .fontWeight(.semibold)
+                                .frame(width: 400, height: 34)
+                                .background(Color.white)
+                                .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color(.systemGray4)))
+                        }
+                        .alert(isPresented: $showUnfollowAlert) {
+                            Alert(
+                                title: Text("Unfollow"),
+                                message: Text("Are you sure you want to unfollow?"),
+                                primaryButton: .destructive(Text("Yes")) {
+                                    Task {
+                                        await viewModel.unfollowFriend()
+                                    }
+                                },
+                                secondaryButton: .cancel()
                             )
+                        }
                         
                     } else {
                         Button(action: {
                             didTap = true
                             Task {
-                                    await viewModel.sendFriendRequest()
+                                await viewModel.sendFriendRequest()
                             }
                             
                         }) {
@@ -118,7 +133,7 @@ struct ProfileView: View {
                         .fontWeight(.semibold)
                         .frame(width:400, height: 34)
                         .padding(.top, 10)
-                        /*.padding(.bottom, 5)*/ // Add padding above the border
+                    /*.padding(.bottom, 5)*/ // Add padding above the border
                         .overlay(
                             Rectangle()
                                 .frame(height: 0.5) // Border thickness
@@ -126,7 +141,7 @@ struct ProfileView: View {
                             alignment: .bottom
                             
                         )
-
+                    
                 }
             }.padding(6)
         }
@@ -135,7 +150,7 @@ struct ProfileView: View {
             viewModel.fetchData()
         }
     }
-    }
+}
 
 
 #Preview {

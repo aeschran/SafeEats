@@ -19,7 +19,7 @@ enum AccountType {
 
 struct AuthView: View {
     // declare in all views
-    @AppStorage("user") var userData : Data?
+    
     @AppStorage("userType") var userType: String?
     @EnvironmentObject var viewModel: AuthViewModel
     @EnvironmentObject var createProfileViewModel: CreateProfileViewModel
@@ -28,16 +28,15 @@ struct AuthView: View {
     @State private var phoneNumber: String = ""
     @State private var username: String = ""
     
-    // use this function to access user data in future views
-    var user: User? {
-        get {
-            guard let userData else { return nil }
-            return try? JSONDecoder().decode(User.self, from: userData)
-        }
-        set {
-            userData = try? JSONEncoder().encode(newValue)
-        }
-    }
+    @AppStorage("id") var id_: String?
+    @AppStorage("email") var email_: String?
+    @AppStorage("username") var username_: String?
+    @AppStorage("name") var name_: String?
+    @AppStorage("phone") var phone_: String?
+    @AppStorage("isVerified") var isVerified_: Bool?
+    
+    
+
     
     
     
@@ -70,7 +69,7 @@ struct AuthView: View {
                     SegmentedView(authType: $authType)
                     
                     VStack(spacing: 15) {
-                        if authType == .register {
+                        if authType == .register  || accountType == .businessOwnerAccount {
                             TextField(text: $viewModel.email) {
                                 Text("Email")
                             }
@@ -78,9 +77,10 @@ struct AuthView: View {
                             .focused($isEmailFocused)
                             .textFieldStyle(AuthTextFieldStyle(isFocused: $isEmailFocused))}
                         
-                        
-                        TextField("Username", text: $viewModel.username) .padding(.horizontal, 10) .focused($isUsernameFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isUsernameFocused))
-                            .autocapitalization(.none)
+                        if authType == .register  || accountType == .userAccount {
+                            TextField("Username", text: $viewModel.username) .padding(.horizontal, 10) .focused($isUsernameFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isUsernameFocused))
+                                .autocapitalization(.none)
+                        }
                         
                         if authType == .register { TextField("Phone Number", text: $viewModel.phone) .padding(.horizontal, 10) .focused($isPhoneNumberFocused) .textFieldStyle(AuthTextFieldStyle(isFocused: $isPhoneNumberFocused)) }
                         
@@ -147,6 +147,7 @@ struct AuthView: View {
                                 userType = "User"
                                 
                             } else if authType == .register && accountType == .userAccount{
+                                
                                 await viewModel.user_register()
                                 userType = "User"
                                 print("hi")
@@ -159,14 +160,18 @@ struct AuthView: View {
                     }
                     .buttonStyle(AuthButtonType())
                     .onChange(of: viewModel.isAuthenticated) {
-                        if viewModel.isAuthenticated {
+                        if viewModel.isAuthenticated ?? false {
                             // Setting user object (after authentication is finsihed, why it's moved to here)
-                            let loggedInUser = User(id: viewModel.id, name: viewModel.username, email: viewModel.email, phone: viewModel.phone, username: viewModel.username, isVerified: viewModel.isVerified, createdProfile: viewModel.createdProfile)
                             
-                            print("ID:\(viewModel.id)")
                             
-                            userData = try? JSONEncoder().encode(loggedInUser)
-                            if loggedInUser.createdProfile == false {
+                            if let unwrappedID = viewModel.id_ {
+                                print("ID: \(unwrappedID)") 
+                            } else {
+                                print("ID is nil")
+                            }
+                            
+                            
+                            if viewModel.createdProfile == false {
                                 navigateToCreateProfile = true
                             } else {
                                 navigateToLanding = true
@@ -180,17 +185,7 @@ struct AuthView: View {
                     .onAppear {
                         navigateToCreateProfile = false
                         navigateToLanding = false
-                        if userData != nil {
-                            if authType == .register {
-                                navigateToCreateProfile = true
-                                navigateToLanding = false
-                            } else {
-                                navigateToCreateProfile = false
-                                navigateToLanding = true
-                            }
-                            
-                            viewModel.isAuthenticated = true
-                        }
+                        
                     }
                     .navigationDestination(isPresented: $navigateToCreateProfile) {
                         if navigateToCreateProfile { // Ensure it only goes to CreateProfile if isCreated is false
@@ -418,7 +413,7 @@ struct BottomView: View {
     var body: some View {
         HStack(spacing: 3) {
             Text(authType == .login ? "Don't have an account?" : "Already have an account?")
-                .font(.system(size: 15, weight: .medium))
+                            .font(.system(size: 15, weight: .medium))
             
             Button {
                 if authType == .login {

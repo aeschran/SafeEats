@@ -26,17 +26,7 @@ struct ChangePasswordView: View {
     
     @State var navigateToSettings = false
     
-    @AppStorage("user") var userData : Data?
     
-    var user: User? {
-        get {
-            guard let userData else { return nil }
-            return try? JSONDecoder().decode(User.self, from: userData)
-        }
-        set {
-            userData = try? JSONEncoder().encode(newValue)
-        }
-    }
     
     
     var body: some View {

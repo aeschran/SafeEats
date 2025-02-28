@@ -64,19 +64,17 @@ struct CreateProfileView: View {
     @State private var selectedCuisines: Set<String> = []
     @State private var selectedDietaryRestrictions: Set<String> = []
     @State private var selectedAllergies: Set<String> = []
-    @AppStorage("user") var userData : Data?
+    @State private var selectedReasons: Set<String> = []
+    @AppStorage("id") var id: String?
+    let reasons = [
+            "Easier dining decisions",
+            "Finding trustworthy restaurants",
+            "Support local businesses",
+            "Doordash is down",
+            "Other"
+        ]
     
-    var user: User? {
-        get {
-            guard let userData else { return nil }
-            return try? JSONDecoder().decode(User.self, from: userData)
-        }
-        set {
-            userData = try? JSONEncoder().encode(newValue)
-        }
-    }
-    
-    
+    @State private var showSuccessMessage = false
 
     
     
@@ -183,7 +181,7 @@ struct CreateProfileView: View {
                             TextField("", text: $firstName)
                                 .padding(6)
                                 .frame(width: fieldWidth, height: 35)
-                                .background(Color(.systemGray6))
+                                .background(Color.mainGray)
                                 .cornerRadius(10)
                                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.mainGreen))
                         }.padding(.horizontal)
@@ -198,7 +196,7 @@ struct CreateProfileView: View {
                             TextField("", text: $lastName)
                                 .padding(6)
                                 .frame(width: fieldWidth, height: 35)
-                                .background(Color(.systemGray6))
+                                .background(Color.mainGray)
                                 .cornerRadius(10)
                                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.mainGreen))
                         }.padding(.horizontal)
@@ -215,7 +213,7 @@ struct CreateProfileView: View {
                                 .frame(width: 253, height: 60)
                                 .padding(6)
                                 .scrollContentBackground(.hidden) // <- Hide it
-                                .background(Color(.systemGray6))
+                                .background(Color.mainGray)
                                 .cornerRadius(10)
                                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.mainGreen))
                         }.padding(.horizontal)
@@ -229,9 +227,50 @@ struct CreateProfileView: View {
                         Text("Pick Your Preferences")
                             .font(.headline)
                             .fontWeight(.semibold)
+                            .padding(.bottom, 5)
                         PickPreferences(selectedCuisines: $selectedCuisines, selectedAllergies: $selectedAllergies, selectedDietaryRestrictions: $selectedDietaryRestrictions)
                     }
                     .padding(.vertical, 20)
+                    VStack {
+                        Text("Why Are You Using This App?")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .padding(.bottom, 7)
+
+                        VStack(spacing: 10) {
+                            ForEach(reasons, id: \.self) { reason in
+                                Button(action: {
+                                    if selectedReasons.contains(reason) {
+                                        selectedReasons.remove(reason)
+                                    } else {
+                                        selectedReasons.insert(reason)
+                                    }
+                                }) {
+                                    HStack {
+                                        Text(reason)
+                                            .foregroundColor(.black)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                        
+                                        Spacer()
+                                        
+                                        if selectedReasons.contains(reason) {
+                                            Image(systemName: "checkmark.circle.fill")
+                                                .foregroundColor(Color.mainGreen)
+                                        } else {
+                                            Image(systemName: "circle")
+                                                .foregroundColor(Color.mainGray)
+                                        }
+                                    }
+                                    .padding()
+                                    .frame(width: 300, height: 40)
+                                    .background(Color.mainGray)
+                                    .cornerRadius(10)
+                                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.mainGreen))
+                                }
+                            }
+                        }
+                    }
+                    .padding(.vertical, 4)
                     
                     HStack() {
                         Button(action: {
@@ -256,7 +295,9 @@ struct CreateProfileView: View {
                             
                             viewModel.sendProfileDataToBackend(profileData)
 //                            viewModel.createdProfile = true
-                            navigateToLandingPage = true
+                            showSuccessMessage = true
+//                            navigateToLandingPage = true
+                                    
                         }) {
                             Text("Save")
                                 .foregroundColor(.white)
@@ -267,6 +308,11 @@ struct CreateProfileView: View {
                                 .cornerRadius(10)
 
                         }
+                        .alert("Your account has been created!", isPresented: $showSuccessMessage) {
+                                Button("OK") {
+                                    navigateToLandingPage = true 
+                                }
+                            }
                         .navigationDestination(isPresented: $navigateToLandingPage) {
                             ContentView().navigationBarBackButtonHidden(true)
                         }
@@ -275,7 +321,7 @@ struct CreateProfileView: View {
 //                        }
           
                     }
-                    
+            
                 }.padding(10)
                     .sheet(isPresented: $isImagePickerPresented) {
                         ImagePicker(

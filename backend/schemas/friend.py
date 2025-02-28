@@ -4,6 +4,7 @@ from utils.pyobjectid import PyObjectId
 from schemas.user import UserCreate, UserResponse
 
 class FriendCreate(BaseModel):
+    notification_id: str
     user_id: str
     friend_id: str
 
@@ -12,7 +13,8 @@ class FriendResponse(BaseModel):
     user_id: PyObjectId
     friend_id: PyObjectId
     friend_since: float
-    friend: UserResponse
+    username: str
+    name: str
 
     class Config:
         arbitrary_types_allowed = True
