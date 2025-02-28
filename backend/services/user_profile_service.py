@@ -115,4 +115,11 @@ class UserProfileService(BaseService):
         ProfileSearchResponse(id=str(user["_id"]), name=user["name"], username=user["username"])
         for user in search_results
         ]
+    
+    async def get_user_preferences(self, _id: str):
+        user_data = await self.db.users.find_one({"_id": ObjectId(_id)})
+        if user_data:
+            user = ProfileResponse(**user_data)
+            return user.preferences
+        return None
 
