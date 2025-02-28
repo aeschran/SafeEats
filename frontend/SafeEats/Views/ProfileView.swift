@@ -22,10 +22,13 @@ struct ProfileView: View {
     @State private var username: String = "Loading..."
     @State private var didTap: Bool = false
     @State private var isFollowing: Bool = false
+    @State private var isRequested: Bool = false
     @State private var showUnfollowAlert: Bool = false
-    
+//    print(viewModel.isFollowing)
+//    print(viewModel.isRequested)
+
     var body: some View {
-        NavigationStack{
+                NavigationStack{
             
             
             ScrollView{
@@ -85,6 +88,7 @@ struct ProfileView: View {
                         .padding(.vertical, 4)
                     
                     HStack{
+                        
                         if viewModel.isFollowing {
                             Button(action: {
                                 showUnfollowAlert = true
@@ -111,6 +115,15 @@ struct ProfileView: View {
                                 )
                             }
                             
+                        } else if viewModel.isRequested {
+                            Text("Requested")
+                                .foregroundColor(Color.black)
+                                .padding()
+                                .font(.footnote)
+                                .fontWeight(.semibold)
+                                .frame(width:400, height: 34)
+                                .background(Color.mainGray)
+                                .cornerRadius(6)
                         } else {
                             Button(action: {
                                 didTap = true

@@ -28,6 +28,7 @@ class FriendListViewModel: ObservableObject {
                 do {
                         // Decode JSON directly into an array of FriendData
                         let decodedResponse = try JSONDecoder().decode([FriendData].self, from: data)
+                        print(decodedResponse)
                         DispatchQueue.main.async {
                             self.friends = decodedResponse.map { friend in
                                 Friend(

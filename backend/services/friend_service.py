@@ -27,47 +27,120 @@ class FriendService(BaseService):
     
     async def get_friends(self, user_id: str):
         user_id = ObjectId(user_id)
+        # pipeline = [
+        #     {
+        #         "$match": {
+        #             "$or": [
+        #                 {"user_id": user_id},
+        #                 {"friend_id": user_id}
+        #             ]
+        #         }
+        #     },
+        #     {
+        #         "$addFields": {
+        #             "friend_ref": {
+        #                 "$cond": {
+        #                     "if": {"$eq": ["$user_id", user_id]},
+        #                     "then": "$friend_id",
+        #                     "else": "$user_id"
+        #                 }
+        #             }
+        #         }
+        #     },
+        #     {
+        #         "$lookup": {
+        #             "from": "users",  # Users collection
+        #             "localField": "friend_ref",  # The actual friend's ID
+        #             "foreignField": "_id",  # Matching field in users
+        #             "as": "friend"
+        #         }
+        #     },
+        #     {"$unwind": "$friend"},  # Convert friend array to an object
+        #     {
+        #         "$project": {
+        #             "friend_id": 1,
+        #             "user_id": 1,
+        #             "username": "$friend.username",
+        #             "friend_since": 1,
+        #             "name": "$friend.name"
+        #         }
+        #     }
+        # ]
         pipeline = [
-            {
-                "$match": {
-                    "$or": [
-                        {"user_id": user_id},
-                        {"friend_id": user_id}
-                    ]
-                }
-            },
-            {
-                "$addFields": {
-                    "friend_ref": {
-                        "$cond": {
-                            "if": {"$eq": ["$user_id", user_id]},
-                            "then": "$friend_id",
-                            "else": "$user_id"
-                        }
-                    }
-                }
-            },
-            {
-                "$lookup": {
-                    "from": "users",  # Users collection
-                    "localField": "friend_ref",  # The actual friend's ID
-                    "foreignField": "_id",  # Matching field in users
-                    "as": "friend"
-                }
-            },
-            {"$unwind": "$friend"},  # Convert friend array to an object
-            {
-                "$project": {
-                    "friend_id": 1,
-                    "user_id": 1,
-                    "username": "$friend.username",
-                    "friend_since": 1,
-                    "name": "$friend.name"
-                }
+        {
+            "$match": {
+                "$or": [
+                    { "user_id": user_id },
+                    { "friend_id": user_id }
+                ]
             }
-        ]
+        },
+        {
+            "$project": {
+                "friend_id": {
+                    "$cond": {
+                        "if": { "$eq": ["$user_id", user_id] },
+                        "then": "$friend_id",
+                        "else": "$user_id"
+                    }
+                },
+                "user_id": {
+                    "$cond": {
+                        "if": { "$eq": ["$user_id", user_id] },
+                        "then": "$user_id",
+                        "else": "$friend_id"
+                    }
+                },
+                "friend_since": 1
+            }
+        },
+        {
+            "$lookup": {
+                "from": "users",  # Collection with user details
+                "localField": "friend_id",  # Match on this field
+                "foreignField": "_id",  # Match this field from the users collection
+                "as": "friend"  # Store result as an array in 'friend'
+            }
+        },
+        {
+            "$unwind": "$friend"  # Unwind the 'friend' array so we get a single document
+        },
+        {
+            "$project": {
+                "user_id": 1,
+                "friend_id": 1,
+                "friend_since": 1,
+                "username": "$friend.username",  # Get the username from the 'friend' document
+                "name": "$friend.name"  # Get the name from the 'friend' document
+            }
+        },
+        {
+            "$group": {
+                "_id": None,  # Group all the results together into a single document
+                "friends": { "$push": "$$ROOT" }  # Push each result into an array
+            }
+        },
+        {
+            "$project": {
+                "_id": 0,  # Don't include the '_id' field in the final result
+                "friends": 1  # Return only the 'friends' array
+            }
+        }
+    ]
+
         friends = await self.db.friends.aggregate(pipeline).to_list(100)
-        friends = [FriendResponse(**friend) for friend in friends]
+        friends = [
+        FriendResponse(
+            user_id=str(friend["user_id"]),  # Ensure user_id is converted to string
+            friend_id=str(friend["friend_id"]),  # Ensure friend_id is converted to string
+            friend_since=friend["friend_since"],
+            username=friend["username"],
+            name=friend["name"]
+        )
+        for friend in friends[0]["friends"]
+    ]
+
+        # friends = [FriendResponse(**friend) for friend in friends]
         return friends
     
     async def delete_friend(self, _id: str) -> bool:
