@@ -46,8 +46,10 @@ struct BusinessCard: View {
                     Text("(200+)")
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding()
         .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
