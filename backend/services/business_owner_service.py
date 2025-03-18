@@ -10,7 +10,7 @@ from schemas.business_owner import BusinessOwnerResponse, BusinessOwnerCreate
 from services.base_service import BaseService
 import sendgrid
 from sendgrid.helpers.mail import Mail, Email, To, Content
-
+from twilio.rest import Client
 
 from fastapi import Depends, HTTPException, status
 from services.jwttoken import verify_token, create_access_token
@@ -92,13 +92,64 @@ class BusinessOwnerService(BaseService):
         business_owners = [BusinessOwnerResponse(**business_owner) for business_owner in business_owners]
         return business_owners
     
-    async def verify_business_owner(self, owner_id: str):
-        # Mark a business owner as verified
+    
+
+    async def verify_business_owner(self, owner_id: str, business_phone: str):
+        verification_code = generate_verification_code()
+        expiration_time = datetime.utcnow() + timedelta(minutes=10)
+
+        # Store the verification code in Mongo
+        await self.db.phone_verifications.update_one(
+            {"owner_id": ObjectId(owner_id)},
+            {"$set": {"code": verification_code, "expires_at": expiration_time}},
+            upsert=True
+        )
+
+        # Initiate Twilio phone call
+        client = Client(settings.TWILIO_SID, settings.TWILIO_AUTH_TOKEN)
+        formatted_code = " ".join(list(verification_code))
+        twiml = f"""
+        <Response>
+            <Say> Your Safe Eats verification code is </Say>
+            <Say>
+                <prosody rate="x-slow">{formatted_code}</prosody>
+            </Say>
+            <Say> Repeat. Your Safe Eats verification code is </Say>
+            <Say>
+                <prosody rate="x-slow">{formatted_code}</prosody>
+            Goodbye.
+            </Say>
+        </Response>
+        """
+
+        try:
+            client.calls.create(
+                to=business_phone,
+                from_=settings.TWILIO_PHONE,
+                twiml=twiml
+            )
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to send verification call: {str(e)}")
+
+        return {"message": "Verification code sent via phone call."}
+    
+    async def verify_phone_code(self, owner_id: str, code: str):
+        record = await self.db.phone_verifications.find_one({"owner_id": ObjectId(owner_id)})
+        if not record or record["code"] != code:
+            raise HTTPException(status_code=400, detail="Invalid verification code")
+
+        if datetime.utcnow() > record["expires_at"]:
+            raise HTTPException(status_code=400, detail="Verification code expired")
+
         result = await self.db.business_owners.update_one(
             {"_id": ObjectId(owner_id)}, 
             {"$set": {"isVerified": True}}
         )
-        return result.modified_count > 0  # Returns True if an update was made
+
+        # clean up
+        await self.db.phone_verifications.delete_one({"owner_id": ObjectId(owner_id)})
+
+        return {"message": "Business owner verified successfully."}
     
     async def forgot_password(self, email: str):
         business_owner = await self.get_business_owner_by_email(email)
