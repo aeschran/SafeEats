@@ -27,13 +27,13 @@ class FeedViewModel: ObservableObject {
         }
     }
     private let baseURL = "http://127.0.0.1:8000"
-
+    
     private func fetchSearchResults() async {
         guard let id = id_ else {
-                print("Error: User data is not available")
-                return
-            }
-//        guard let url = URL(string: "\(baseURL)/profile/search?query=\(searchText)&user_id=\(user.id)") else { return }
+            print("Error: User data is not available")
+            return
+        }
+        //        guard let url = URL(string: "\(baseURL)/profile/search?query=\(searchText)&user_id=\(user.id)") else { return }
         
         guard let searchQuery = searchText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),
               let userId = id.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed),

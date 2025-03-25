@@ -21,17 +21,17 @@ struct FriendRequestView: View {
             }
             .frame(width: 50, height: 50)
             .clipShape(Circle())
-
+            
             Text(request.sender_username)
                 .font(.headline)
-
+            
             Spacer()
-
+            
             Button("Accept", action: onAccept)
                 .buttonStyle(.borderedProminent)
                 .tint(Color.mainGreen)
                 .foregroundColor(.black)
-
+            
             Button("Deny", action: onDeny)
                 .buttonStyle(.bordered)
                 .foregroundColor(.black)

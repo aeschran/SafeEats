@@ -37,7 +37,7 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
     @Published var preferencesLoaded: Bool = false
-
+    
     private var cancellables = Set<AnyCancellable>()
     private var locationManager = CLLocationManager()
     
@@ -47,9 +47,9 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
         requestLocation()
         
         fetchUserPreferences(userId: UserDefaults.standard.string(forKey: "id") ?? "")
-
+        
     }
-
+    
     // Request location permission
     func requestLocation() {
         locationManager.requestWhenInUseAuthorization()
@@ -62,7 +62,7 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
+        
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
                 DispatchQueue.main.async {
@@ -100,7 +100,7 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
         }
         task.resume()
     }
-
+    
     // CLLocationManagerDelegate - Update location
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
@@ -110,13 +110,13 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
             self.searchBusinesses()
         }
     }
-
+    
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         DispatchQueue.main.async {
             self.errorMessage = "Failed to get location: \(error.localizedDescription)"
         }
     }
-
+    
     // Search businesses with current location
     func searchBusinesses() {
         guard latitude != 0, longitude != 0, preferencesLoaded else { return }

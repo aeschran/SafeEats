@@ -9,7 +9,7 @@ import SwiftUI
 
 struct SearchBar: View {
     @ObservedObject var viewModel: BusinessSearchViewModel
-
+    
     var body: some View {
         HStack {
             Image(systemName: "magnifyingglass")

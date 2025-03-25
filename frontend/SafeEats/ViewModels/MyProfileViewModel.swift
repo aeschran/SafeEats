@@ -18,12 +18,12 @@ class MyProfileViewModel: ObservableObject {
     @Published var imageBase64: UIImage? = nil
     @AppStorage("id") var id_ : String?
     
-   
+    
     
     private let baseURL = "http://127.0.0.1:8000"
     
-      // Replace with your actual backend API URL
-
+    // Replace with your actual backend API URL
+    
     func fetchUserProfile() async {
         guard let id = id_ else {
             print("ID is nil")
@@ -34,8 +34,8 @@ class MyProfileViewModel: ObservableObject {
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             if let jsonString = String(data: data, encoding: .utf8) {
-                    print("Response JSON: \(jsonString)")
-                }
+                print("Response JSON: \(jsonString)")
+            }
             let decodedProfile = try JSONDecoder().decode(MyProfileResponse.self, from: data)
             
             DispatchQueue.main.async {
@@ -64,7 +64,7 @@ struct MyProfileResponse: Codable {
     let friendCount: Int
     let reviewCount: Int
     let imageBase64: String
-
+    
     // If backend uses different naming conventions, we can map it here
     enum CodingKeys: String, CodingKey {
         case name = "name"

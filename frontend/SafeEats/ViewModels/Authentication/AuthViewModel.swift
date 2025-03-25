@@ -20,13 +20,13 @@ class AuthViewModel: ObservableObject {
     
     @AppStorage("isAuthenticated") var isAuthenticated: Bool?
     @Published var errorMessage: String?
-//    @Published var createProfileViewModel = CreateProfileViewModel()
+    //    @Published var createProfileViewModel = CreateProfileViewModel()
     @AppStorage("createdProfile") var createdProfile: Bool = false
     @AppStorage("userType") var userType: String?
     @AppStorage("isUserCreated") var isCreated: Bool = false
     @AppStorage("loggedIn") var loggedIn: Bool = false
- 
-
+    
+    
     
     
     
@@ -36,7 +36,7 @@ class AuthViewModel: ObservableObject {
         !username.isEmpty && !password.isEmpty
     }
     
-
+    
     func validateFields() -> Bool {
         if !isValidEmail(email) {
             errorMessage = "Invalid email format"
@@ -168,7 +168,7 @@ class AuthViewModel: ObservableObject {
         ]
         
         guard let jsonData = try? JSONSerialization.data(withJSONObject: requestBody) else { return }
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.httpBody = jsonData
@@ -177,7 +177,7 @@ class AuthViewModel: ObservableObject {
         print(request.httpBody)
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
-
+            
             print(data)
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
                 print("Response Status Code: \(httpResponse.statusCode)")
@@ -215,7 +215,7 @@ class AuthViewModel: ObservableObject {
         } catch {
             DispatchQueue.main.async {
                 self.errorMessage = "Network error: \(error.localizedDescription)"
-                }
+            }
             
         }
     }
@@ -235,7 +235,7 @@ class AuthViewModel: ObservableObject {
         request.httpMethod = "POST"
         request.httpBody = body
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
-
+        
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             
@@ -293,10 +293,10 @@ class AuthViewModel: ObservableObject {
         } catch {
             DispatchQueue.main.async {
                 self.errorMessage = "Network error: \(error.localizedDescription)"
-                }
+            }
         }
     }
-
+    
     // Function to handle registration
     func business_owner_register() async {
         guard validateFields() else { return }
@@ -311,22 +311,22 @@ class AuthViewModel: ObservableObject {
         ]
         
         guard let jsonData = try? JSONSerialization.data(withJSONObject: requestBody) else { return }
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.httpBody = jsonData
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
+        
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
-
+            
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
                 print("Response Status Code: \(httpResponse.statusCode)")
                 if httpResponse.statusCode == 400 {
                     if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                        let errorMessage = json["detail"] as? String {
                         DispatchQueue.main.async {
-                                self.errorMessage = "Business account already exists."
+                            self.errorMessage = "Business account already exists."
                         }
                     } else {
                         DispatchQueue.main.async {
@@ -377,16 +377,16 @@ class AuthViewModel: ObservableObject {
         } else if self.userType == "Business" {
             url = URL(string: "\(baseURL)/business_owners/\(id)")
         }
-
+        
         guard let url = url else {
             print("Invalid URL")
             return
         }
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "DELETE"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
+        
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             
@@ -415,7 +415,7 @@ class AuthViewModel: ObservableObject {
             }
         }
     }
-
+    
     func set_user_data() {
         DispatchQueue.main.async {
             self.email_ = self.email
@@ -450,15 +450,15 @@ class AuthViewModel: ObservableObject {
         
         DispatchQueue.main.async {
             
-//            self.email = ""
-//            self.username = ""
-//            self.phone = ""
-//            self.password = ""
-//            self.errorMessage = nil
-//            self.createdProfile = false
+            //            self.email = ""
+            //            self.username = ""
+            //            self.phone = ""
+            //            self.password = ""
+            //            self.errorMessage = nil
+            //            self.createdProfile = false
             self.clear_user_data()
-//            self.createProfileViewModel = CreateProfileViewModel()
-//            self.createProfileViewModel.createdProfile = false
+            //            self.createProfileViewModel = CreateProfileViewModel()
+            //            self.createProfileViewModel.createdProfile = false
         }
     }
     

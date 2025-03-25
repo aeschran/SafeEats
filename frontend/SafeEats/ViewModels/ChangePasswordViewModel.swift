@@ -69,10 +69,10 @@ class ChangePasswordViewModel: ObservableObject {
         request.httpBody = jsonData
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-
+        
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
-
+            
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
                 print("Response Status Code: \(httpResponse.statusCode)")
                 DispatchQueue.main.async {

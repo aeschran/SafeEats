@@ -40,19 +40,19 @@ struct CustomTabBar: View {
     }
     private var filteredTabs: [Tab] {
         switch userType {
-            case "Business":
-                return [.house, .building]
-            case "User":
-                return [.house, .location, .search, .person]
-            default:
-                return []
-            }
+        case "Business":
+            return [.house, .building]
+        case "User":
+            return [.house, .location, .search, .person]
+        default:
+            return []
+        }
     }
     var body: some View {
         VStack {
             HStack {
                 ForEach(filteredTabs, id: \.rawValue) { tab in
-                   
+                    
                     Spacer()
                     Image(systemName: iconName(for: tab))
                         .scaleEffect(selectedTab == tab ? 1.25 : 1.0)
@@ -67,8 +67,8 @@ struct CustomTabBar: View {
                 }
             }
             .frame(height: 60)
-//            .background(.white)
-//            .background(.thinMaterial)
+            //            .background(.white)
+            //            .background(.thinMaterial)
             .background(Color.mainGreen.opacity(0.9))
             .cornerRadius(20)
             .padding()

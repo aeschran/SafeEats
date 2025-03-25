@@ -44,7 +44,7 @@ struct SettingsView: View {
                             Alert(title: Text("Log Out"),
                                   message: Text("Are you sure you want to log out?"),
                                   primaryButton: .destructive(Text("Log Out")) {
-                               
+                                
                                 authViewModel.logout()
                             },
                                   secondaryButton: .cancel())
@@ -62,8 +62,8 @@ struct SettingsView: View {
                                   message: Text("Are you sure you want to delete your account? This action cannot be undone."),
                                   primaryButton: .destructive(Text("Delete")) {
                                 Task {
-                                   await authViewModel.delete_account()
-                                   
+                                    await authViewModel.delete_account()
+                                    
                                 }
                                 showDeleteConfirmation = true
                                 
@@ -101,35 +101,35 @@ struct SettingsView: View {
                 }
                 .scrollContentBackground(.hidden)
                 .background(Color.mainGray)
-
+                
             }
             .alert(isPresented: $showDeleteConfirmation) {
-                    Alert(
-                        title: Text("Account Deleted"),
-                        message: Text("Your account has been successfully deleted."),
-                        dismissButton: .default(Text("OK")) {
-                            showDeleteConfirmation = false // Reset after dismissal
-                        }
-                    )
-                }
-                Text("Have any questions? Email us at safeeats.dev@gmail.com!")
+                Alert(
+                    title: Text("Account Deleted"),
+                    message: Text("Your account has been successfully deleted."),
+                    dismissButton: .default(Text("OK")) {
+                        showDeleteConfirmation = false // Reset after dismissal
+                    }
+                )
             }
-            .background(Color(UIColor.systemGray6))
-            .background(Color.mainGray)
-            .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
-            
-            NavigationLink(
-                destination: ChangePasswordView(viewModel: ChangePasswordViewModel()),
-                isActive: $showChangePassword
-            ) {
-                EmptyView()
-            }
-        
+            Text("Have any questions? Email us at safeeats.dev@gmail.com!")
         }
+        .background(Color(UIColor.systemGray6))
+        .background(Color.mainGray)
+        .navigationTitle("Settings")
+        .navigationBarTitleDisplayMode(.inline)
+        
+        NavigationLink(
+            destination: ChangePasswordView(viewModel: ChangePasswordViewModel()),
+            isActive: $showChangePassword
+        ) {
+            EmptyView()
+        }
+        
     }
-    
-    
+}
+
+
 
 
 struct TagField: View {
@@ -172,12 +172,12 @@ struct TagField: View {
             }
             .zIndex(settingsViewModel.errorMessage == nil ? 1 : 0)
             
-//            Text(settingsViewModel.errorMessage ?? "")
-//                .foregroundColor(.red)
-//                .padding()
-//                .zIndex(settingsViewModel.errorMessage == nil ? 0 : 1)
-//                .disabled(true)
-//
+            //            Text(settingsViewModel.errorMessage ?? "")
+            //                .foregroundColor(.red)
+            //                .padding()
+            //                .zIndex(settingsViewModel.errorMessage == nil ? 0 : 1)
+            //                .disabled(true)
+            //
             .alert(isPresented: Binding<Bool>(
                 get: { settingsViewModel.errorMessage != nil },
                 set: { if !$0 { settingsViewModel.errorMessage = nil } }
@@ -201,7 +201,7 @@ struct TagField: View {
         @Binding var allTags: [Tag]
         @FocusState private var isFocused: Bool
         @Environment(\.colorScheme) private var colorScheme
-
+        
         var body: some View {
             HStack {
                 TextField("New Preference", text: $tag.value)
@@ -226,26 +226,26 @@ struct TagField: View {
                     }
                 
                 Button(action: {
-                        removeTag()
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.red)
-                    }
-                    .padding(.leading, 8)
+                    removeTag()
+                }) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.red)
+                }
+                .padding(.leading, 8)
             }
         }
         
         private func addNewTag() {
             guard !tag.value.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-
+            
             if let index = allTags.firstIndex(where: { $0.id == tag.id }) {
                 allTags[index] = tag
             }
-
+            
             if allTags.last?.value != "" {
                 allTags.append(Tag(value: "", isInitial: true))
             }
-
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 isFocused = false
             }
@@ -255,7 +255,7 @@ struct TagField: View {
             if let index = allTags.firstIndex(where: { $0.id == tag.id }) {
                 allTags.remove(at: index)
             }
-
+            
             // Ensure at least one empty tag remains
             if allTags.isEmpty {
                 allTags.append(Tag(value: "", isInitial: true))
@@ -263,7 +263,7 @@ struct TagField: View {
         }
     }
 }
-    
+
 #Preview {
     SettingsView()
         .environmentObject(AuthViewModel())

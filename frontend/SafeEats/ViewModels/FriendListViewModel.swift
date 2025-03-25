@@ -13,12 +13,12 @@ class FriendListViewModel: ObservableObject {
     
     private let baseURL = "http://127.0.0.1:8000"
     @AppStorage("id") var id_: String?
-
+    
     func fetchFriends() {
         guard let id = id_ else {
-                print("Error: User data is not available")
-                return
-            }
+            print("Error: User data is not available")
+            return
+        }
         // Replace this URL with the actual URL for your backend endpoint
         guard let url = URL(string: "\(baseURL)/friends/\(id)") else { return }
         
@@ -26,19 +26,19 @@ class FriendListViewModel: ObservableObject {
         URLSession.shared.dataTask(with: url) { data, response, error in
             if let data = data, error == nil {
                 do {
-                        // Decode JSON directly into an array of FriendData
-                        let decodedResponse = try JSONDecoder().decode([FriendData].self, from: data)
-                        print(decodedResponse)
-                        DispatchQueue.main.async {
-                            self.friends = decodedResponse.map { friend in
-                                Friend(
-                                    id: friend.friend_id,
-                                    name: friend.name,
-                                    username: friend.username,
-                                    friendSince: self.convertDateToString(friendSince: friend.friend_since)
-                                )
-                            }
+                    // Decode JSON directly into an array of FriendData
+                    let decodedResponse = try JSONDecoder().decode([FriendData].self, from: data)
+                    print(decodedResponse)
+                    DispatchQueue.main.async {
+                        self.friends = decodedResponse.map { friend in
+                            Friend(
+                                id: friend.friend_id,
+                                name: friend.name,
+                                username: friend.username,
+                                friendSince: self.convertDateToString(friendSince: friend.friend_since)
+                            )
                         }
+                    }
                 } catch {
                     print("Error decoding response: \(error)")
                 }

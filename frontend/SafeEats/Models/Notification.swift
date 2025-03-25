@@ -10,9 +10,9 @@ struct Sender: Codable, Identifiable {
     let name: String
     
     enum CodingKeys: String, CodingKey {
-            case id = "_id"  // Map `_id` from JSON to `id` in Swift
-            case name
-        }
+        case id = "_id"  // Map `_id` from JSON to `id` in Swift
+        case name
+    }
 }
 
 struct NotificationResponse: Codable, Identifiable {

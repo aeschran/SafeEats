@@ -13,15 +13,15 @@ struct Friend: Identifiable {
     let username: String
     let friendSince: String
 }
-    
+
 struct FriendRow: View {
-//    @AppStorage("id") var id_: String?
-//    guard let user_id = id_ else {
-//        print("Error: User data is not available")
-//        return
-//    }
+    //    @AppStorage("id") var id_: String?
+    //    guard let user_id = id_ else {
+    //        print("Error: User data is not available")
+    //        return
+    //    }
     let friend: Friend
-        
+    
     var body: some View {
         VStack(alignment: .leading) {
             Text(friend.name)
@@ -38,14 +38,14 @@ struct FriendRow: View {
 }
 
 struct FriendListView: View {
-//    @StateObject private var viewModel = FriendListViewModel()
+    //    @StateObject private var viewModel = FriendListViewModel()
     @StateObject private var viewModel = FriendListViewModel()
-
-//    let friends: [Friend] = [
-//        Friend(id: "123", name: "John Doe", username: "@johndoe", friendSince: "January 2021"),
-//        Friend(id: "456", name: "Jane Smith", username: "@janesmith", friendSince: "March 2020"),
-//        Friend(id: "789", name: "Alex Brown", username: "@alexbrown", friendSince: "July 2019")
-//    ]
+    
+    //    let friends: [Friend] = [
+    //        Friend(id: "123", name: "John Doe", username: "@johndoe", friendSince: "January 2021"),
+    //        Friend(id: "456", name: "Jane Smith", username: "@janesmith", friendSince: "March 2020"),
+    //        Friend(id: "789", name: "Alex Brown", username: "@alexbrown", friendSince: "July 2019")
+    //    ]
     
     var body: some View {
         NavigationStack {
@@ -55,18 +55,18 @@ struct FriendListView: View {
                 }
             }
             .navigationDestination(for: String.self) { friendId in
-                            ProfileView(friendId: friendId)
-                        }
-
-                .navigationTitle("Friends")
-                .navigationBarTitleDisplayMode(.inline)
-                .onAppear {
-                    viewModel.fetchFriends()  // Fetch the data when the view appears
-                }
+                ProfileView(friendId: friendId)
+            }
+            
+            .navigationTitle("Friends")
+            .navigationBarTitleDisplayMode(.inline)
+            .onAppear {
+                viewModel.fetchFriends()  // Fetch the data when the view appears
+            }
         }
         .tint(.black)
     }
-
+    
 }
 
 #Preview {

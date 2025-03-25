@@ -11,7 +11,7 @@ struct ImagePicker: UIViewControllerRepresentable {
     @Binding var isImagePickerPresented: Bool
     @Binding var image: UIImage?
     @Binding var sourceType: UIImagePickerController.SourceType // Change from value to binding
-
+    
     class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
         var parent: ImagePicker
         
@@ -57,7 +57,7 @@ struct CreateProfileView: View {
     @State private var bio: String = ""
     @State private var image: UIImage? = nil
     @State private var isImagePickerPresented: Bool = false
-//    @State private var isCameraRoll: Bool = false
+    //    @State private var isCameraRoll: Bool = false
     @State private var sourceType: UIImagePickerController.SourceType = .photoLibrary
     private let fieldWidth: CGFloat = 265
     
@@ -67,15 +67,15 @@ struct CreateProfileView: View {
     @State private var selectedReasons: Set<String> = []
     @AppStorage("id") var id: String?
     let reasons = [
-            "Easier dining decisions",
-            "Finding trustworthy restaurants",
-            "Support local businesses",
-            "Doordash is down",
-            "Other"
-        ]
+        "Easier dining decisions",
+        "Finding trustworthy restaurants",
+        "Support local businesses",
+        "Doordash is down",
+        "Other"
+    ]
     
     @State private var showSuccessMessage = false
-
+    
     
     
     func convertImageToBase64(image: UIImage?) -> String? {
@@ -83,34 +83,34 @@ struct CreateProfileView: View {
         return imageData.base64EncodedString()
     }
     
-//    func sendProfileDataToBackend(_ profileData: [String: Any]) {
-////        guard let userId = userData.id else { return }
-//        guard let url = URL(string: "\(baseURL)/profile/create/\(userId)") else { return }
-//
-//        var request = URLRequest(url: url)
-//        request.httpMethod = "PUT"
-//        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-//
-//        do {
-//            let jsonData = try JSONSerialization.data(withJSONObject: profileData, options: [])
-//            request.httpBody = jsonData
-//        } catch {
-//            print("Error encoding JSON: \(error)")
-//            return
-//        }
-//
-//        URLSession.shared.dataTask(with: request) { data, response, error in
-//            if let error = error {
-//                print("Error sending data: \(error)")
-//                return
-//            }
-//            
-//            if let httpResponse = response as? HTTPURLResponse {
-//                print("Server Response: \(httpResponse.statusCode)")
-//            }
-//        }.resume()
-//    }
-
+    //    func sendProfileDataToBackend(_ profileData: [String: Any]) {
+    ////        guard let userId = userData.id else { return }
+    //        guard let url = URL(string: "\(baseURL)/profile/create/\(userId)") else { return }
+    //
+    //        var request = URLRequest(url: url)
+    //        request.httpMethod = "PUT"
+    //        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    //
+    //        do {
+    //            let jsonData = try JSONSerialization.data(withJSONObject: profileData, options: [])
+    //            request.httpBody = jsonData
+    //        } catch {
+    //            print("Error encoding JSON: \(error)")
+    //            return
+    //        }
+    //
+    //        URLSession.shared.dataTask(with: request) { data, response, error in
+    //            if let error = error {
+    //                print("Error sending data: \(error)")
+    //                return
+    //            }
+    //
+    //            if let httpResponse = response as? HTTPURLResponse {
+    //                print("Server Response: \(httpResponse.statusCode)")
+    //            }
+    //        }.resume()
+    //    }
+    
     var body: some View {
         NavigationStack {
             ScrollView{
@@ -236,7 +236,7 @@ struct CreateProfileView: View {
                             .font(.headline)
                             .fontWeight(.semibold)
                             .padding(.bottom, 7)
-
+                        
                         VStack(spacing: 10) {
                             ForEach(reasons, id: \.self) { reason in
                                 Button(action: {
@@ -279,7 +279,7 @@ struct CreateProfileView: View {
                             let base64Image = convertImageToBase64(image: image) ?? ""
                             
                             let preferences = selectedAllergies.map { ["preference": $0, "preference_type": "Allergy"] } +
-                                                  selectedDietaryRestrictions.map { ["preference": $0, "preference_type": "Dietary Restriction"] }
+                            selectedDietaryRestrictions.map { ["preference": $0, "preference_type": "Dietary Restriction"] }
                             
                             let profileData: [String: Any] = [
                                 "name": firstName + " " + lastName,
@@ -294,10 +294,10 @@ struct CreateProfileView: View {
                             ]
                             
                             viewModel.sendProfileDataToBackend(profileData)
-//                            viewModel.createdProfile = true
+                            //                            viewModel.createdProfile = true
                             showSuccessMessage = true
-//                            navigateToLandingPage = true
-                                    
+                            //                            navigateToLandingPage = true
+                            
                         }) {
                             Text("Save")
                                 .foregroundColor(.white)
@@ -306,22 +306,22 @@ struct CreateProfileView: View {
                             
                                 .background(Color.mainGreen)
                                 .cornerRadius(10)
-
+                            
                         }
                         .alert("Your account has been created!", isPresented: $showSuccessMessage) {
-                                Button("OK") {
-                                    navigateToLandingPage = true 
-                                }
+                            Button("OK") {
+                                navigateToLandingPage = true
                             }
+                        }
                         .navigationDestination(isPresented: $navigateToLandingPage) {
                             ContentView().navigationBarBackButtonHidden(true)
                         }
-//                        NavigationLink(destination: ContentView(), isActive: $navigateToLandingPage) {
-//                            EmptyView()
-//                        }
-          
+                        //                        NavigationLink(destination: ContentView(), isActive: $navigateToLandingPage) {
+                        //                            EmptyView()
+                        //                        }
+                        
                     }
-            
+                    
                 }.padding(10)
                     .sheet(isPresented: $isImagePickerPresented) {
                         ImagePicker(

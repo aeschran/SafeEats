@@ -14,9 +14,9 @@ struct SafeEatsApp: App {
     @StateObject private var createProfile = CreateProfileViewModel()
     private var login: Bool = false
     
-//    init() {
-//        self.login = UserDefaults.standard.bool(forKey: "loggedIn")
-//    }
+    //    init() {
+    //        self.login = UserDefaults.standard.bool(forKey: "loggedIn")
+    //    }
     
     //    @AppStorage("loggedIn") var loggedIn: Bool = false {
     //        didSet {

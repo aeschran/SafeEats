@@ -19,18 +19,18 @@ struct FeedView: View {
     @State private var navigateToProfile = false
     @State private var selectedUserId: String?
     @State private var navigateToNotifications = false
-
+    
     var body: some View {
         NavigationStack {
             VStack {
                 SearchBarView(searchText: $viewModel.searchText, onNotificationsTap: {
                     navigateToNotifications = true
                 })
-                    .onChange(of: viewModel.searchText) { _ in
-                        viewModel.searchUsers()
-                    }
-                    .padding(.top, 8)
-
+                .onChange(of: viewModel.searchText) { _ in
+                    viewModel.searchUsers()
+                }
+                .padding(.top, 8)
+                
                 if viewModel.isSearching {
                     ScrollView {
                         VStack {
@@ -68,12 +68,12 @@ struct FeedView: View {
             NavigationLink(destination: NotificationsView(), isActive: $navigateToNotifications) {
                 
             }
-//            .navigationDestination(isPresented: $navigateToNotifications) {
-//                    NotificationsView()
-////                Text("Notifications Page (Coming Soon)") // Placeholder for future implementation
-////                    .font(.largeTitle)
-////                    .foregroundColor(.gray)
-//            }
+            //            .navigationDestination(isPresented: $navigateToNotifications) {
+            //                    NotificationsView()
+            ////                Text("Notifications Page (Coming Soon)") // Placeholder for future implementation
+            ////                    .font(.largeTitle)
+            ////                    .foregroundColor(.gray)
+            //            }
         }
         .background(Color.white)
     }
@@ -84,7 +84,7 @@ struct FeedView: View {
 //    @StateObject var viewModel = FeedViewModel()
 //    @State private var navigateToProfile = false
 //    @State private var selectedUserId: String?
-//    
+//
 //    var body: some View {
 //        NavigationStack {
 //            ScrollView{
@@ -93,7 +93,7 @@ struct FeedView: View {
 //                        .onChange(of: viewModel.searchText) { _ in
 //                            viewModel.searchUsers()
 //                        }.padding(.top, 8)
-//                    
+//
 ////                    if viewModel.isSearching {
 ////                        List(viewModel.searchResults) { user in
 ////                            Button(action: {

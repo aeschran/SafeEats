@@ -36,7 +36,7 @@ struct AuthView: View {
     @AppStorage("isVerified") var isVerified_: Bool?
     
     
-
+    
     
     
     
@@ -141,7 +141,7 @@ struct AuthView: View {
                             } else if authType == .register && accountType == .businessOwnerAccount {
                                 await viewModel.business_owner_register()
                                 userType = "Business"
-                               
+                                
                             } else if authType == .login && accountType == .userAccount{
                                 await viewModel.user_login()
                                 userType = "User"
@@ -153,7 +153,7 @@ struct AuthView: View {
                                 print("hi")
                                 
                             }
-//
+                            //
                         }
                     } label: {
                         Text(authType == .login ? "Login" : "Register")
@@ -165,7 +165,7 @@ struct AuthView: View {
                             
                             
                             if let unwrappedID = viewModel.id_ {
-                                print("ID: \(unwrappedID)") 
+                                print("ID: \(unwrappedID)")
                             } else {
                                 print("ID is nil")
                             }
@@ -182,41 +182,41 @@ struct AuthView: View {
                     
                     
                     BottomView(authType: $authType)
-                    .onAppear {
-                        navigateToCreateProfile = false
-                        navigateToLanding = false
-                        
-                    }
-                    .navigationDestination(isPresented: $navigateToCreateProfile) {
-                        if navigateToCreateProfile { // Ensure it only goes to CreateProfile if isCreated is false
-                            CreateProfileView().navigationBarBackButtonHidden(true)
-                        } else {
-                            LandingPage().navigationBarBackButtonHidden(true)
+                        .onAppear {
+                            navigateToCreateProfile = false
+                            navigateToLanding = false
+                            
                         }
-                    }
-                  /*
-                    
-                    .navigationDestination(isPresented: $navigateToCreateProfile) {
-                        CreateProfileView().navigationBarBackButtonHidden(true)
-                    }
-                    .navigationDestination(isPresented: $navigateToLanding) {
-                        LandingPage().navigationBarBackButtonHidden(true)
-                    }
-                   */
-//
-//                        .navigationDestination(isPresented: $navigateToLanding) {
-//                            LandingPage().navigationBarBackButtonHidden(true)
-//                        }
+                        .navigationDestination(isPresented: $navigateToCreateProfile) {
+                            if navigateToCreateProfile { // Ensure it only goes to CreateProfile if isCreated is false
+                                CreateProfileView().navigationBarBackButtonHidden(true)
+                            } else {
+                                LandingPage().navigationBarBackButtonHidden(true)
+                            }
+                        }
+                    /*
+                     
+                     .navigationDestination(isPresented: $navigateToCreateProfile) {
+                     CreateProfileView().navigationBarBackButtonHidden(true)
+                     }
+                     .navigationDestination(isPresented: $navigateToLanding) {
+                     LandingPage().navigationBarBackButtonHidden(true)
+                     }
+                     */
+                    //
+                    //                        .navigationDestination(isPresented: $navigateToLanding) {
+                    //                            LandingPage().navigationBarBackButtonHidden(true)
+                    //                        }
                     if (authType == .login) {
                         Button {
                             resetPassword = true
-                            } label: {
-                                Text("Forgot Password?")
-                                    .font(.system(size: 15, weight: .medium))
-                                    .foregroundColor(.blue)
-                            }
-                            
-                            // NavigationLink to ResetPasswordView
+                        } label: {
+                            Text("Forgot Password?")
+                                .font(.system(size: 15, weight: .medium))
+                                .foregroundColor(.blue)
+                        }
+                        
+                        // NavigationLink to ResetPasswordView
                         NavigationLink(
                             destination: ForgotPasswordView(accountType: accountType).navigationBarBackButtonHidden(true),
                             isActive: $resetPassword
@@ -413,7 +413,7 @@ struct BottomView: View {
     var body: some View {
         HStack(spacing: 3) {
             Text(authType == .login ? "Don't have an account?" : "Already have an account?")
-                            .font(.system(size: 15, weight: .medium))
+                .font(.system(size: 15, weight: .medium))
             
             Button {
                 if authType == .login {

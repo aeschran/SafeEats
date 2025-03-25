@@ -11,9 +11,9 @@ class PreferenceResponse: Codable {
     let preference_type: String
     
     init(preference: String, preference_type: String) {
-            self.preference = preference
-            self.preference_type = preference_type
-        }
+        self.preference = preference
+        self.preference_type = preference_type
+    }
 }
 
 class Business: Decodable, Identifiable {

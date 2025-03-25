@@ -13,28 +13,28 @@ struct LandingPage: View {
     @State private var navigateToAuth = false
     
     var user: User? {
-            get {
-                guard let userData else { return nil }
-                return try? JSONDecoder().decode(User.self, from: userData)
-            }
-            set {
-                guard let newValue = newValue else { return }
-                if let encodedUser = try? JSONEncoder().encode(newValue) {
-                    self.userData = encodedUser
-                }
+        get {
+            guard let userData else { return nil }
+            return try? JSONDecoder().decode(User.self, from: userData)
+        }
+        set {
+            guard let newValue = newValue else { return }
+            if let encodedUser = try? JSONEncoder().encode(newValue) {
+                self.userData = encodedUser
             }
         }
+    }
     var body: some View {
         
         
         NavigationStack {
             ZStack {
-//                let gradientColors: [Color] = [.white, .mainGreen]
-//                let padding = 80
-//                Rectangle()
-//                    .fill(LinearGradient(colors: gradientColors, startPoint: UnitPoint(x: 0.5, y: 0.4), endPoint: .bottom))
-//                    .cornerRadius(20)
-//                    .ignoresSafeArea()
+                //                let gradientColors: [Color] = [.white, .mainGreen]
+                //                let padding = 80
+                //                Rectangle()
+                //                    .fill(LinearGradient(colors: gradientColors, startPoint: UnitPoint(x: 0.5, y: 0.4), endPoint: .bottom))
+                //                    .cornerRadius(20)
+                //                    .ignoresSafeArea()
                 
                 VStack {
                 } .toolbar {
