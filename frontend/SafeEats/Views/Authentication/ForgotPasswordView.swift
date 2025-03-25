@@ -107,10 +107,10 @@ struct ForgotPasswordView: View {
             
             Button("Send Code") {
                 Task {
-                   await resetPasswordViewModel.sendResetCode()
+                    await resetPasswordViewModel.sendResetCode()
                     if resetPasswordViewModel.validEmail {
                         
-                            step = 2
+                        step = 2
                         
                     }
                 }
@@ -134,11 +134,11 @@ struct ForgotPasswordView: View {
                 Task {
                     await resetPasswordViewModel.verifyCode()
                     if resetPasswordViewModel.validCode{
-                            step = 3
+                        step = 3
                     }
-
+                    
                 }
-                                
+                
             }
             .buttonStyle(AuthButtonType())
         }

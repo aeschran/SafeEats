@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MyProfileView: View {
     @StateObject private var viewModel = MyProfileViewModel()
-
+    
     var body: some View {
         NavigationStack {
             ScrollView{
@@ -45,11 +45,11 @@ struct MyProfileView: View {
                                         .font(.subheadline)
                                         .fontWeight(.semibold)
                                         .foregroundColor(.black)
-//                                        .underline()
+                                    //                                        .underline()
                                 }
-//                                Text("\(viewModel.friendCount)")
-//                                    .font(.subheadline)
-//                                    .fontWeight(.semibold)
+                                //                                Text("\(viewModel.friendCount)")
+                                //                                    .font(.subheadline)
+                                //                                    .fontWeight(.semibold)
                                 Text("Friends")
                                     .font(.caption)
                             }
@@ -110,16 +110,16 @@ struct MyProfileView: View {
                 }
                 .padding(6)
                 .navigationTitle(viewModel.username) // Centered title
-                            .navigationBarTitleDisplayMode(.inline) // Ensures it's in the center
-                            .toolbar {
-                                ToolbarItem(placement: .navigationBarTrailing) {
-                                    NavigationLink(destination: SettingsView().environmentObject(SettingsViewModel())) {
-                                        Image(systemName: "line.3.horizontal") // Settings icon
-                                            .font(.title2)
-                                            .foregroundColor(.black)
-                                    }
-                                }
-                            }
+                .navigationBarTitleDisplayMode(.inline) // Ensures it's in the center
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        NavigationLink(destination: SettingsView().environmentObject(SettingsViewModel())) {
+                            Image(systemName: "line.3.horizontal") // Settings icon
+                                .font(.title2)
+                                .foregroundColor(.black)
+                        }
+                    }
+                }
                 .task {
                     await viewModel.fetchUserProfile() // Fetch data when view appears
                 }

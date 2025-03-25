@@ -11,21 +11,21 @@ struct BusinessCard: View {
     var title: String
     var rating: Double
     var imageName: String // Business logo
-    var description: String 
+    var description: String
     var allergenIcons: [String] = ["Vegetarian", "Vegan", "Gluten-Free"] // Array of allergen indicator image names
-
+    
     var body: some View {
         HStack {
             Image(systemName: "fork.knife.circle")
                 .resizable()
                 .frame(width: 50, height: 50)
                 .clipShape(RoundedRectangle(cornerRadius: 10))
-
+            
             VStack(alignment: .leading, spacing: 5) {
                 Text(title)
                     .font(.headline)
                 Text(description)
-
+                
                 // Allergen icons
                 HStack(spacing: 6) {
                     ForEach(allergenIcons, id: \.self) { icon in
@@ -35,7 +35,7 @@ struct BusinessCard: View {
                             .frame(width: 20, height: 20) // Small icons
                     }
                 }
-
+                
                 // Rating
                 HStack(spacing: 3) {
                     Text("\(String(format: "%.1f", rating))")

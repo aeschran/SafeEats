@@ -21,23 +21,23 @@ class ProfileViewModel: ObservableObject {
     private var friendId: String
     @AppStorage("id") var id_: String?
     
-//    @Published var friend: Friend
-//
-//    init(friendId: String) async {
-//            // Initially, set the friend to a default empty friend
-//        self.friend = Friend(id: "", name: "", username: "", friendSince: "")
-//        Task {
-//            // Fetch the actual friend data using the friendId
-//            await fetchUserProfile(friendId: friendId)
-//        }
-//    }
-//    
+    //    @Published var friend: Friend
+    //
+    //    init(friendId: String) async {
+    //            // Initially, set the friend to a default empty friend
+    //        self.friend = Friend(id: "", name: "", username: "", friendSince: "")
+    //        Task {
+    //            // Fetch the actual friend data using the friendId
+    //            await fetchUserProfile(friendId: friendId)
+    //        }
+    //    }
+    //
     @Published var friend: Friend
-
+    
     init(friendId: String) {
         self.friendId = friendId
         self.friend = Friend(id: "", name: "", username: "", friendSince: "")
-//        fetchUserProfile(friendId: friendId)
+        //        fetchUserProfile(friendId: friendId)
     }
     func fetchData() {
         print("1")
@@ -46,58 +46,58 @@ class ProfileViewModel: ObservableObject {
             await fetchUserProfile(friendId: self.friendId)
         }
     }
-//
-//    // Fetch the friend data asynchronously
-//    func fetchUserProfile(friendId: String) {
-//        // Here, replace with an actual network request to fetch data by friendId
-//        Task {
-//            await fetchFromBackend(friendId: friendId)
-//        }
-//    }
-
-        // Initialize the ProfileViewModel with the Friend data
-//        init(friend_id: id) {
-//            self.friend_id = id
-//        }
-//    @AppStorage("user") var userData : Data?
-//    
-//    var user: User? {
-//            get {
-//                guard let userData else { return nil }
-//                return try? JSONDecoder().decode(User.self, from: userData)
-//            }
-//            set {
-//                guard let newValue = newValue else { return }
-//                if let encodedUser = try? JSONEncoder().encode(newValue) {
-//                    self.userData = encodedUser
-//                }
-//            }
-//        }
-//    @AppStorage("user") var userData : Data?
+    //
+    //    // Fetch the friend data asynchronously
+    //    func fetchUserProfile(friendId: String) {
+    //        // Here, replace with an actual network request to fetch data by friendId
+    //        Task {
+    //            await fetchFromBackend(friendId: friendId)
+    //        }
+    //    }
     
-//    var user: User? {
-//            get {
-//                guard let userData else { return nil }
-//                return try? JSONDecoder().decode(User.self, from: userData)
-//            }
-//            set {
-//                guard let newValue = newValue else { return }
-//                if let encodedUser = try? JSONEncoder().encode(newValue) {
-//                    self.userData = encodedUser
-//                }
-//            }
-//        }
+    // Initialize the ProfileViewModel with the Friend data
+    //        init(friend_id: id) {
+    //            self.friend_id = id
+    //        }
+    //    @AppStorage("user") var userData : Data?
+    //
+    //    var user: User? {
+    //            get {
+    //                guard let userData else { return nil }
+    //                return try? JSONDecoder().decode(User.self, from: userData)
+    //            }
+    //            set {
+    //                guard let newValue = newValue else { return }
+    //                if let encodedUser = try? JSONEncoder().encode(newValue) {
+    //                    self.userData = encodedUser
+    //                }
+    //            }
+    //        }
+    //    @AppStorage("user") var userData : Data?
+    
+    //    var user: User? {
+    //            get {
+    //                guard let userData else { return nil }
+    //                return try? JSONDecoder().decode(User.self, from: userData)
+    //            }
+    //            set {
+    //                guard let newValue = newValue else { return }
+    //                if let encodedUser = try? JSONEncoder().encode(newValue) {
+    //                    self.userData = encodedUser
+    //                }
+    //            }
+    //        }
     
     private let baseURL = "http://127.0.0.1:8000"
     
-      // Replace with your actual backend API URL
-
+    // Replace with your actual backend API URL
+    
     func fetchUserProfile(friendId: String) async {
         Task {
             guard let id = id_ else {
-                    print("Error: User data is not available")
-                    return
-                }
+                print("Error: User data is not available")
+                return
+            }
             //        guard let user = user else {
             //                print("Error: User data is not available")
             //                return
@@ -118,14 +118,14 @@ class ProfileViewModel: ObservableObject {
                     self.friendCount = decodedProfile.friendCount
                     self.reviewCount = decodedProfile.reviewCount
                     self.isFollowing = decodedProfile.isFollowing
-//                    self.isRequested = decodeProfile.isRequested
+                    //                    self.isRequested = decodeProfile.isRequested
                     self.isRequested = decodedProfile.isRequested
                     
                     // Decode Base64 Image
-//                    if let imageData = Data(base64Encoded: decodedProfile.imageBase64),
-//                       let uiImage = UIImage(data: imageData) {
-//                        self.imageBase64 = uiImage
-//                    }
+                    //                    if let imageData = Data(base64Encoded: decodedProfile.imageBase64),
+                    //                       let uiImage = UIImage(data: imageData) {
+                    //                        self.imageBase64 = uiImage
+                    //                    }
                     if let imageBase64 = decodedProfile.imageBase64, !imageBase64.isEmpty,
                        let imageData = Data(base64Encoded: imageBase64),
                        let uiImage = UIImage(data: imageData) {
@@ -145,9 +145,9 @@ class ProfileViewModel: ObservableObject {
     
     func sendFriendRequest() async {
         guard let id = id_ else {
-                print("Error: User data is not available")
-                return
-            }
+            print("Error: User data is not available")
+            return
+        }
         
         let requestBody: [String: Any] = [
             "sender_id": id,
@@ -160,33 +160,33 @@ class ProfileViewModel: ObservableObject {
         guard let url = URL(string: "\(baseURL)/notifications/create") else { return }
         
         do {
-                let requestData = try JSONSerialization.data(withJSONObject: requestBody)
-                var request = URLRequest(url: url)
-                request.httpMethod = "POST"
-                request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                request.httpBody = requestData
-                
-                let (_, response) = try await URLSession.shared.data(for: request)
-                
-                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
-                    DispatchQueue.main.async {
-                        self.didTap = true
-                        // Change the button text to "Requested" but do not change isFollowing yet
-//                        self.isFollowing = false
-                    }
-                } else {
-                    print("Failed to send friend request: \(response)")
+            let requestData = try JSONSerialization.data(withJSONObject: requestBody)
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = requestData
+            
+            let (_, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                DispatchQueue.main.async {
+                    self.didTap = true
+                    // Change the button text to "Requested" but do not change isFollowing yet
+                    //                        self.isFollowing = false
                 }
-            } catch {
-                print("Error sending friend request: \(error.localizedDescription)")
+            } else {
+                print("Failed to send friend request: \(response)")
             }
+        } catch {
+            print("Error sending friend request: \(error.localizedDescription)")
+        }
     }
     
     func unfollowFriend() async {
         guard let id = id_ else {
-                print("Error: User data is not available")
-                return
-            }
+            print("Error: User data is not available")
+            return
+        }
         
         guard let url = URL(string: "\(baseURL)/friends/unfollow") else { return }
         var request = URLRequest(url: url)
@@ -207,7 +207,7 @@ class ProfileViewModel: ObservableObject {
             print("Failed to unfollow friend: \(error)")
         }
     }
-
+    
 }
 
 struct ProfileResponse: Codable {
@@ -219,7 +219,7 @@ struct ProfileResponse: Codable {
     let imageBase64: String?
     let isFollowing: Bool
     let isRequested: Bool
-
+    
     // If backend uses different naming conventions, we can map it here
     enum CodingKeys: String, CodingKey {
         case name = "name"

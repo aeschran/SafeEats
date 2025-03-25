@@ -13,15 +13,15 @@ struct FilterView: View {
     @Binding var selectedAllergies: Set<String>
     @Binding var selectedDietaryRestrictions: Set<String>
     @Environment(\.dismiss) var dismiss
-
+    
     @State private var showAllergies = false
     @State private var showDietaryRestrictions = false
     @State private var showCuisines = false
     
-
+    
     let allergies = ["Peanuts", "Dairy", "Gluten", "Shellfish"]
     let dietaryRestrictions = ["Vegan", "Vegetarian", "Halal", "Kosher"]
-
+    
     var body: some View {
         NavigationStack {
             // Cuisine Filters (Expandable)

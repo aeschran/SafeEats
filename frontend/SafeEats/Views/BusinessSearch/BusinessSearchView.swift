@@ -19,17 +19,17 @@ struct BusinessSearchView: View {
                 SearchBar(viewModel: viewModel)
                 
                 if viewModel.isLoading {
-                                    ProgressView("Loading...")
-                                } else if let errorMessage = viewModel.errorMessage {
-                                    Text(errorMessage)
-                                        .foregroundColor(.red)
-                                } else {
-                                    List(viewModel.businesses, id: \.name) { business in
-                                        BusinessCard(title: business.name ?? "No Name", rating: 4.5, imageName: "self.crop.circle.fill", description: business.description ?? "No Description")
-                                    }
-                                    .listStyle(.inset)
-                                }
-                            }
+                    ProgressView("Loading...")
+                } else if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                } else {
+                    List(viewModel.businesses, id: \.name) { business in
+                        BusinessCard(title: business.name ?? "No Name", rating: 4.5, imageName: "self.crop.circle.fill", description: business.description ?? "No Description")
+                    }
+                    .listStyle(.inset)
+                }
+            }
             .navigationTitle("Search")
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {

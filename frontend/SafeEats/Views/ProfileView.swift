@@ -24,24 +24,24 @@ struct ProfileView: View {
     @State private var isFollowing: Bool = false
     @State private var isRequested: Bool = false
     @State private var showUnfollowAlert: Bool = false
-//    print(viewModel.isFollowing)
-//    print(viewModel.isRequested)
-
+    //    print(viewModel.isFollowing)
+    //    print(viewModel.isRequested)
+    
     var body: some View {
-                NavigationStack{
+        NavigationStack{
             
             
             ScrollView{
                 VStack{
-//                    HStack{
-//                        Image(systemName: "chevron.left").font(.title2)
-//                        Spacer()
-//                        
-//                        Text(viewModel.username).font(.subheadline).fontWeight(.semibold)
-//                        Spacer()
-//                        
-//                        
-//                    }.padding(2)
+                    //                    HStack{
+                    //                        Image(systemName: "chevron.left").font(.title2)
+                    //                        Spacer()
+                    //
+                    //                        Text(viewModel.username).font(.subheadline).fontWeight(.semibold)
+                    //                        Spacer()
+                    //
+                    //
+                    //                    }.padding(2)
                     HStack{
                         if let profileImage = viewModel.imageBase64 {
                             Image(uiImage: profileImage)

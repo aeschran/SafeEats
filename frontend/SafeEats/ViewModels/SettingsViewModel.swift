@@ -13,18 +13,18 @@ class SettingsViewModel: ObservableObject {
     @Published var tags: [Tag] = []
     @Published var errorMessage: String? = nil
     @Published var successMessage: String? = nil
-
+    
     private var existingPreferences: [String] = []
     
     let baseUrl = "http://127.0.0.1:8000"
     
     init() {
-            if tags.isEmpty {
-                tags.append(Tag(value: "", isInitial: false))  // Ensure at least one input box is there
-            }
-        
-            print("loggedIn is: \(UserDefaults.standard.bool(forKey: "loggedIn"))")
+        if tags.isEmpty {
+            tags.append(Tag(value: "", isInitial: false))  // Ensure at least one input box is there
         }
+        
+        print("loggedIn is: \(UserDefaults.standard.bool(forKey: "loggedIn"))")
+    }
     
     func fetchExistingPreferences() async {
         guard let url = URL(string: "\(baseUrl)/preferences") else {
@@ -82,7 +82,7 @@ class SettingsViewModel: ObservableObject {
             
             do {
                 let (data, response) = try await URLSession.shared.data(for: request)
-
+                
                 if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
                     print("Response Status Code: \(httpResponse.statusCode)")
                     DispatchQueue.main.async {

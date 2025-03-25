@@ -12,12 +12,12 @@ import SwiftUI
 class CreateProfileViewModel: ObservableObject {
     @AppStorage("id") var id_: String?
     
-//    @Published var createdProfile: Bool?
+    //    @Published var createdProfile: Bool?
     @AppStorage("createdProfile") var createdProfile: Bool = false
     
-
-//    @AppStorage("isUserCreated") var isCreated: Bool = false
-//    @AppStorage("isUserCreated") var isCreated: Bool = false
+    
+    //    @AppStorage("isUserCreated") var isCreated: Bool = false
+    //    @AppStorage("isUserCreated") var isCreated: Bool = false
     
     
     private let baseURL = "http://127.0.0.1:8000"

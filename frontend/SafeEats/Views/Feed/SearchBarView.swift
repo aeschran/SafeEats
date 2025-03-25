@@ -30,14 +30,14 @@ struct SearchBarView: View {
         HStack {
             Image(systemName: "magnifyingglass")
             TextField("Search users...", text: $searchText)
-        
-        
-//        HStack {
-//            TextField("Search users...", text: $searchText)
-//                .padding(10)
-//                .background(Color(.systemGray6))
-//                .cornerRadius(8)
-//            
+            
+            
+            //        HStack {
+            //            TextField("Search users...", text: $searchText)
+            //                .padding(10)
+            //                .background(Color(.systemGray6))
+            //                .cornerRadius(8)
+            //            
             if !searchText.isEmpty {
                 Button(action: { searchText = "" }) {
                     Image(systemName: "xmark.circle.fill")
@@ -45,13 +45,13 @@ struct SearchBarView: View {
                 }
             }
             Button(action: {
-                            onNotificationsTap() // Calls the function passed from FeedView
-                        }) {
-                            Image(systemName: "bell")
-                                .foregroundColor(.black)
-                        }
+                onNotificationsTap() // Calls the function passed from FeedView
+            }) {
+                Image(systemName: "bell")
+                    .foregroundColor(.black)
+            }
         }
-//        .padding(.horizontal)
+        //        .padding(.horizontal)
         .padding(10)
         .background(RoundedRectangle(cornerRadius: 10).fill(Color.mainGreen.opacity(0.1)))
         .padding(.horizontal)
@@ -60,7 +60,7 @@ struct SearchBarView: View {
 
 struct SearchBarView_PreviewContainer: View {
     @State private var searchText = ""
-
+    
     var body: some View {
         SearchBarView(searchText: $searchText, onNotificationsTap: {
             print("Notifications button tapped")
@@ -70,6 +70,6 @@ struct SearchBarView_PreviewContainer: View {
 
 
 #Preview {
-//    @State var searchText = ""  // Define a local state for preview
+    //    @State var searchText = ""  // Define a local state for preview
     SearchBarView_PreviewContainer()
 }

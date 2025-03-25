@@ -7,7 +7,7 @@
 import Foundation
 
 struct User : Codable, Identifiable {
-
+    
     let id : String
     let name: String?
     let email: String
@@ -16,7 +16,7 @@ struct User : Codable, Identifiable {
     let isVerified: Bool?
     let preferences: [Preference] = []
     var createdProfile: Bool?
-
+    
     
     enum CodingKeys : String, CodingKey {
         case id
@@ -27,7 +27,7 @@ struct User : Codable, Identifiable {
         case isVerified
         case preferences
         case createdProfile
-
+        
         
     }
 }

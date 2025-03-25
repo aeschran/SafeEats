@@ -26,7 +26,7 @@ struct ContentView: View {
                             BusinessSearchView()
                         case .location:
                             LandingPage()
-//                            MapView()
+                            //                            MapView()
                         case .person:
                             MyProfileView()
                         case .building:

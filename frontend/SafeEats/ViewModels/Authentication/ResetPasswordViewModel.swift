@@ -4,7 +4,7 @@ import SwiftUI
 @MainActor
 class ResetPasswordViewModel: ObservableObject {
     
-
+    
     @Published var email: String = ""
     @Published var verificationCode: String = ""
     @Published var newPassword: String = ""
@@ -18,13 +18,13 @@ class ResetPasswordViewModel: ObservableObject {
     
     var accountType: AccountType
     private var baseURL: String
-        
+    
     init(accountType: AccountType) {
         self.accountType = accountType
         self.baseURL = accountType == .businessOwnerAccount ? "http://127.0.0.1:8000/business_auth" : "http://127.0.0.1:8000/auth"
-
+        
     }
-
+    
     
     func validateFields() -> Bool {
         if !isValidEmail(email) {
@@ -53,7 +53,7 @@ class ResetPasswordViewModel: ObservableObject {
         return NSPredicate(format: "SELF MATCHES %@", passwordRegex).evaluate(with: password)
     }
     
-
+    
     func sendResetCode() async {
         guard !email.isEmpty else {
             errorMessage = "Please enter a valid email."
@@ -104,9 +104,9 @@ class ResetPasswordViewModel: ObservableObject {
             if let responseJSON = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                let message = responseJSON["message"] as? String {
                 
-                    self.validEmail = true
-                    self.errorMessage = nil
-                    self.successMessage = message
+                self.validEmail = true
+                self.errorMessage = nil
+                self.successMessage = message
                 
             }
             
@@ -116,7 +116,7 @@ class ResetPasswordViewModel: ObservableObject {
             }
         }
     }
-
+    
     func verifyCode() async {
         guard verificationCode.count == 6 else {
             errorMessage = "Enter a valid 6-digit code."
@@ -165,10 +165,10 @@ class ResetPasswordViewModel: ObservableObject {
             
             if let responseJSON = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                let message = responseJSON["message"] as? String {
-                    self.validCode = true
-                    self.errorMessage = nil
-                    self.successMessage = message
-                    
+                self.validCode = true
+                self.errorMessage = nil
+                self.successMessage = message
+                
             }
             
         } catch {
@@ -177,8 +177,8 @@ class ResetPasswordViewModel: ObservableObject {
             }
         }
     }
-
-
+    
+    
     func resetPassword() async {
         guard !newPassword.isEmpty, newPassword == confirmPassword else {
             errorMessage = "Passwords do not match."
@@ -210,20 +210,20 @@ class ResetPasswordViewModel: ObservableObject {
             let (data, response) = try await URLSession.shared.data(for: request)
             
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
-            
+                
                 DispatchQueue.main.async {
                     self.errorMessage = "Error \(httpResponse.statusCode)."
                 }
-            
+                
                 return
             }
             
             if let responseJSON = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
                let message = responseJSON["message"] as? String {
-                    self.isReset = true
-                    self.errorMessage = nil
-                    self.successMessage = message
-                }
+                self.isReset = true
+                self.errorMessage = nil
+                self.successMessage = message
+            }
             
         } catch {
             DispatchQueue.main.async {
@@ -231,6 +231,6 @@ class ResetPasswordViewModel: ObservableObject {
             }
         }
     }
-
-
+    
+    
 }
