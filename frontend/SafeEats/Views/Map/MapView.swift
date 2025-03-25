@@ -8,7 +8,7 @@
 import SwiftUI
 import MapKit
 
-struct PurdueLocation: Identifiable {
+struct Location: Identifiable {
     let id = UUID()
     let coordinate = CLLocationCoordinate2D(latitude: 40.4237, longitude: -86.9212)
 }
@@ -22,7 +22,7 @@ struct MapView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Map(coordinateRegion: $region, annotationItems: [PurdueLocation()]) { location in
+                Map(coordinateRegion: $region, annotationItems: [Location()]) { location in
                     MapAnnotation(coordinate: location.coordinate) {
                         VStack {
                             Text("Purdue University")
