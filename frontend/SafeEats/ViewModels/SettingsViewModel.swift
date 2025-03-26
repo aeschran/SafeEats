@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 @MainActor
 class SettingsViewModel: ObservableObject {
@@ -13,6 +14,7 @@ class SettingsViewModel: ObservableObject {
     @Published var tags: [Tag] = []
     @Published var errorMessage: String? = nil
     @Published var successMessage: String? = nil
+    @AppStorage("id") var id_: String?
     
     private var existingPreferences: [String] = []
     
@@ -26,9 +28,9 @@ class SettingsViewModel: ObservableObject {
         print("loggedIn is: \(UserDefaults.standard.bool(forKey: "loggedIn"))")
     }
     
-    func fetchExistingPreferences() async {
+    func fetchExistingPreferences() async -> [String]{
         guard let url = URL(string: "\(baseUrl)/preferences") else {
-            return
+            return []
         }
         
         var request = URLRequest(url: url)
@@ -42,13 +44,93 @@ class SettingsViewModel: ObservableObject {
                     let pref = json["preference"] as! String
                     existingPreferences.append(pref.lowercased())
                 }
+                return existingPreferences
             }
         } catch {
             DispatchQueue.main.async {
                 print("error")
+                
             }
+            
+        }
+        return []
+    }
+    
+    func fetchUserPreferences() async -> [String: Set<String>] {
+        guard let id = id_ else {
+            print("Error: User data is not available")
+            return [:] 
+        }
+        guard let url = URL(string: "\(baseUrl)/profile/preferences/\(id)") else {
+            print("Invalid URL")
+            return [:]
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+                print("Failed to fetch preferences: \(httpResponse.statusCode)")
+                return [:]
+            }
+            
+            if let jsonDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+               let preferencesArray = jsonDict["dietary_restrictions"] as? [[String: Any]] {
+                
+                var categorizedPreferences: [String: Set<String>] = [:]
+                for prefDict in preferencesArray {
+                    if let preference = prefDict["preference"] as? String,
+                       let preferenceType = prefDict["preference_type"] as? String {
+                            categorizedPreferences[preferenceType, default: []].insert(preference)
+                    }
+                }
+                print("Success:", categorizedPreferences)
+                return categorizedPreferences
+            } else {
+                print("Failure: Unexpected JSON structure")
+            }
+        } catch {
+            print("Error fetching user preferences: \(error)")
+        }
+        return [:]
+    }
+
+    
+    func updateDietaryPreferences(updatedPreferences: [String:Any]) async {
+        guard let id = id_ else {
+            print("Error: User data is not available")
+            return 
+        }
+        guard let url = URL(string: "\(baseUrl)/profile/preferences/\(id)") else {
+            print("Invalid URL")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let requestBody: [String: Any] = updatedPreferences
+        
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: requestBody, options: [])
+            request.httpBody = jsonData
+            
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                print("Successfully updated preferences.")
+            } else {
+                print("Failed to update preferences. Status Code: \((response as? HTTPURLResponse)?.statusCode ?? 0)")
+            }
+            
+        } catch {
+            print("Error updating preferences: \(error)")
         }
     }
+
     
     func submitSuggestions() async {
         await fetchExistingPreferences()

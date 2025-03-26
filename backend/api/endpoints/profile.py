@@ -35,6 +35,10 @@ async def get_user_profile_endpoint(_id: str):
 async def get_user_preferences_endpoint(_id: str):
     return await user_profile_service.get_user_preferences(_id)
 
+@router.put("/preferences/{_id}")
+async def update_user_preferences_endpoint(_id: str, new_preferences: dict):
+    return await user_profile_service.update_user_preferences(_id, new_preferences)
+
 
 
 

@@ -16,6 +16,7 @@ async def get_preferences():
 async def create_preference(preference: PreferenceCreate):
     return await preference_service.create_new_preference(preference)
 
+
 @router.post("/suggest")
 async def suggest_preferences(new_prefs: list[str]):
     print("here")

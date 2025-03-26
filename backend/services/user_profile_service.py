@@ -130,7 +130,26 @@ class UserProfileService(BaseService):
         user_data = await self.db.users.find_one({"_id": ObjectId(_id)})
         if user_data:
             user = ProfileResponse(**user_data)
-            result = {"dietary_restrictions":user.preferences} 
+            result = {
+                "dietary_restrictions": [pref.dict() for pref in user.preferences]
+            }
+            print(result)
             return result
         return None
+    
+    async def update_user_preferences(self, _id: str, new_preferences: dict):
+        user_data = await self.db.users.find_one({"_id": ObjectId(_id)})
+        if user_data:
+            update_result = await self.db.users.update_one(
+                {"_id": ObjectId(_id)},
+                {"$set": {"preferences": new_preferences.get("preferences", [])}})
+            
+            if update_result.modified_count > 0:
+                return {"message": "Preferences updated successfully."}
+            else:
+                return {"message": "No changes were made to the preferences."}
+        
+        return None
+    
+
 

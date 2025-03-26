@@ -12,6 +12,7 @@ struct SettingsView: View {
     @State private var showChangePassword = false
     @State private var showDeleteAccountAlert = false
     @State private var showLogoutConfirmation = false
+    @State private var showSheet = false
     @AppStorage("userType") private var userType: String?
     @AppStorage("showDeleteConfirmation") private var showDeleteConfirmation = false
     @State private var tags : [Tag] = []
@@ -25,17 +26,51 @@ struct SettingsView: View {
         NavigationStack {
             VStack {
                 Form {
-                    
-                    Section(header: Text("Account Settings")) {
+                    Section(header: Text("Account Settings")){
+                        if (userType == "User") {
+                            Button(action: {
+                                showSheet = true
+                            }) {
+                                HStack {
+                                    Image(systemName: "heart.text.square.fill")
+                                    Text("Edit Dietary Preferences")
+                                        .fontWeight(.semibold)
+                                    Image(systemName: "chevron.forward")
+                                        .foregroundColor(Color.mainGreen)
+                                        .frame(alignment: .trailing)
+                                }
+                                .foregroundColor(.black)
+                                .padding()
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(Color(UIColor.systemGray6))
+                                .cornerRadius(10)
+                            }
+                            .sheet(isPresented: $showSheet) {
+                                EditDietaryPreferencesView(showSheet: $showSheet)
+                            }
+                            HStack {
+                                Button(action: {
+                                    staySignedIn = !staySignedIn
+                                }) {
+                                    Image(systemName: staySignedIn ? "checkmark.square.fill" : "square")
+                                        .resizable()
+                                        .frame(width: 24, height: 24)
+                                        .foregroundColor(staySignedIn ? .mainGreen : .gray)
+                                }
+                                .buttonStyle(.plain)
+                                
+                                Text("Stay Signed In")
+                                    .fontWeight(.semibold)
+                                    .onTapGesture {}
+                            }
+                        }
                         Button(action: {
-                            // Add logic to change password
                             showChangePassword = true
                         }) {
                             Text("Change Password")
                         }
                         
                         Button(action: {
-                            // Add logic for logging out
                             showLogoutConfirmation = true
                         }) {
                             Text("Log Out")
@@ -72,28 +107,16 @@ struct SettingsView: View {
                         }
                         
                     }
-                    if (userType == "User") {
+                    
+                    Section {
                         
-                        GroupBox(label: Label("Suggest New Preferences", systemImage: "fork.knife.circle.fill")) {
-                            TagField().environmentObject(settingsViewModel)
-                        }
-                        
-                        HStack {
-                            Button(action: {
-                                staySignedIn = !staySignedIn
-                            }) {
-                                Image(systemName: staySignedIn ? "checkmark.square.fill" : "square")
-                                    .resizable()
-                                    .frame(width: 24, height: 24)
-                                    .foregroundColor(staySignedIn ? .blue : .gray)
-                            }
-                            .buttonStyle(.plain)
-                            
-                            Text("Stay Signed In")
-                                .font(.body)
-                                .onTapGesture {}
-                        }
                     }
+                    
+                    GroupBox(label: Label("Suggest New Preferences", systemImage: "fork.knife.circle.fill")) {
+                        TagField().environmentObject(settingsViewModel)
+                    }
+                    .fontWeight(.semibold)
+                    
                     
                     
                     
@@ -133,6 +156,7 @@ struct SettingsView: View {
 
 
 struct TagField: View {
+    
     @EnvironmentObject var settingsViewModel : SettingsViewModel
     var body : some View {
         ZStack {
@@ -263,6 +287,90 @@ struct TagField: View {
         }
     }
 }
+
+
+
+struct EditDietaryPreferencesView: View {
+    @Binding var showSheet: Bool
+    @EnvironmentObject var settingsViewModel: SettingsViewModel
+    @State private var selectedDietaryRestrictions: Set<String> = []
+    @State private var selectedAllergies: Set<String> = []
+    @State private var selectedCuisines: Set<String> = []
+    @Environment(\.colorScheme) private var colorScheme
+    
+    @State private var showSuccessMessage = false
+    
+    var body: some View {
+        NavigationStack {
+            VStack {
+                Text("Edit Dietary Preferences")
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .padding()
+                
+                PickPreferences(
+                    selectedCuisines: $selectedCuisines,
+                    selectedAllergies: $selectedAllergies,
+                    selectedDietaryRestrictions: $selectedDietaryRestrictions
+                )
+                .padding(.vertical)
+                
+                
+                Button(action: {
+                    let preferences = selectedAllergies.map { ["preference": $0, "preference_type": "Allergy"] } +
+                    selectedDietaryRestrictions.map { ["preference": $0, "preference_type": "Dietary Restriction"] } + selectedCuisines.map {["preference": $0, "preference_type": "Cuisine"] }
+                    
+                    let updatedData: [String: Any] = [
+                        "preferences": preferences
+                    ]
+                    Task {
+                        await settingsViewModel.updateDietaryPreferences(updatedPreferences: updatedData)
+                        showSuccessMessage = true
+                    }
+                }) {
+                    Text("Save Changes")
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(width: 180, height: 40)
+                        .background(Color.mainGreen)
+                        .cornerRadius(10)
+                }
+                .alert("Your preferences have been updated!", isPresented: $showSuccessMessage) {
+                    Button("OK", role: .cancel) { }
+                }
+                
+                Spacer()
+            }
+            .padding()
+            .onAppear {
+                Task {
+                    await fetchUserPreferences()
+                }
+            }
+            .navigationBarItems(trailing: Button(action: {
+                showSheet = false
+            }) {
+                Image(systemName: "xmark")
+                    .foregroundColor(.black)
+            })
+        }
+    }
+    
+    func fetchUserPreferences() async {
+        let preferences = await settingsViewModel.fetchUserPreferences()
+        
+        DispatchQueue.main.async {
+            // Fetch preferences from their respective categories
+            self.selectedDietaryRestrictions = preferences["Dietary Restriction"] ?? []
+            self.selectedAllergies = preferences["Allergy"] ?? []
+            self.selectedCuisines = preferences["Cuisine"] ?? []
+        }
+    }
+    
+}
+
+
+
 
 #Preview {
     SettingsView()
