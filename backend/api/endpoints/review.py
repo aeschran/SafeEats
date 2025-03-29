@@ -19,3 +19,11 @@ async def create_review(review_create: ReviewCreate):
     if not review:
         raise HTTPException(status_code=500, detail="Failed to create review")
     return review
+
+
+@router.get("/feed/{user_id}")
+async def get_feed(user_id: str):
+    review = await review_service.get_friends_reviews(user_id)
+    # if not review:
+    #     raise HTTPException(status_code=500, detail="Failed to get review")
+    return review
