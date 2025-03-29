@@ -38,6 +38,7 @@ struct BusinessSearchView: View {
                 }
             }
             .navigationTitle("Search")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button( action: {
