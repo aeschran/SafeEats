@@ -10,6 +10,7 @@ import SwiftUI
 extension Color {
     static let mainGreen = Color(red: 0.639, green: 0.729, blue: 0.490)
     static let mainGray = Color(red: 0.9, green: 0.9, blue: 0.9)
+    static let customLightRed = Color(red: 255/255.0, green: 153/255.0, blue: 153/255.0)
     
     func darker(by percentage: Double = 0.2) -> Color {
             guard let components = UIColor(self).cgColor.components else { return self }
