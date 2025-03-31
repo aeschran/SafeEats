@@ -1,5 +1,5 @@
-from models.review import Review
-from schemas.review import ReviewCreate, ReviewResponse
+from models.review import Review, ReviewVote
+from schemas.review import ReviewCreate, ReviewResponse, ReviewAddVote
 from services.base_service import BaseService
 import logging
 from bson import ObjectId
@@ -20,7 +20,9 @@ class ReviewService(BaseService):
                 business_id=ObjectId(review_create.business_id),
                 review_content=review_create.review_content,
                 rating=review_create.rating,
-                review_image=review_image
+                review_image=review_image,
+                upvotes=0,
+                downvotes=0
             )
             result = await self.db.user_reviews.insert_one(review.to_dict())
 
@@ -30,25 +32,6 @@ class ReviewService(BaseService):
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-        
-    # async def get_friends_reviews(self, user_id: str):
-        # get list of friends id
-        # iterate throuhgh list of friends
-        # return list of reviews with the friend's id and name and the business id and name. 
-        # [
-        #     {
-        #         user_id: str  // this is the id of the user who made the review
-        #         review_id: str
-        #         business_id: str
-        #         user_name: str // this is the name of the user who made the review 
-        #         business_name: str
-        #         review_content: str
-        #         rating: int
-        #         review_image: str
-        #     }
-
-        # ]
-
 
     async def get_friends_reviews(self, user_id: str):
         try:
@@ -118,4 +101,108 @@ class ReviewService(BaseService):
         except Exception as e:
             return []
 
+    async def get_business_reviews(self, business_id: str, user_id: str):
+        try:
+            reviews_cursor = self.db.user_reviews.find({"business_id": ObjectId(business_id)})
+            
+            reviews = await reviews_cursor.to_list(None)
+            print(reviews) 
+            result = []
+            
+            for review in reviews:
+                user_doc = await self.db.users.find_one({"_id": review["user_id"]})
+                user_name = user_doc["name"] if user_doc else "Unknown"
+                print(user_name)
+                print(review["_id"])
+                print(user_id)
+                user_vote_cursor = await self.db.review_votes.find_one({"review_id": review["_id"], "user_id": ObjectId(user_id)})
+                if user_vote_cursor:
+                    if user_vote_cursor["vote"] == 0:
+                        result.append({
+                            "review_id": str(review["_id"]),
+                            "user_id": str(review["user_id"]),
+                            "business_id": str(review["business_id"]),
+                            "user_name": user_name,
+                            "review_content": review["review_content"],
+                            "rating": review["rating"],
+                            "review_timestamp": review["review_timestamp"],
+                            "upvotes": review["upvotes"],
+                            "downvotes": review["downvotes"],
+                            "user_vote": -1
+                        })
+                    #downvote
+                    elif user_vote_cursor["vote"] == 1:
+                        result.append({
+                            "review_id": str(review["_id"]),
+                            "user_id": str(review["user_id"]),
+                            "business_id": str(review["business_id"]),
+                            "user_name": user_name,
+                            "review_content": review["review_content"],
+                            "rating": review["rating"],
+                            "review_timestamp": review["review_timestamp"],
+                            "upvotes": review["upvotes"],
+                            "downvotes": review["downvotes"],
+                            "user_vote": 1
+                        })
+                else:
+                    #upvote
+                    result.append({
+                        "review_id": str(review["_id"]),
+                        "user_id": str(review["user_id"]),
+                        "business_id": str(review["business_id"]),
+                        "user_name": user_name,
+                        "review_content": review["review_content"],
+                        "rating": review["rating"],
+                        "review_timestamp": review["review_timestamp"],
+                        "upvotes": review["upvotes"],
+                        "downvotes": review["downvotes"],
+                    })
+            return result
 
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    async def review_vote(self, review_vote: ReviewVote):
+        try :
+            vote = ReviewVote(
+                    user_id=ObjectId(review_vote.user_id),
+                    review_id=ObjectId(review_vote.review_id),
+                    vote=review_vote.vote,
+                )
+            if vote.vote < 2:
+                print(vote)
+                result = await self.db.review_votes.insert_one(vote.to_dict())
+                if vote.vote == 0:
+                    update = await self.db.user_reviews.find_one_and_update({
+                        "_id": vote.review_id},
+                        {"$inc": {"downvotes" : 1}},
+                        )
+                else :
+                    update = await self.db.user_reviews.find_one_and_update({
+                        "_id": vote.review_id},
+                        {"$inc": {"upvotes" : 1}},
+                        )
+
+            else:
+                result = await self.db.review_votes.delete_one({
+                    "user_id": vote.user_id,
+                    "review_id": vote.review_id
+                })
+                if vote.vote == 2:
+                    update = await self.db.user_reviews.find_one_and_update({
+                            "_id": vote.review_id},
+                            {"$inc": {"downvotes" : -1}}
+                    )
+                else:
+                    update = await self.db.user_reviews.find_one_and_update({
+                            "_id": vote.review_id},
+                            {"$inc": {"upvotes" : -1}}
+                    )
+
+
+            if result:
+                return 1  # Success
+            return None
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
