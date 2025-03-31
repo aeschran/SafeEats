@@ -25,12 +25,20 @@ struct BusinessSearchView: View {
                         .foregroundColor(.red)
                 } else {
                     List(viewModel.businesses, id: \.name) { business in
-                        BusinessCard(title: business.name ?? "No Name", rating: 4.5, imageName: "self.crop.circle.fill", description: business.description ?? "No Description")
+                        NavigationLink(destination: BusinessDetailView(business: business)) {
+                            BusinessCard(
+                                title: business.name ?? "No Name",
+                                rating: 4.5,
+                                imageName: "self.crop.circle.fill",
+                                description: business.description ?? "No Description"
+                            )
+                        }
                     }
                     .listStyle(.inset)
                 }
             }
             .navigationTitle("Search")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button( action: {

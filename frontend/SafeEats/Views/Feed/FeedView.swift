@@ -55,10 +55,12 @@ struct FeedView: View {
                         }
                     }
                 } else {
-                    FeedContentView() // Keep `List` for FeedContentView
+                    FeedContentView(viewModel: viewModel) // Keep `List` for FeedContentView
                         .padding(.top, 10)
                 }
             }
+            .navigationTitle("Feed")
+            .navigationBarTitleDisplayMode(.inline)
             .background(Color.white) // Ensure background stays white
             .navigationDestination(isPresented: $navigateToProfile) {
                 if let userId = selectedUserId {
