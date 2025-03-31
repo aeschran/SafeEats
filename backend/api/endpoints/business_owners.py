@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from schemas.business_owner import BusinessOwnerCreate, BusinessOwnerResponse
+from schemas.business_verification import VerificationCall, VerifyBusinessOwner
 from services.business_owner_service import BusinessOwnerService
 from core.security import credentials_exception
 from services.jwttoken import verify_token, get_token
@@ -29,9 +30,16 @@ async def get_business_owner_endpoint(email: str, token: str = Depends(get_token
 async def delete_business_owner_endpoint(_id: str):
     return await business_owner_service.delete_business_owner(_id)
 
-@router.patch("/{owner_id}/verify")
-async def verify_business_owner_endpoint(owner_id: str):
+@router.post("/verify_business_owner")
+async def verify_business_owner_endpoint(request: VerificationCall):
     
     # endpoint for admin to validate a business owner
-    return await business_owner_service.verify_business_owner(owner_id)
+    return await business_owner_service.verify_business_owner(request.owner_id, request.business_phone)
+
+@router.post("/verify_phone_code")
+async def verify_business_owner_endpoint(request: VerifyBusinessOwner):
+    
+    # endpoint for admin to validate a business owner
+    return await business_owner_service.verify_phone_code(request.owner_id, request.code)
+
     

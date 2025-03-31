@@ -283,6 +283,7 @@ class AuthViewModel: ObservableObject {
                         self.isCreated = true
                         self.isAuthenticated = true
                         print("Success: authenticated")
+                        UserDefaults.standard.set(true, forKey: "loggedIn")
                     }
                 } else {
                     DispatchQueue.main.async {
@@ -354,6 +355,7 @@ class AuthViewModel: ObservableObject {
                         self.createdProfile = true
                         print("ID\(self.id_)")
                         print("Success: authenticated")
+                        
                     }
                 } else {
                     DispatchQueue.main.async {
