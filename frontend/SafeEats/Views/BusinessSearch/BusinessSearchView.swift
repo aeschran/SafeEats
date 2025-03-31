@@ -26,6 +26,7 @@ struct BusinessSearchView: View {
                 } else {
                     List(viewModel.businesses, id: \.name) { business in
                         NavigationLink(destination: BusinessDetailView(business: business)) {
+                            
                             BusinessCard(
                                 business: business,
                                 rating: 4.5,
