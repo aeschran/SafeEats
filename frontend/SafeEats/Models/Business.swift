@@ -17,7 +17,7 @@ class PreferenceResponse: Codable {
 }
 
 class Business: Decodable, Identifiable {
-    let id = UUID()
+    let id: String
     let name: String?
     let website: String?
     let description: String?
@@ -25,4 +25,15 @@ class Business: Decodable, Identifiable {
     let menu: String?
     let address: String?
     let dietary_restrictions: [PreferenceResponse]?
+    
+    enum CodingKeys: String, CodingKey {
+        case id = "_id"
+        case name
+        case website
+        case description
+        case cuisines
+        case menu
+        case address
+        case dietary_restrictions
+    }
 }

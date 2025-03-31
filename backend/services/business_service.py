@@ -68,7 +68,14 @@ class BusinessService(BaseService):
             location=updated_location,
             dietary_restrictions=business.dietary_restrictions
         )
-        result = self.db.businesses.update_one({"_id": business_id}, {"$set": updated_business.to_dict()})
+        update_data = {k: v for k, v in updated_business.to_dict().items() if v is not None}
+
+        # Prevent overwriting dietary_restrictions with an empty list -> May need to change this
+        if business.dietary_restrictions == []:
+            update_data.pop("dietary_restrictions", None)
+
+        result = self.db.businesses.update_one({"_id": business_id}, {"$set": update_data})
+        # result = self.db.businesses.update_one({"_id": business_id}, {"$set": updated_business.to_dict()})
         if result is None:
             return None
         return BusinessResponse(**updated_business.to_dict())
