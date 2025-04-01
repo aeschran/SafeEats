@@ -40,6 +40,7 @@ class Business: Decodable, Identifiable {
         case id = "_id"
         case name
         case website
+        case tel 
         case description
         case cuisines
         case menu
