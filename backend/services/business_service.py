@@ -48,10 +48,10 @@ class BusinessService(BaseService):
         return None
     
     async def get_business_by_name_and_location(self, business: BusinessCreate):
-        updated_location = Location(coordinates=[business.location.coordinates[0], business.location.coordinates[1]])
+        #updated_location = Location(coordinates=[business.location.coordinates[0], business.location.coordinates[1]])
         business = await self.db.businesses.find_one({
             "name": business.name,
-            "location": updated_location.to_dict()
+            "address": business.address
         })
         if business:
             return business

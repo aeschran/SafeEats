@@ -27,10 +27,19 @@ struct BusinessCard: View {
                 // Allergen icons
                 HStack(spacing: 6) {
                     ForEach(business.dietary_restrictions ?? [], id: \.self) { icon in
-                        Image(systemName: "leaf.circle.fill") // Load from Assets
-                            .resizable()
-                            .foregroundColor(Color.mainGreen)
-                            .frame(width: 20, height: 20) // Small icons
+                        if let restriction = PreferenceCategories(from: icon.preference) {
+                            Image(restriction.assetName)
+                                .resizable()
+                                .renderingMode(.template) // Optional for coloring
+                                .foregroundColor(Color.mainGreen)
+                                .frame(width: 20, height: 20)
+                        } else {
+                            // Fallback if no match is found
+                            Image(systemName: "questionmark.circle")
+                                .resizable()
+                                .foregroundColor(.gray)
+                                .frame(width: 20, height: 20)
+                        }
                     }
                 }
                 

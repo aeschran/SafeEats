@@ -46,3 +46,43 @@ class Business: Decodable, Identifiable {
         case dietary_restrictions
     }
 }
+
+enum PreferenceCategories: String, CaseIterable {
+    case dairy = "Dairy"
+    case halal = "Halal"
+    case kosher = "Kosher"
+    case vegan = "Vegan"
+    case vegetarian = "Vegetarian"
+    case peanut = "Peanut"
+    case gluten = "Gluten"
+    case shellfish = "Shellfish"
+
+    /// Get the corresponding asset name from the enum
+    var assetName: String {
+        switch self {
+        case .dairy:
+            return "Dairy"
+        case .halal:
+            return "Halal"
+        case .kosher:
+            return "Kosher"
+        case .vegan:
+            return "Vegan"
+        case .vegetarian:
+            return "Vegetarian"
+        case .peanut:
+            return "Peanut"
+        case .gluten:
+            return "Gluten"
+        case .shellfish:
+            return "Shellfish"
+        }
+    }
+}
+
+extension PreferenceCategories {
+    /// Initialize from a string (handles invalid values gracefully)
+    init?(from rawValue: String) {
+        self.init(rawValue: rawValue)
+    }
+}

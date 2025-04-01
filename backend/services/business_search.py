@@ -58,6 +58,13 @@ class BusinessSearchService(BaseService):
 
         results_dict = []
         for result in response.json()['results']:
+            valid = False
+            for cuisine in result['categories']:
+                if cuisine['id'] - 13000 >= 0 and cuisine['id'] - 13000 < 1000:
+                    valid = True
+                    break
+            if not valid:
+                continue
             results_dict.append({
                 "name": result['name'],
                 "owner_id": None,
@@ -93,17 +100,24 @@ class BusinessSearchService(BaseService):
                             db_businesses.append(await self.business_service.get_business_by_name_and_location(business))
                             break
         final_businesses = []
-        if business_search.dietary_restrictions != []:
+
+        if business_search.dietary_restrictions:
             for business in db_businesses:
-                for restriction in business_search.dietary_restrictions:
-                    found = False
-                    for business_restriction in business['dietary_restrictions']:
-                        if restriction.preference == business_restriction['preference']:
-                            final_businesses.append(business)
-                            found = True
-                            break
-                    if found:
-                        break
+                match_count = sum(
+                    1
+                    for restriction in business_search.dietary_restrictions
+                    for business_restriction in business['dietary_restrictions']
+                    if restriction.preference == business_restriction['preference']
+                )
+                final_businesses.append({
+                    "business": business,
+                    "match_count": match_count
+                })
+            # Sort businesses by match_count in descending order
+            final_businesses.sort(key=lambda x: x["match_count"], reverse=True)
+
+            # Extract sorted businesses
+            final_businesses = [item["business"] for item in final_businesses]
         else:
             final_businesses = db_businesses
         return [BusinessResponse(**business) for business in final_businesses]
@@ -135,20 +149,27 @@ class BusinessSearchService(BaseService):
         else:
             db_businesses = db_results
         final_businesses = []
-        if business_search.dietary_restrictions != []:
+
+        if business_search.dietary_restrictions:
             for business in db_businesses:
-                for restriction in business_search.dietary_restrictions:
-                    found = False
-                    for business_restriction in business['dietary_restrictions']:
-                        if restriction.preference == business_restriction['preference']:
-                            final_businesses.append(business)
-                            found = True
-                            break
-                    if found:
-                        break
+                match_count = sum(
+                    1
+                    for restriction in business_search.dietary_restrictions
+                    for business_restriction in business['dietary_restrictions']
+                    if restriction.preference == business_restriction['preference']
+                )
+                final_businesses.append({
+                    "business": business,
+                    "match_count": match_count
+                })
+            # Sort businesses by match_count in descending order
+            final_businesses.sort(key=lambda x: x["match_count"], reverse=True)
+
+            # Extract sorted businesses
+            final_businesses = [item["business"] for item in final_businesses]
         else:
             final_businesses = db_businesses
-            
+        print(final_businesses)
         return [BusinessResponse(**business) for business in final_businesses]
         
     
@@ -179,4 +200,3 @@ class BusinessSearchService(BaseService):
                 cuisines.append(cuisine)
 
         return cuisines
-            
