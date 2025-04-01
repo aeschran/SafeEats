@@ -21,5 +21,10 @@ class ReviewResponse(BaseModel):
     username: str
     name: str
 
+class ReviewAddVote(BaseModel):
+    review_id: PyObjectId
+    user_id: PyObjectId
+    vote: int
+
     class Config:
         arbitrary_types_allowed = True

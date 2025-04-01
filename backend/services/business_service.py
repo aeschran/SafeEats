@@ -26,12 +26,14 @@ class BusinessService(BaseService):
         )
         existing_doc = await self.db.businesses.find_one({
             "name": business.name,
-            "location": updated_location.to_dict()
+            "address": business.address,
         })
 
         if not existing_doc:
-            await self.db.businesses.insert_one(new_business.to_dict())
-            return BusinessResponse(**new_business.to_dict())
+            business_id = await self.db.businesses.insert_one(new_business.to_dict())
+            added_business = new_business.to_dict()
+            added_business["_id"] = business_id.inserted_id
+            return BusinessResponse(**added_business)
         else:
             return self.update_business(business_id=existing_doc["_id"], business=business)
 
@@ -68,10 +70,19 @@ class BusinessService(BaseService):
             location=updated_location,
             dietary_restrictions=business.dietary_restrictions
         )
-        result = self.db.businesses.update_one({"_id": business_id}, {"$set": updated_business.to_dict()})
+        update_data = {k: v for k, v in updated_business.to_dict().items() if v is not None}
+
+        # Prevent overwriting dietary_restrictions with an empty list -> May need to change this
+        if business.dietary_restrictions == []:
+            update_data.pop("dietary_restrictions", None)
+
+        result = self.db.businesses.update_one({"_id": business_id}, {"$set": update_data})
+        # result = self.db.businesses.update_one({"_id": business_id}, {"$set": updated_business.to_dict()})
+        update_data["_id"] = business_id
         if result is None:
             return None
-        return BusinessResponse(**updated_business.to_dict())
+        response = BusinessResponse(**update_data)
+        return response
     def delete_business(self, business_id: ObjectId):
         result = self.db.businesses.delete_one({"_id": business_id})
         if result.deleted_count == 0:

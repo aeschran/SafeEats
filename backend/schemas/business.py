@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, Field
 from typing import Optional, Dict, List
 from schemas.location import LocationCreate
 from utils.pyobjectid import PyObjectId
@@ -18,6 +18,7 @@ class BusinessCreate(BaseModel):
     dietary_restrictions: List[PreferenceResponse] = []
 
 class BusinessResponse(BaseModel):
+    id: PyObjectId = Field(..., alias="_id")
     name: str
     website: Optional[str] = None
     tel: Optional[str] = None

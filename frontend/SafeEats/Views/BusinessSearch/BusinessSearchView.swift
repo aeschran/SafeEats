@@ -26,11 +26,11 @@ struct BusinessSearchView: View {
                 } else {
                     List(viewModel.businesses, id: \.name) { business in
                         NavigationLink(destination: BusinessDetailView(business: business)) {
+                            
                             BusinessCard(
-                                title: business.name ?? "No Name",
+                                business: business,
                                 rating: 4.5,
-                                imageName: "self.crop.circle.fill",
-                                description: business.description ?? "No Description"
+                                imageName: "self.crop.circle.fill"
                             )
                         }
                     }

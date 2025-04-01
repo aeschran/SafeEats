@@ -8,11 +8,9 @@
 import SwiftUI
 
 struct BusinessCard: View {
-    var title: String
+    var business: Business
     var rating: Double
     var imageName: String // Business logo
-    var description: String
-    var allergenIcons: [String] = ["Vegetarian", "Vegan", "Gluten-Free"] // Array of allergen indicator image names
     
     var body: some View {
         HStack {
@@ -22,13 +20,13 @@ struct BusinessCard: View {
                 .clipShape(RoundedRectangle(cornerRadius: 10))
             
             VStack(alignment: .leading, spacing: 5) {
-                Text(title)
+                Text(business.name ?? "No Name")
                     .font(.headline)
-                Text(description)
+                Text(business.description ?? "No Description")
                 
                 // Allergen icons
                 HStack(spacing: 6) {
-                    ForEach(allergenIcons, id: \.self) { icon in
+                    ForEach(business.dietary_restrictions ?? [], id: \.self) { icon in
                         Image(systemName: "leaf.circle.fill") // Load from Assets
                             .resizable()
                             .foregroundColor(Color.mainGreen)

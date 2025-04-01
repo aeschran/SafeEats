@@ -8,6 +8,10 @@ class Settings(BaseSettings):
     SENDGRID_KEY: str  
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     SENDGRID_KEY: str
+    TWILIO_SID: str
+    TWILIO_AUTH_TOKEN: str
+    TWILIO_PHONE: str
+
 
     class Config:
         env_file = ".env"

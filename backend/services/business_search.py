@@ -107,7 +107,6 @@ class BusinessSearchService(BaseService):
                         break
         else:
             final_businesses = db_businesses
-        print(final_businesses)
         return [BusinessResponse(**business) for business in final_businesses]
     
     async def query_db_by_lat_long(self, business_search: BusinessSearch):
