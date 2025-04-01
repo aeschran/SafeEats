@@ -12,7 +12,7 @@ struct BusinessDetailView: View {
     @State private var showMapAlert = false
     @State private var showingCallConfirmation = false
     // temp variables
-    let phonenumber: String? = "8124552066"
+//    let phonenumber: String? = "8124552066"
     let rating: Double = 4.5
     
     @State private var upvoteCount: Int = 10  // Replace with actual count
@@ -32,8 +32,9 @@ struct BusinessDetailView: View {
                             .padding([.leading, .trailing], 16)
                             .padding(.vertical, 8)
                         
+                        // contact info section
+                        // TODO: add actual phone number of business
                         VStack {
-                            
                             Text(business.name ?? "No Name")
                                 .font(.largeTitle)
                                 .fontWeight(.bold)
@@ -44,8 +45,7 @@ struct BusinessDetailView: View {
                             // contact info section
                             // TODO: add actual phone number of business
                             if let website = business.website, let url = URL(string: website),
-                               let phonenumber = phonenumber, !phonenumber.isEmpty
-                            /*let phone = business.phone, !phone.isEmpty*/ {
+                               let phonenumber = business.tel, !phonenumber.isEmpty {
                                 HStack(spacing: 10) {
                                     Link(destination: url) {
                                         HStack {
@@ -84,7 +84,7 @@ struct BusinessDetailView: View {
                                 }
                                 .foregroundColor(.white)
                                 .font(.system(size: 20, weight: .medium))
-                            } else if let /*phone = business.phone, !phone.isEmpty*/ phonenumber = phonenumber,  !phonenumber.isEmpty {
+                            } else if let phonenumber = business.tel, !phonenumber.isEmpty {
                                 HStack(spacing: 10) {
                                     
                                     Text("No website.")

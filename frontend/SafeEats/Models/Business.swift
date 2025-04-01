@@ -29,6 +29,7 @@ class Business: Decodable, Identifiable {
     let id: String
     let name: String?
     let website: String?
+    let tel: String?
     let description: String?
     let cuisines: [Int]?
     let menu: String?

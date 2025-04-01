@@ -9,6 +9,7 @@ class BusinessCreate(BaseModel):
     name: str
     owner_id: Optional[PyObjectId] = None
     website: Optional[str] = None
+    tel: Optional[str] = None
     description: Optional[str] = None
     cuisines: List[int] = []
     menu: Optional[str] = None
@@ -20,6 +21,7 @@ class BusinessResponse(BaseModel):
     id: PyObjectId = Field(..., alias="_id")
     name: str
     website: Optional[str] = None
+    tel: Optional[str] = None
     description: Optional[str] = None
     cuisines: List[int] = []
     menu: Optional[str] = None
