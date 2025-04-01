@@ -23,3 +23,20 @@ struct SearchBar: View {
         .padding(.horizontal)
     }
 }
+
+struct BusinessSearchBar: View {
+    @ObservedObject var viewModel: BusinessSearchViewModel
+    
+    var body: some View {
+        HStack {
+            Image(systemName: "magnifyingglass")
+            TextField("Search for business...", text: $viewModel.query)
+                .onSubmit {
+                    viewModel.searchBusinesses()
+                }
+        }
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 10).fill(Color.mainGreen.opacity(0.1)))
+        .padding(.horizontal)
+    }
+}

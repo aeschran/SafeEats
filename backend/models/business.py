@@ -5,10 +5,11 @@ from models.cuisine import Cuisine
 from models.location import Location
 
 class Business:
-    def __init__(self, name, location: Location, owner_id: Optional[ObjectId] = None, website: Optional[str] = None, phone_number: Optional[str] = None, description: Optional[str] = None, cuisines: List[int] = [], menu: Optional[str] = None, address: Optional[str] = None, dietary_restrictions: List[str] = []):
+    def __init__(self, name, location: Location, owner_id: Optional[ObjectId] = None, website: Optional[str] = None, tel: Optional[str] = None, description: Optional[str] = None, cuisines: List[int] = [], menu: Optional[str] = None, address: Optional[str] = None, dietary_restrictions: List[str] = []):
         self.name = name
         self.owner_id = owner_id
         self.website = website
+        self.tel = tel
         self.description = description
         self.cuisines = cuisines
         self.menu = menu
@@ -20,6 +21,7 @@ class Business:
             "name": self.name,
             "owner_id": str(self.owner_id),
             "website": self.website,
+            "tel": self.tel,
             "description": self.description,
             "cuisines": self.cuisines,
             "menu": self.menu,
