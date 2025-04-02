@@ -1,11 +1,11 @@
 import requests
 from core.config import settings
 from services.base_service import BaseService
-from schemas.business import BusinessCreate, BusinessResponse, BusinessSearch
+from schemas.business import BusinessCreate, BusinessResponse, BusinessSearch, BusinessAndLocationResponse
 from services.business_service import BusinessService
 
 class BusinessSearchService(BaseService):
-    def __init__(self, limit: int = 10):
+    def __init__(self, limit: int = 50):
         super().__init__()
         if self.db is None:
             raise Exception("Database connection failed.")
@@ -169,7 +169,6 @@ class BusinessSearchService(BaseService):
             final_businesses = [item["business"] for item in final_businesses]
         else:
             final_businesses = db_businesses
-        print(final_businesses)
         return [BusinessResponse(**business) for business in final_businesses]
         
     
@@ -200,3 +199,34 @@ class BusinessSearchService(BaseService):
                 cuisines.append(cuisine)
 
         return cuisines
+    
+    async def get_businesses_near_lat_lon(self, business_search: BusinessSearch):
+        # Fetch businesses from the database within the specified radius
+        businesses = await self.db.businesses.find({
+            "location.coordinates": {
+                "$geoWithin": {
+                    "$centerSphere": [
+                        [business_search.lon, business_search.lat],
+                        business_search.radius / 3963.2  # Convert radius to radians
+                    ]
+                }
+            }
+        }).to_list(self.limit)
+
+        response = []
+        for business in businesses:
+            response.append({
+                "_id": business["_id"],
+                "name": business["name"],
+                "website": business["website"],
+                "description": business["description"],
+                "cuisines": business["cuisines"],
+                "menu": business["menu"],
+                "address": business["address"],
+                "location": {
+                    "lat": business["location"]["coordinates"][1],
+                    "lon": business["location"]["coordinates"][0]
+                },
+                "dietary_restrictions": business["dietary_restrictions"]
+            })
+        return [BusinessAndLocationResponse(**business) for business in response]

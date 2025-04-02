@@ -83,6 +83,7 @@ class BusinessService(BaseService):
             return None
         response = BusinessResponse(**update_data)
         return response
+    
     def delete_business(self, business_id: ObjectId):
         result = self.db.businesses.delete_one({"_id": business_id})
         if result.deleted_count == 0:

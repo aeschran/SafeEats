@@ -10,6 +10,7 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var tabSelected: Tab = .house
+    @StateObject private var viewModel = BusinessSearchViewModel()
     init() {
         UITabBar.appearance().isHidden = true
     }
@@ -23,10 +24,10 @@ struct ContentView: View {
                         case .house:
                             FeedView()
                         case .search:
-                            BusinessSearchView()
+                            BusinessSearchView(viewModel: viewModel)
                         case .location:
                             //LandingPage()
-                            MapView()
+                            MapView(viewModel: viewModel)
                         case .person:
                             MyProfileView()
                         case .building:

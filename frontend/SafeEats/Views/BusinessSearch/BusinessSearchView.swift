@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct BusinessSearchView: View {
-    @StateObject private var viewModel = BusinessSearchViewModel()
+    @ObservedObject var viewModel: BusinessSearchViewModel
     @State private var showFilters = false
     
     let cuisines = ["Italian", "Indian", "Mexican", "Asian"]
@@ -37,6 +37,7 @@ struct BusinessSearchView: View {
                     .listStyle(.inset)
                 }
             }
+            .onAppear(perform: viewModel.searchBusinesses)
             .navigationTitle("Search")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -60,11 +61,13 @@ struct BusinessSearchView: View {
                     .presentationDetents([.medium, .large])
                     .padding(.top, 40)
             }
-            
+            .onChange(of: showFilters) { oldValue, newValue in
+                viewModel.searchBusinesses()
+            }
         }
     }
 }
 
 #Preview {
-    BusinessSearchView()
+    BusinessSearchView(viewModel: BusinessSearchViewModel())
 }
