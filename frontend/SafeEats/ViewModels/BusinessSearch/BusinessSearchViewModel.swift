@@ -94,6 +94,7 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
                 } catch {
                     DispatchQueue.main.async {
                         self.errorMessage = "Failed to parse user preferences: \(error.localizedDescription)"
+                        self.preferencesLoaded = true
                     }
                 }
             }
