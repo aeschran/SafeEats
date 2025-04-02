@@ -36,7 +36,6 @@ class MyProfileViewModel: ObservableObject {
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             if let jsonString = String(data: data, encoding: .utf8) {
-                print("Response JSON: \(jsonString)")
             }
             let decodedProfile = try JSONDecoder().decode(MyProfileResponse.self, from: data)
             
@@ -54,7 +53,6 @@ class MyProfileViewModel: ObservableObject {
                 }
             }
         } catch {
-            print("Failed to fetch user profile: \(error.localizedDescription)")
         }
     }
     
@@ -62,6 +60,15 @@ class MyProfileViewModel: ObservableObject {
         guard let id = id_ else {
             print("ID is nil")
             return
+        }
+        
+        await getUserCollections()
+        
+        for collection in self.collections {
+            if collection.name == collectionName {
+                errorMessage = "Collection name already exists."
+                return
+            }
         }
         
         guard let url = URL(string: "\(baseURL)/collections") else { return }
@@ -86,12 +93,9 @@ class MyProfileViewModel: ObservableObject {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         do {
-            print("sending")
             let (data, response) = try await URLSession.shared.data(for: request)
             
-            print(data)
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
-                print("Response Status Code: \(httpResponse.statusCode)")
                 DispatchQueue.main.async {
                     self.errorMessage = "Registration failed"
                 }
@@ -124,13 +128,12 @@ class MyProfileViewModel: ObservableObject {
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             if let jsonString = String(data: data, encoding: .utf8) {
-                print("Response JSON: \(jsonString)")
             }
             let decodedCollections = try JSONDecoder().decode([Collection].self, from: data)
             self.collections = decodedCollections
             UserDefaults.standard.set(try? JSONEncoder().encode(decodedCollections), forKey: "collections")
         } catch {
-            print("Failed to fetch user collections: \(error.localizedDescription)")
+            print("Failed to fetch user collections: \(error)")
         }
     }
 }
@@ -155,7 +158,7 @@ struct MyProfileResponse: Codable {
 }
 
 struct BusinessCollection: Codable {
-    let businessId: String
+    var businessId: String
     let businessName: String
     let businessDescription: String
     let businessAddress: String
@@ -169,10 +172,10 @@ struct BusinessCollection: Codable {
 }
 
 struct Collection: Codable {
-    let id: String
-    let name: String
+    var id: String
+    var name: String
     let userId: String
-    let businesses: [BusinessCollection]
+    var businesses: [BusinessCollection]
     
     enum CodingKeys: String, CodingKey {
         case id = "_id"

@@ -12,11 +12,10 @@ struct MyProfileView: View {
     @State private var selectedTab: String = "Reviews"
     @State var showNewCollectionPopup = false
     @State var newCollectionName = ""
+    @State var displayError: Bool = false
     
     func saveCollectionsToUserDefaults(_ collections: [Collection]) {
-        print(collections)
         if let data = try? JSONEncoder().encode(collections) {
-            print(data)
             UserDefaults.standard.set(data, forKey: "collections")
         }
     }
@@ -30,20 +29,26 @@ struct MyProfileView: View {
     }
     
     func loadProfileData() async {
+        print("hello!")
         await viewModel.fetchUserProfile()
         await viewModel.getUserCollections()
-        print(viewModel.collections)
         saveCollectionsToUserDefaults(viewModel.collections)
     }
     
     func collectionButton(for collection: Collection) -> some View {
-        NavigationLink(destination: CollectionDetailView(collection: collection)) {
-            Text(collection.name)
-                .font(.footnote)
-                .fontWeight(.semibold)
-                .frame(width: 380, height: 68)
-                .background(Color.gray.opacity(0.2))
-                .cornerRadius(4)
+        Group {
+            if let index = viewModel.collections.firstIndex(where: { $0.id == collection.id }) {
+                NavigationLink(destination: CollectionDetailView(collection: $viewModel.collections[index], viewModel: CollectionDetailViewModel())) {
+                    Text(collection.name)
+                        .font(.footnote)
+                        .fontWeight(.semibold)
+                        .frame(width: 380, height: 68)
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(4)
+                }
+            } else {
+                EmptyView()
+            }
         }
     }
     
@@ -171,7 +176,7 @@ struct MyProfileView: View {
                     }
                 }
                 .task {
-                    viewModel.collections = loadCollectionsFromUserDefaults()
+//                    viewModel.collections = loadCollectionsFromUserDefaults()
                     await loadProfileData()
                 }
             }
@@ -209,7 +214,9 @@ struct MyProfileView: View {
                     Task {
                         viewModel.errorMessage = nil
                         var message = await viewModel.createNewCollection()
-                        if $viewModel.errorMessage == nil {
+                        if let error = viewModel.errorMessage, !error.isEmpty {
+                            displayError = true
+                        } else {
                             await viewModel.getUserCollections()
                         }
                     }
@@ -220,8 +227,13 @@ struct MyProfileView: View {
                     }
                 }
             }
+            .alert("Error", isPresented: $displayError) {
+                Button("OK", role: .cancel) { viewModel.errorMessage = nil }
+            } message: {
+                Text(viewModel.errorMessage ?? "")
+            }
         }
-        .onChange(of: viewModel.collections.map(\.id)) { _ in
+        .onChange(of: viewModel.collections.count) { _, _ in
             viewModel.objectWillChange.send()
         }
     }

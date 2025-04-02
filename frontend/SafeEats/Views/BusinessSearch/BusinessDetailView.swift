@@ -22,7 +22,22 @@ struct BusinessDetailView: View {
     @StateObject private var viewModel = BusinessDetailViewModel()
     let businessId = "67c0f434d995a74c126ecfd7"
     
-    @State private var collections: [Collection] = []
+    @State private var collections: [Collection] = UserDefaults.standard.object(forKey: "collections") as? [Collection] ?? []
+    
+    @State var bookmarked: Bool = false
+    @State var collectionID: String? = nil
+    
+    func collectionsExcludingBusiness() -> [Collection] {
+        for collection in $collections {
+            if collection.name.wrappedValue == "Bookmarks" && collection.businesses.contains(where: { $0.businessId.wrappedValue == business.id }) {
+                collectionID = collection.id.wrappedValue
+                bookmarked = true
+            }
+        }
+        return collections.filter { collection in
+            !collection.businesses.contains(where: { $0.businessId == business.id })
+            }
+    }
     
     var body: some View {
         NavigationStack {
@@ -38,12 +53,32 @@ struct BusinessDetailView: View {
                         
                         VStack {
                             
-                            Text(business.name ?? "No Name")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .padding(.bottom, 15)
-                                .fixedSize(horizontal: false, vertical: true)
+                            HStack {
+                                Text(business.name ?? "No Name")
+                                    .font(.largeTitle)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .padding(.bottom, 15)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                
+                                
+                                Button(action: {
+                                    Task {
+                                        if (bookmarked == true) {
+                                            bookmarked = false
+                                            await viewModel.removeBookmark(collectionId: collectionID ?? "", businessId: business.id)
+                                        } else {
+                                            bookmarked = true // optionally set this right away for instant UI feedback
+                                            await viewModel.bookmarkBusiness(businessID: business.id)
+                                        }
+                                    }
+                                }) {
+                                    Image(systemName: bookmarked ? "bookmark.fill" : "bookmark")
+                                        .font(.system(size: 28))
+                                        .foregroundStyle(.white)
+                                }
+                            }
+                            
                             
                             // contact info section
                             // TODO: add actual phone number of business
@@ -135,15 +170,13 @@ struct BusinessDetailView: View {
                 .onAppear {
                     viewModel.fetchReviews(for: businessId)
                     if let data = UserDefaults.standard.data(forKey: "collections") {
-                        print(data)
                         let decoder = JSONDecoder()
-                    if let loadedCollections = try? decoder.decode([Collection].self, from: data) {
-                        DispatchQueue.main.async {
+                        if let loadedCollections = try? decoder.decode([Collection].self, from: data) {
                             print(loadedCollections)
                             collections = loadedCollections
-                            print(collections)
+                            // filter to only collections that don't have this id in their businesses field
+                            collections = collectionsExcludingBusiness()
                         }
-                    }
                     }
                 }
             .padding(.top, 5)
@@ -292,6 +325,7 @@ struct BusinessDetailView: View {
             Spacer()
             Button(action: {
                 showCollectionPicker = true
+                collections = collectionsExcludingBusiness()
             }) {
                 Text("Add to Collection")
             }

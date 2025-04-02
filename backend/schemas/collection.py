@@ -18,3 +18,11 @@ class CollectionAdd(BaseModel):
     user_id: str
     collection_name: str
     business_id: PyObjectId = Field(..., alias="business_id")
+
+class CollectionEdit(BaseModel):
+    collection_id: PyObjectId = Field(..., alias="collection_id")
+    name: str
+
+class CollectionRemoveBusiness(BaseModel):
+    collection_id: PyObjectId = Field(..., alias="collection_id")
+    business_id: PyObjectId = Field(..., alias="business_id")

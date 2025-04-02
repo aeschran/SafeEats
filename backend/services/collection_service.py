@@ -1,6 +1,6 @@
 from services.base_service import BaseService
 from typing import List
-from schemas.collection import CollectionCreate, CollectionResponse, CollectionAdd
+from schemas.collection import CollectionCreate, CollectionResponse, CollectionAdd, CollectionEdit
 from models.collection import Collection
 from models.business import BusinessCollectionEntry
 from bson import ObjectId
@@ -87,3 +87,63 @@ class CollectionService(BaseService):
             return CollectionResponse(**updated_collection)
         
         return None
+    
+    async def edit_collection(self, collection: CollectionEdit):
+        """
+        Edit a collection's name
+        """
+        # Find the existing collection by ID
+        existing_collection = await self.db.collections.find_one({"_id": ObjectId(collection.collection_id)})
+        
+        if not existing_collection:
+            print("no collection")
+            return None
+        
+        # Update the collection's name
+        result = await self.db.collections.update_one(
+            {"_id": ObjectId(collection.collection_id)},
+            {"$set": {"name": collection.name}}
+        )
+        
+        if result.modified_count == 1:
+            updated_collection = await self.db.collections.find_one({"_id": collection.collection_id})
+            if updated_collection:
+                updated_collection["_id"] = str(updated_collection["_id"])
+                return CollectionResponse(**updated_collection)
+        else:
+            # If no documents were modified, return None
+            print("No modifications made to the collection.")
+            return None
+
+    async def remove_business_from_collection(self, collection):
+        """
+        Remove a business from a collection
+        """
+        collection_id = ObjectId(collection.collection_id)
+        business_id = ObjectId(collection.business_id)
+
+        # Find the existing collection by ID
+        existing_collection = await self.db.collections.find_one({"_id": collection_id})
+        if not existing_collection:
+            print("no collection")
+            return None
+        
+        # Remove the business from the collection
+        result = await self.db.collections.update_one(
+            {"_id": collection_id},
+            {"$pull": {"businesses": {"business_id": str(business_id)}}} # Use $pull to remove the business entry from the array
+        )
+
+        print("result is ", result)
+
+        if result.modified_count == 1:
+            # Successfully removed the business, return the updated collection
+            updated_collection = await self.db.collections.find_one({"_id": collection_id})
+            if updated_collection:
+                updated_collection["_id"] = str(updated_collection["_id"])
+                
+                return CollectionResponse(**updated_collection)
+        else:
+            # If no documents were modified, return None
+            print("No modifications made to the collection.")
+            return None

@@ -149,6 +149,7 @@ struct AuthView: View {
                             } else if authType == .register && accountType == .userAccount{
                                 
                                 await viewModel.user_register()
+                                await viewModel.createBookmarksCollection()
                                 userType = "User"
                                 print("hi")
                                 

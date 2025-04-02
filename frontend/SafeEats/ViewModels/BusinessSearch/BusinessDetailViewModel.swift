@@ -41,6 +41,7 @@ class BusinessDetailViewModel: ObservableObject {
     @Published var reviews: [Review] = []
     @AppStorage("id") var id_: String?
     @Published var collections: [Collection] = []
+    @Published var errorMessage: String?
     
     private let baseURL = "http://127.0.0.1:8000"
     
@@ -164,6 +165,8 @@ class BusinessDetailViewModel: ObservableObject {
     func addBusinessToCollection(collectionName: String, businessID: String) async {
         guard let url = URL(string: "\(baseURL)/collections/add") else { return }
         
+
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -183,5 +186,67 @@ class BusinessDetailViewModel: ObservableObject {
         } catch {
             print("Error adding business to collection:", error)
         }
+    }
+    
+    func bookmarkBusiness(businessID: String) async {
+        guard let url = URL(string: "\(baseURL)/collections/add") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "user_id": id_,
+            "collection_name": "Bookmarks",
+            "business_id": businessID
+        ]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+            let (data, _) = try await URLSession.shared.data(for: request)
+            if let jsonString = String(data: data, encoding: .utf8) {
+                print("Response JSON: \(jsonString)")
+            }
+        } catch {
+            print("Error adding business to bookmarks:", error)
+        }
+    }
+    
+    func removeBookmark(collectionId: String, businessId: String) async {
+        guard let url = URL(string: "\(baseURL)/collections/remove-business") else { return }
+        
+        let requestBody: [String: Any] = [
+            "collection_id": collectionId,
+            "business_id": businessId
+        ]
+        
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: requestBody) else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = jsonData
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse,
+               httpResponse.statusCode != 200 {
+                DispatchQueue.main.async {
+                    self.errorMessage = "Failed to remove business from collection."
+                }
+                return
+            }
+            
+            if let jsonString = String(data: data, encoding: .utf8) {
+            }
+            
+            return
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Network error: \(error.localizedDescription)"
+            }
+        }
+        return
     }
 }
