@@ -34,7 +34,7 @@ class Business: Decodable, Identifiable {
     let menu: String?
     let address: String?
     let dietary_restrictions: [PreferenceResponse]?
-    
+
     enum CodingKeys: String, CodingKey {
         case id = "_id"
         case name
@@ -44,5 +44,16 @@ class Business: Decodable, Identifiable {
         case menu
         case address
         case dietary_restrictions
+    }
+
+    init(id: String, name: String?, website: String?, description: String?, cuisines: [Int]?, menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?) {
+        self.id = id
+        self.name = name
+        self.website = website
+        self.description = description
+        self.cuisines = cuisines
+        self.menu = menu
+        self.address = address
+        self.dietary_restrictions = dietary_restrictions
     }
 }

@@ -18,8 +18,12 @@ struct BusinessDetailView: View {
     @State private var upvoteCount: Int = 10  // Replace with actual count
     @State private var downvoteCount: Int = 3  // Replace with actual count
     @State private var userVote: Int? = nil
+    @State private var showCollectionPicker = false
     @StateObject private var viewModel = BusinessDetailViewModel()
     let businessId = "67c0f434d995a74c126ecfd7"
+    
+    @State private var collections: [Collection] = []
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -128,8 +132,19 @@ struct BusinessDetailView: View {
                 
 //                Spacer()
             }
-                .onAppear{
+                .onAppear {
                     viewModel.fetchReviews(for: businessId)
+                    if let data = UserDefaults.standard.data(forKey: "collections") {
+                        print(data)
+                        let decoder = JSONDecoder()
+                    if let loadedCollections = try? decoder.decode([Collection].self, from: data) {
+                        DispatchQueue.main.async {
+                            print(loadedCollections)
+                            collections = loadedCollections
+                            print(collections)
+                        }
+                    }
+                    }
                 }
             .padding(.top, 5)
         }
@@ -242,7 +257,7 @@ struct BusinessDetailView: View {
 //                userVote = 1
 //            }
 //        }
-//        
+//
 //        private func handleDownvote() {
 //            if userVote == -1 {
 //                downvoteCount -= 1
@@ -274,6 +289,52 @@ struct BusinessDetailView: View {
             Text("(200+)")
                 .font(.system(size: 24))
                 .foregroundColor(.gray)
+            Spacer()
+            Button(action: {
+                showCollectionPicker = true
+            }) {
+                Text("Add to Collection")
+            }
+            .font(.headline)
+            .foregroundColor(.white)
+            .padding()
+            .background(Color.mainGreen)
+            .cornerRadius(10)
+            .frame(width: 160, height: 80)
+            .sheet(isPresented: $showCollectionPicker) {
+                // Dummy UI for now; replace with your real collection picker view
+                VStack {
+                    Text("Choose a Collection")
+                        .font(.title2)
+                        .padding()
+
+//                    List {
+//                        Text("Favorites")
+//                        Text("Try Soon")
+//                        Text("Top Vegan")
+//                    }
+                    
+                    ForEach(collections, id: \.id) { collection in Button(action: {
+                        Task {
+                            await viewModel.addBusinessToCollection(collectionName: collection.name, businessID: business.id)
+                            showCollectionPicker = false
+                        }
+                    }) {
+                        Text(collection.name)
+                            .font(.footnote)
+                            .fontWeight(.semibold)
+                            .frame(width: 380, height: 68)
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(4)
+                    }
+                    }
+
+                    Button("Cancel") {
+                        showCollectionPicker = false
+                    }
+                    .padding()
+                }
+            }
         }
     }
     
@@ -361,7 +422,7 @@ struct BusinessDetailView: View {
 //            ]
 //        }
 //        """.data(using: .utf8)!
-//        
+//
 //        let decoder = JSONDecoder()
 //        return try! decoder.decode(Business.self, from: jsonData)
 //    }
@@ -369,5 +430,5 @@ struct BusinessDetailView: View {
 
 
 #Preview {
-//    BusinessDetailView(business: Business.sampleBusiness)
+    BusinessDetailView(business: Business(id: "1", name: "Test Business", website: "Hello.com", description: "Hey!", cuisines: [], menu: nil, address: "Yo mom's house", dietary_restrictions: []))
 }

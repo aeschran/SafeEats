@@ -33,3 +33,9 @@ class BusinessSearch(BaseModel):
     query: Optional[str] = "restaurant"
     cuisines: Optional[List[str]] = []
     dietary_restrictions: Optional[List[PreferenceResponse]] = []
+
+class BusinessCollectionEntry(BaseModel):
+    business_id: str
+    business_name: str
+    business_description: str
+    business_address: str

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from api.endpoints import users, profile, business_owners, auth, business_auth, business_search, notifications, friends, preference, review, feed
+from api.endpoints import users, profile, business_owners, auth, business_auth, business_search, notifications, friends, preference, review, feed, collection
 from core.config import settings
 from db.init_db import connect_db, close_db, db
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,6 +40,7 @@ app.include_router(friends.router, prefix="/friends", tags=["Friends"])
 app.include_router(preference.router, prefix="/preferences", tags=["Preferences"])
 app.include_router(review.router, prefix="/review", tags=["Review"])
 app.include_router(feed.router, prefix="/feed", tags=["Feed"])
+app.include_router(collection.router, prefix="/collections", tags=["Collections"])
 
 # Health check
 @app.get("/health")
