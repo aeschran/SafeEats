@@ -4,7 +4,7 @@ from services.notification_service import NotificationService
 from services.friend_service import FriendService
 from schemas.notification import NotificationCreate, NotificationResponse
 from schemas.friend import FriendCreate, FriendResponse
-from schemas.review import ReviewCreate, ReviewAddVote
+from schemas.review import ReviewCreate, ReviewAddVote, ReviewImage
 
 
 router = APIRouter(tags=["Review"])
@@ -13,12 +13,21 @@ router = APIRouter(tags=["Review"])
 review_service = ReviewService()
 
 
+@router.post("/addimage")
+async def add_image(image: ReviewImage):
+    review = await review_service.add_image(image)
+    if not review:
+        raise HTTPException(status_code=500, detail="Failed to create review")
+    
+    return review
+
+
 @router.post("/create")
 async def create_review(review_create: ReviewCreate):
     review = await review_service.create_review(review_create)
     if not review:
         raise HTTPException(status_code=500, detail="Failed to create review")
-    return review
+    return {"review_id" : review}
 
 
 @router.get("/feed/{user_id}")
