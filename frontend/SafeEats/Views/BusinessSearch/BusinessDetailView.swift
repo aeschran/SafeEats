@@ -255,56 +255,60 @@ struct BusinessDetailView: View {
         @ObservedObject var viewModel: BusinessDetailViewModel
         @State private var userVote: Int? = nil
         
-        var body: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                // Username + Date
-                HStack {
-                    Text("\(review.userName) ")
-                        .font(.headline)
+        
+            var body: some View {
+                NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
+                VStack(alignment: .leading, spacing: 8) {
+                    // Username + Date
+                    HStack {
+                        Text("\(review.userName) ")
+                            .font(.headline)
+                            .foregroundColor(.black)
+                        
+                        Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    
+                    // Star Rating
+                    HStack(spacing: 2) {
+                        ForEach(0..<5, id: \.self) { index in
+                            Image(systemName: index < review.rating ? "star.fill" : "star")
+                                .foregroundColor(index < review.rating ? .yellow : .gray)
+                        }
+                    }
+                    
+                    // Review Content
+                    Text(review.reviewContent)
+                        .font(.body)
                         .foregroundColor(.black)
+                        .lineLimit(2)
                     
-                    Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
-                
-                // Star Rating
-                HStack(spacing: 2) {
-                    ForEach(0..<5, id: \.self) { index in
-                        Image(systemName: index < review.rating ? "star.fill" : "star")
-                            .foregroundColor(index < review.rating ? .yellow : .gray)
+                    // Upvote / Downvote
+                    HStack {
+                        Button(action: { viewModel.upvoteReview(review.id) }) {
+                            Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
+                                .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
+                                .font(.headline)
+                        }
+                        
+                        Text("\(review.upvotes - review.downvotes)")
+                            .font(.subheadline)
+                        
+                        Button(action: { viewModel.downvoteReview(review.id) }) {
+                            Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
+                                .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
+                                .font(.headline)
+                        }
                     }
+                    .padding(.top, 3)
+                    .padding(.bottom, 5)
                 }
-                
-                // Review Content
-                Text(review.reviewContent)
-                    .font(.body)
-                    .foregroundColor(.black)
-                    .lineLimit(2)
-                
-                // Upvote / Downvote
-                HStack {
-                    Button(action: { viewModel.upvoteReview(review.id) }) {
-                        Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
-                            .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
-                            .font(.headline)
-                    }
-                    
-                    Text("\(review.upvotes - review.downvotes)")
-                        .font(.subheadline)
-                    
-                    Button(action: { viewModel.downvoteReview(review.id) }) {
-                        Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
-                            .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
-                            .font(.headline)
-                    }
-                }
-                .padding(.top, 3)
-                .padding(.bottom, 5)
+                .padding()
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(10)
             }
-            .padding()
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(10)
+            .buttonStyle(PlainButtonStyle())
         }
         
         // Helper function for date formatting

@@ -69,9 +69,9 @@ class ClaimBusinessViewModel: ObservableObject {
             }
             let body: [String: Any] = [
                 "owner_id": ownerId,
-                "business_phone": "(765) 543-5002"      // TODO: change to businessPhone, hardcoded number for testing
+                "business_phone": "(408) 913-5232"     // TODO: change to businessPhone, hardcoded number for testing
             ]
-            
+        //"(765) 543-5002"
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
