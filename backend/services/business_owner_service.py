@@ -214,3 +214,16 @@ class BusinessOwnerService(BaseService):
             return businesses
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
+    async def get_owner_listings(self, id: str):
+        try:
+            search_results_cursor = self.db.businesses.find(
+                {"owner_id": str(id)}
+            ) 
+            search_results = await search_results_cursor.to_list(length=10)
+
+            businesses = [BusinessResponse(**{**business, "id": str(business["_id"])}) for business in search_results]
+            return businesses
+        
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))

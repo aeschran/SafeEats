@@ -29,6 +29,9 @@ async def get_business_listing_search_endpoint(
 ):
     return await business_owner_service.get_business_listing_search(query)
 
+@router.get("/listings/{_id}")
+async def get_business_owner_listings(_id: str):
+    return await business_owner_service.get_owner_listings(_id)
 
 @router.get("/{email}")
 async def get_business_owner_endpoint(email: str, token: str = Depends(get_token), 
