@@ -52,32 +52,32 @@ struct BusinessDetailView: View {
                             .padding(.vertical, 8)
                         
                         VStack {
-                            
                             HStack {
                                 Text(business.name ?? "No Name")
                                     .font(.largeTitle)
                                     .fontWeight(.bold)
                                     .foregroundColor(.white)
                                     .padding(.bottom, 15)
+                                    .padding(.horizontal, 30)
                                     .fixedSize(horizontal: false, vertical: true)
-                                
-                                
                                 Button(action: {
-                                    Task {
-                                        if (bookmarked == true) {
-                                            bookmarked = false
-                                            await viewModel.removeBookmark(collectionId: collectionID ?? "", businessId: business.id)
-                                        } else {
-                                            bookmarked = true // optionally set this right away for instant UI feedback
-                                            await viewModel.bookmarkBusiness(businessID: business.id)
+                                        Task {
+                                            if bookmarked {
+                                                bookmarked = false
+                                                await viewModel.removeBookmark(collectionId: collectionID ?? "", businessId: business.id)
+                                            } else {
+                                                bookmarked = true
+                                                await viewModel.bookmarkBusiness(businessID: business.id)
+                                            }
                                         }
+                                    }) {
+                                        Image(systemName: bookmarked ? "bookmark.fill" : "bookmark")
+                                            .font(.system(size: 28))
+                                            .foregroundColor(.white)
+                                            .padding()
                                     }
-                                }) {
-                                    Image(systemName: bookmarked ? "bookmark.fill" : "bookmark")
-                                        .font(.system(size: 28))
-                                        .foregroundStyle(.white)
-                                }
                             }
+                            
                             
                             
                             // contact info section
@@ -152,6 +152,7 @@ struct BusinessDetailView: View {
                             }
                         }
                         .padding(.vertical, 15)
+                        
                     }
                 
                 VStack(alignment: .leading, spacing: 25) {
