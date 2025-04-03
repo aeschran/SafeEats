@@ -282,19 +282,6 @@ class BusinessOwnerService(BaseService):
                 print(f"Error while fetching geocode data: {e}")
                 return None
 
-    async def get_cuisines(self, cuisine):
-        cuisines = {
-            "Asian": 13100,
-            "Italian": 13236,
-            "Mexican": 13308,
-            "Indian": 13198
-        }
-        print(cuisine)
-        cuisine_array = []
-        for i in cuisine:
-            cuisine_array.append(int(cuisines.get(i)))
-        print(cuisine_array)
-        return cuisine_array
     async def create_owner_listing(self, business_create):
         try:
             lat, lon = await self.get_lat_long(business_create.address)
@@ -302,10 +289,10 @@ class BusinessOwnerService(BaseService):
                 raise HTTPException(status_code=400, detail="Failed to fetch geolocation for the address.")
             print(lat)
             print(lon)
-            cuisine_arr = await self.get_cuisines(business_create.cuisines)
-            print(cuisine_arr)
-            if cuisine_arr is None:
-                raise HTTPException(status_code=400, detail="Failed to fetch geolocation for the address.")
+            # cuisine_arr = await self.get_cuisines(business_create.cuisines)
+            # print(cuisine_arr)
+            # if cuisine_arr is None:
+            #     raise HTTPException(status_code=400, detail="Failed to fetch geolocation for the address.")
 
             new_business = Business(
                 name=business_create.name,
@@ -313,11 +300,12 @@ class BusinessOwnerService(BaseService):
                 website=business_create.website,
                 tel=business_create.tel,
                 description=business_create.description,
-                cuisines=cuisine_arr,
+                cuisines=business_create.cuisines,
                 menu=business_create.menu,
                 address=business_create.address,
                 location=Location([float(lon), float(lat)]),
-                dietary_restrictions=business_create.dietary_restrictions
+                dietary_restrictions=business_create.dietary_restrictions,
+                avg_rating=business_create.avg_rating
             )
             
             result = await self.db.businesses.insert_one(new_business.to_dict())
@@ -326,7 +314,4 @@ class BusinessOwnerService(BaseService):
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
         
-    def run_async(func):
-        loop = asyncio.get_event_loop()
-        return loop.run_until_complete(func)
        

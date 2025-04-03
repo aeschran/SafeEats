@@ -183,6 +183,7 @@ struct BusinessDetailView: View {
                             collections = collectionsExcludingBusiness()
                         }
                     }
+                    viewModel.updateAverageRating(businessId: business.id)
                 }
                 .task {
                     await viewModel.fetchBusinessData(businessID: business.id)

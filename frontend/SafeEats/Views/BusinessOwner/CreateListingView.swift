@@ -14,12 +14,23 @@ struct CreateListingView: View {
     @State private var address: String = ""
     @State private var city: String = ""
     @State private var state: String = ""
-    @State private var country: String = ""
+    @State private var tel: String = ""
     @State private var zipcode: String = ""
     @State private var selectedCuisines: Set<String> = []
     @State private var selectedDietaryRestrictions: Set<String> = []
     @State private var selectedAllergies: Set<String> = []
     @State private var menuLink: String = ""
+    let cuisineMapping: [String: Int] = [
+        "Asian": 13100,
+        "Italian": 13236,
+        "Mexican": 13308,
+        "Indian": 13198
+    ]
+    var selectedCuisineNumbers: [Int] {
+        selectedCuisines.compactMap { cuisineMapping[$0] }
+    }
+    
+    @StateObject var viewModel: CreateListingViewModel
     @Environment(\.presentationMode) var presentationMode
     
     @State private var showSuccessMessage = false
@@ -41,11 +52,11 @@ struct CreateListingView: View {
                     VStack(spacing: 15) {
                         CustomTextField(label: "Business Name", text: $businessName)
                         CustomTextField(label: "Website", text: $website)
+                        CustomTextField(label: "Phone Number", text: $tel)
                         CustomTextField(label: "Menu Link", text: $menuLink)
                         CustomTextField(label: "Street Address", text: $address)
                         CustomTextField(label: "City", text: $city)
                         CustomTextField(label: "State", text: $state)
-                        CustomTextField(label: "Country", text: $country)
                         CustomTextField(label: "Zip Code", text: $zipcode)
                             .keyboardType(.numberPad) // Restrict input to numbers
                                     .onChange(of: zipcode) { newValue in
@@ -80,19 +91,24 @@ struct CreateListingView: View {
                     .padding(.vertical, 10)
                     // Save Button
                     Button(action: {
-                        
+                        let preferences = selectedAllergies.map { ["preference": $0, "preference_type": "Allergy"] } +
+                        selectedDietaryRestrictions.map { ["preference": $0, "preference_type": "Dietary Restriction"] }
+
                         let listingData: [String: Any] = [
                             "name": businessName,
                             "website": website,
-                            "menu_link": menuLink,
+                            "tel": tel,
+                            "menu": menuLink,
                             "description": description,
-                            "address": address,
-                            "cuisines": Array(selectedCuisines),
-                            "dietary_restrictions": Array(selectedDietaryRestrictions),
+                            "address": "\(address), \(city), \(state) \(zipcode)",
+                            "cuisines": Array(selectedCuisineNumbers),
+                            "dietary_restrictions": preferences,
                         ]
-                        
+                        print(listingData)
                         print("Business Listing Data:", listingData)
+                        viewModel.sendCreatedBusinessData(listingData)
                         showSuccessMessage = true
+                        
                         
                     }) {
                         Text("Create Listing")
@@ -105,6 +121,7 @@ struct CreateListingView: View {
                     .padding(.top, 20)
                     .alert("Listing saved successfully!", isPresented: $showSuccessMessage) {
                         Button("OK") {
+                            
                             presentationMode.wrappedValue.dismiss() // Navigate back to OwnerListingsView
                         }
                     }
@@ -138,5 +155,6 @@ struct CustomTextField: View {
 
 
 #Preview {
-    CreateListingView()
+    CreateListingView(viewModel: CreateListingViewModel())
 }
+

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ClaimBusinessView: View {
     @StateObject private var viewModel = ClaimBusinessViewModel()
+    @StateObject var createListingViewModel = CreateListingViewModel()
     @State private var isCreatingListing = false
     @State private var navigateToClaim = false
     @State private var selectedBusiness: Business?
@@ -32,7 +33,7 @@ struct ClaimBusinessView: View {
                             .font(.headline)
                             .padding()
                         
-                        NavigationLink(destination: CreateListingView(), isActive: $isCreatingListing) {
+                        NavigationLink(destination: CreateListingView(viewModel: createListingViewModel), isActive: $isCreatingListing) {
                             Button("Create a New Listing") {
                                 isCreatingListing = true
                             }
