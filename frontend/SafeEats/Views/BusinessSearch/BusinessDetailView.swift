@@ -228,7 +228,9 @@ struct BusinessDetailView: View {
                 }
                 Spacer()
                 NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
+                    viewModel.updateAverageRating(businessId: business.id)
                     viewModel.fetchReviews(for: business.id)// Reload reviews after submission
+                    
                 }, businessId: business.id)) {
                     Text("Write a Review")
                         .font(.headline)
@@ -359,9 +361,17 @@ struct BusinessDetailView: View {
                 ProgressView()
                     .font(.title)
             }
-            // Image(systemName: "star.fill")
-            //     .foregroundColor(.yellow)
-            //     .font(.system(size: 24))
+             Image(systemName: "star.fill")
+                 .foregroundColor(.yellow)
+                 .font(.system(size: 24))
+            if let totalReviews = viewModel.total_reviews {
+                Text("(\(totalReviews))")
+                    .font(.system(size: 24))
+                    .foregroundColor(.gray)
+            } else {
+                ProgressView()
+                    .font(.system(size: 24))
+            }
             Spacer()
             Button(action: {
                 showCollectionPicker = true
@@ -408,14 +418,7 @@ struct BusinessDetailView: View {
                     }
                     .padding()
                 }
-                if let totalReviews = viewModel.total_reviews {
-                    Text("(\(totalReviews))")
-                        .font(.system(size: 24))
-                        .foregroundColor(.gray)
-                } else {
-                    ProgressView()
-                        .font(.system(size: 24))
-                }
+                
             }
         }
     }
