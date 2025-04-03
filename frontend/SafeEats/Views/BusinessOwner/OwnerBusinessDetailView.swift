@@ -442,17 +442,17 @@ struct OwnerBusinessDetailView: View {
     }
 }
 
-#Preview {
-    OwnerBusinessDetailView(
-        business: Business(
-            id: "1",
-            name: "Test Business",
-            website: "https://example.com",
-            description: "Test description",
-            cuisines: [],
-            menu: nil,
-            address: "123 Test Street",
-            dietary_restrictions: []
-        )
-    )
-}
+//#Preview {
+//    OwnerBusinessDetailView(
+//        business: Business(
+//            id: "1",
+//            name: "Test Business",
+//            website: "https://example.com",
+//            description: "Test description",
+//            cuisines: [],
+//            menu: nil,
+//            address: "123 Test Street",
+//            dietary_restrictions: []
+//        )
+//    )
+//}

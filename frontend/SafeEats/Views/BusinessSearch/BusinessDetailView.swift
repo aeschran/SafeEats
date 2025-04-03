@@ -518,6 +518,6 @@ struct BusinessDetailView: View {
     //}
     
     
-#Preview {
-    BusinessDetailView(business: Business(id: "1", name: "Test Business", website: "Hello.com", description: "Hey!", cuisines: [], menu: nil, address: "Yo mom's house", dietary_restrictions: []))
-}
+//#Preview {
+//    BusinessDetailView(business: Business(id: "1", name: "Test Business", website: "Hello.com", description: "Hey!", cuisines: [], menu: nil, address: "Yo mom's house", dietary_restrictions: []))
+//}

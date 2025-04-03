@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from services.business_service import BusinessService
+from schemas.business import BusinessAddPreferences
 
 router = APIRouter(tags=["Businesses"])
 
@@ -31,3 +32,19 @@ async def update_average_rating_endpoint(business_id: str):
         raise HTTPException(status_code=404, detail="Business not found or no reviews available")
     
     return avg_rating
+
+@router.post("/{business_id}/addPreferences")
+async def add_preferences_endpoint(business_id: str, preferences: BusinessAddPreferences):
+    """
+    Endpoint to add preferences to a business
+    """
+    if not isinstance(preferences, BusinessAddPreferences):
+        raise HTTPException(status_code=400, detail="Invalid preferences format")
+    
+    result = await business_service.add_preferences_to_business(business_id, preferences)
+    
+    if result is None:
+        raise HTTPException(status_code=404, detail="Business not found or failed to add preferences")
+    
+    return {"message": "Preferences added successfully", "result": result}
+

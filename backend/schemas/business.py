@@ -37,9 +37,33 @@ class BusinessSearch(BaseModel):
     query: Optional[str] = "restaurant"
     cuisines: Optional[List[str]] = []
     dietary_restrictions: Optional[List[PreferenceResponse]] = []
+    radius: Optional[int] = 5000
+
+class LatLon(BaseModel):
+    lat: float
+    lon: float
+
+
+# This class is designed for maps
+class BusinessAndLocationResponse(BaseModel):
+    id: PyObjectId = Field(..., alias="_id")
+    name: str
+    website: Optional[str] = None
+    description: Optional[str] = None
+    menu: Optional[str] = None
+    cuisines: List[int] = []
+    address: Optional[str] = None
+    dietary_restrictions: List[PreferenceResponse] = []
+    location: LatLon
+    avg_rating: Optional[float] = 0.0
+    tel: Optional[str] = None
 
 class BusinessCollectionEntry(BaseModel):
     business_id: str
     business_name: str
     business_description: str
     business_address: str
+
+class BusinessAddPreferences(BaseModel):
+    dietPref: List[str]
+    allergy: List[str]

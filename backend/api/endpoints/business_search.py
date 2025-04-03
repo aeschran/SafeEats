@@ -11,6 +11,11 @@ async def search_businesses_endpoint(business_search: BusinessSearch):
     response = await business_search_service.search_operator(business_search)
     return response
 
+@router.post("/map")
+async def search_businesses_map_endpoint(business_search: BusinessSearch):
+    response = await business_search_service.search_operator(business_search)
+    return response
+
 @router.get("/get/{business_id}")
 async def get_business_by_id_endpoint(business_id: str):
     """

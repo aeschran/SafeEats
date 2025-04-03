@@ -2,11 +2,11 @@ from bson import ObjectId
 import requests
 from core.config import settings
 from services.base_service import BaseService
-from schemas.business import BusinessCreate, BusinessResponse, BusinessSearch
+from schemas.business import BusinessCreate, BusinessResponse, BusinessSearch, BusinessAndLocationResponse
 from services.business_service import BusinessService
 
 class BusinessSearchService(BaseService):
-    def __init__(self, limit: int = 10):
+    def __init__(self, limit: int = 50):
         super().__init__()
         if self.db is None:
             raise Exception("Database connection failed.")
@@ -26,9 +26,13 @@ class BusinessSearchService(BaseService):
         }
 
     async def search_operator(self, business_search: BusinessSearch):
-        if business_search.cuisines != []:
+        if business_search.cuisines == []:
+            self.cuisine_ranges = []
+        else:
             cuisine_list = [self.mapping[cuisine] for cuisine in business_search.cuisines]
             self.cuisine_ranges = await self.get_cuisine_ranges(cuisine_list)
+        if business_search.radius != 5000:
+            return await self.get_businesses_within_radius(business_search)
         if business_search.query != "restaurant" and business_search.query != "":
             return await self.search_by_lat_long(business_search)
         else:
@@ -59,6 +63,13 @@ class BusinessSearchService(BaseService):
 
         results_dict = []
         for result in response.json()['results']:
+            valid = False
+            for cuisine in result['categories']:
+                if cuisine['id'] - 13000 >= 0 and cuisine['id'] - 13000 < 1000:
+                    valid = True
+                    break
+            if not valid:
+                continue
             results_dict.append({
                 "name": result['name'],
                 "owner_id": None,
@@ -95,17 +106,24 @@ class BusinessSearchService(BaseService):
                             db_businesses.append(await self.business_service.get_business_by_name_and_location(business))
                             break
         final_businesses = []
-        if business_search.dietary_restrictions != []:
+
+        if business_search.dietary_restrictions:
             for business in db_businesses:
-                for restriction in business_search.dietary_restrictions:
-                    found = False
-                    for business_restriction in business['dietary_restrictions']:
-                        if restriction.preference == business_restriction['preference']:
-                            final_businesses.append(business)
-                            found = True
-                            break
-                    if found:
-                        break
+                match_count = sum(
+                    1
+                    for restriction in business_search.dietary_restrictions
+                    for business_restriction in business['dietary_restrictions']
+                    if restriction.preference == business_restriction['preference']
+                )
+                final_businesses.append({
+                    "business": business,
+                    "match_count": match_count
+                })
+            # Sort businesses by match_count in descending order
+            final_businesses.sort(key=lambda x: x["match_count"], reverse=True)
+
+            # Extract sorted businesses
+            final_businesses = [item["business"] for item in final_businesses]
         else:
             final_businesses = db_businesses
         return [BusinessResponse(**business) for business in final_businesses]
@@ -137,20 +155,26 @@ class BusinessSearchService(BaseService):
         else:
             db_businesses = db_results
         final_businesses = []
-        if business_search.dietary_restrictions != []:
+
+        if business_search.dietary_restrictions:
             for business in db_businesses:
-                for restriction in business_search.dietary_restrictions:
-                    found = False
-                    for business_restriction in business['dietary_restrictions']:
-                        if restriction.preference == business_restriction['preference']:
-                            final_businesses.append(business)
-                            found = True
-                            break
-                    if found:
-                        break
+                match_count = sum(
+                    1
+                    for restriction in business_search.dietary_restrictions
+                    for business_restriction in business['dietary_restrictions']
+                    if restriction.preference == business_restriction['preference']
+                )
+                final_businesses.append({
+                    "business": business,
+                    "match_count": match_count
+                })
+            # Sort businesses by match_count in descending order
+            final_businesses.sort(key=lambda x: x["match_count"], reverse=True)
+
+            # Extract sorted businesses
+            final_businesses = [item["business"] for item in final_businesses]
         else:
             final_businesses = db_businesses
-            
         return [BusinessResponse(**business) for business in final_businesses]
         
     
@@ -195,4 +219,52 @@ class BusinessSearchService(BaseService):
         except Exception as e:
             print(f"Error retrieving business by id: {e}")
             return None
-            
+    
+    async def get_businesses_within_radius(self, business_search: BusinessSearch):
+        # Fetch businesses from the database within the specified radius
+        businesses = await self.db.businesses.find({
+            "location.coordinates": {
+                "$geoWithin": {
+                    "$centerSphere": [
+                        [business_search.lon, business_search.lat],
+                        business_search.radius / 3963.2  # Convert radius to radians
+                    ]
+                }
+            }
+        }).to_list()
+
+        response = []
+        for business in businesses:
+            response.append({
+                "_id": business["_id"],
+                "name": business["name"],
+                "website": business["website"],
+                "description": business["description"],
+                "cuisines": business["cuisines"],
+                "menu": business["menu"],
+                "address": business["address"],
+                "location": {
+                    "lat": business["location"]["coordinates"][1],
+                    "lon": business["location"]["coordinates"][0]
+                },
+                "dietary_restrictions": business["dietary_restrictions"],
+                "avg_rating": business["avg_rating"] if "avg_rating" in business else 0.0,
+                "tel": business["tel"] if "tel" in business else None
+            })
+        db_businesses = []
+        if self.cuisine_ranges != []:
+            for business in response:
+                for cuisine in business['cuisines']:
+                    found = False
+                    for cuisine_type in self.cuisine_ranges:
+                        for cuisine_range in cuisine_type['ranges']:
+                            if cuisine <= cuisine_range['max'] and cuisine >= cuisine_range['min']:
+                                found = True
+                                break
+                        if found:
+                            db_businesses.append(business)
+                            break
+        else:
+            db_businesses = response
+        final_businesses = [BusinessAndLocationResponse(**business) for business in db_businesses]
+        return final_businesses
