@@ -161,6 +161,8 @@ struct MyProfileView: View {
                     }
                     if selectedTab == "Collections" {
                         collectionsView
+                    } else if selectedTab == "Reviews"{
+                        ProfileReviewView(viewModel: FeedViewModel())
                     }
                 }
                 .padding(6)
@@ -179,6 +181,8 @@ struct MyProfileView: View {
 //                    viewModel.collections = loadCollectionsFromUserDefaults()
                     await loadProfileData()
                 }
+                
+                
             }
         }
         .tint(.black)
@@ -239,8 +243,241 @@ struct MyProfileView: View {
     }
 }
 
+struct ProfileReviewView: View {
+    @ObservedObject var viewModel: FeedViewModel
+    @ObservedObject var reviewViewModel: CreateReviewViewModel = CreateReviewViewModel()
+    @State private var showDeleteConfirmation = false
+    @State private var reviewToDelete: FriendReview? = nil
+    
+    @State private var showEditSheet = false
+    @State private var reviewToEdit: FriendReview? = nil
 
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 12) {
+                ForEach(viewModel.reviews, id: \.reviewId) { review in
+                    ProfileReviewCard(review: review, onEdit: { editReview(review) },
+                                      onDelete: { deleteReview(review) })
+                    .padding(.horizontal)
+                }
+            }
+        }
+        .onAppear {
+            viewModel.fetchMyReviews()
+        }
+        .alert(isPresented: $showDeleteConfirmation) {
+            Alert(
+                title: Text("Are you sure?"),
+                message: Text("You are about to delete this review."),
+                primaryButton: .destructive(Text("Delete")) {
+                    confirmDeleteReview()
+                },
+                secondaryButton: .cancel()
+            )
+        }
+        
+        .sheet(isPresented: $showEditSheet) {
+            if let review = reviewToEdit {
+                
+                EditReviewView(viewModel: viewModel, businessId: review.businessId, review: review)
+            } else {
+               Text("INVALID")
+            }
+        }
+    }
+    private func editReview(_ review: FriendReview) {
+        DispatchQueue.main.async {
+            reviewToEdit = review
+            
+        }
+        showEditSheet = true
+    }
+    private func deleteReview(_ review: FriendReview) {
+        reviewToDelete = review
+        showDeleteConfirmation = true
+    }
 
-#Preview {
-    MyProfileView()
+    private func confirmDeleteReview() {
+        if let review = reviewToDelete {
+            reviewViewModel.deleteReview(reviewID: review.reviewId) { success in
+                if success {
+                    print("Review deleted successfully")
+                    viewModel.fetchMyReviews()
+                } else {
+                    print("Failed to delete review")
+                }
+            }
+        }
+        showDeleteConfirmation = false
+    }
+    
+}
+
+import SwiftUI
+
+struct ProfileReviewCard: View {
+    let review: FriendReview
+    var onEdit: () -> Void
+    var onDelete: () -> Void
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(review.businessName)
+                        .font(.headline)
+                        .foregroundColor(.black)
+                        .lineLimit(1)
+                        .truncationMode(.tail) // Ensure it doesn't wrap too soon
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Text(review.reviewContent)
+                        .font(.body)
+                    
+                    HStack {
+                        ForEach(0..<review.rating, id: \.self) { _ in
+                            Image(systemName: "star.fill")
+                                .foregroundColor(.yellow)
+                        }
+                    }
+                    
+                    Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }.padding()
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+            .frame(maxWidth: .infinity)
+
+            // Overlay with edit and delete buttons
+            HStack(spacing: 10) {
+                Button(action: onEdit) {
+                    Image(systemName: "pencil")
+                        .foregroundColor(.mainGreen)
+                        .padding(8)
+                        .background(Color.white)
+                        .clipShape(Circle())
+                        .shadow(radius: 1)
+                }
+
+                Button(action: onDelete) {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                        .padding(8)
+                        .background(Color.white)
+                        .clipShape(Circle())
+                        .shadow(radius: 1)
+                }
+            }
+            .padding()
+        }
+    }
+
+    private func formattedDate(from timestamp: Double) -> String {
+        let date = Date(timeIntervalSince1970: timestamp)
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
+    }
+}
+
+struct EditReviewView: View {
+    
+    @ObservedObject var viewModel:FeedViewModel
+    @StateObject var reviewModel: CreateReviewViewModel = CreateReviewViewModel()
+    @Environment(\.presentationMode) var presentationMode
+    @State private var reviewContent: String = ""
+    @State private var rating: Int = 0
+    @State private var reviewText: String = ""
+    @State private var selectedImage: UIImage? = nil
+    @State private var showImagePicker = false
+    @State private var showSuccessMessage = false
+    @State private var showAlert = false
+    
+    // Use @State to hold the updated review
+    @State private var updatedReview: FriendReview
+
+    let businessId: String
+    
+    // Add a custom initializer for injecting the review and businessId
+    init(viewModel:FeedViewModel, businessId: String, review: FriendReview) {
+        self._viewModel = ObservedObject(wrappedValue: viewModel)
+        self.businessId = businessId
+        
+        // Initialize the updatedReview with the passed review
+        _updatedReview = State(initialValue: review)
+        
+        // You could also initialize other properties if needed:
+        _reviewContent = State(initialValue: review.reviewContent)
+        _rating = State(initialValue: review.rating)
+    }
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Text(updatedReview.businessName)
+                .font(.largeTitle)
+                .fontWeight(.semibold)
+            
+            HStack {
+                ForEach(1...5, id: \..self) { star in
+                    Image(systemName: star <= rating ? "star.fill" : "star")
+                        .resizable()
+                        .frame(width: 40, height: 40)
+                        .foregroundColor(.yellow)
+                        .onTapGesture {
+                            rating = star
+                        }
+                }
+            }
+            
+            Text("Edit Your Review")
+                .font(.title2)
+                .fontWeight(.semibold)
+            
+            TextEditor(text: $reviewContent)
+                .frame(height: 150)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6))) // Light gray background
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
+            
+            
+            
+            Spacer()
+            
+            Button(action: {
+                print(updatedReview.userId)
+                var newReview:FriendReview = FriendReview(reviewId: updatedReview.reviewId, userId: updatedReview.userId, businessId: updatedReview.businessId, userName: updatedReview.reviewId, businessName: updatedReview.businessName, reviewContent: reviewContent, rating: rating, reviewImage: updatedReview.reviewImage, reviewTimestamp: updatedReview.reviewTimestamp)
+                reviewModel.editReview(reviewID: updatedReview.reviewId, updatedReview: newReview) { success in
+                    if success {
+                        print("Review UPDATED successfully")
+                        showAlert = true
+                        viewModel.fetchMyReviews()
+                    } else {
+                        print("Failed to UPDATE review")
+                    }
+                }
+                
+                
+            }) {
+                Text("Update Review")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.mainGreen)
+                    .cornerRadius(10)
+            }
+            
+        }
+        .padding()
+        .navigationTitle("Update Review")
+        .alert("Update Successful", isPresented: $showAlert) {
+            Text("Your review was updated sucessfully!")
+            Button("OK", role: .cancel) {
+                presentationMode.wrappedValue.dismiss()
+            }
+        }
+    }
+    
 }
