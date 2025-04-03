@@ -1,3 +1,4 @@
+from bson import ObjectId
 import requests
 from core.config import settings
 from services.base_service import BaseService
@@ -180,4 +181,18 @@ class BusinessSearchService(BaseService):
                 cuisines.append(cuisine)
 
         return cuisines
+    
+    async def get_business_by_id(self, business_id: str):
+        """
+        Get a business by its ID from the database
+        """
+        try:
+            print(f"Retrieving business by id: {business_id}")
+            business = await self.db.businesses.find_one({"_id": ObjectId(business_id)}) # Ensure to convert business_id to ObjectId
+            if business is None:
+                return None
+            return BusinessResponse(**business)
+        except Exception as e:
+            print(f"Error retrieving business by id: {e}")
+            return None
             

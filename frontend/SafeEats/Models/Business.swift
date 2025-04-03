@@ -50,4 +50,17 @@ class Business: Decodable, Identifiable {
         case dietary_restrictions
         case avg_rating
     }
+
+    init(id: String, name: String?, website: String?, description: String?, cuisines: [Int]?, menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?) {
+        self.id = id
+        self.name = name
+        self.website = website
+        self.description = description
+        self.cuisines = cuisines
+        self.menu = menu
+        self.address = address
+        self.dietary_restrictions = dietary_restrictions
+        self.tel = nil
+        self.avg_rating = nil
+    }
 }

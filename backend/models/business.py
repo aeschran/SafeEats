@@ -29,6 +29,20 @@ class Business:
             "menu": self.menu,
             "address": self.address,
             "location": self.location.to_dict(),
-            "dietary_restrictions": self.dietary_restrictions,
-            "avg_rating": self.avg_rating
+            "dietary_restrictions": self.dietary_restrictions
+        }
+    
+class BusinessCollectionEntry:
+    def __init__(self, business_id: str, business_name: str, business_description: str, business_address: str):
+        self.business_id = business_id
+        self.business_name = business_name
+        self.business_description = business_description
+        self.business_address = business_address
+    
+    def to_dict(self) -> Dict:
+        return {
+            "business_id": self.business_id,
+            "business_name": self.business_name,
+            "business_description": self.business_description,
+            "business_address": self.business_address
         }

@@ -18,7 +18,25 @@ struct BusinessDetailView: View {
     @State private var upvoteCount: Int = 10  // Replace with actual count
     @State private var downvoteCount: Int = 3  // Replace with actual count
     @State private var userVote: Int? = nil
+    @State private var showCollectionPicker = false
     @StateObject private var viewModel = BusinessDetailViewModel()
+    
+    @State private var collections: [Collection] = UserDefaults.standard.object(forKey: "collections") as? [Collection] ?? []
+    
+    @State var bookmarked: Bool = false
+    @State var collectionID: String? = nil
+    
+    func collectionsExcludingBusiness() -> [Collection] {
+        for collection in $collections {
+            if collection.name.wrappedValue == "Bookmarks" && collection.businesses.contains(where: { $0.businessId.wrappedValue == business.id }) {
+                collectionID = collection.id.wrappedValue
+                bookmarked = true
+            }
+        }
+        return collections.filter { collection in
+            !collection.businesses.contains(where: { $0.businessId == business.id })
+        }
+    }
     //    let businessId = business.id
     @State private var selectedFilter: String = "Most Recent"
     @State private var showDropdown: Bool = false
@@ -40,12 +58,33 @@ struct BusinessDetailView: View {
                         
                         // contact info section
                         VStack {
-                            Text(business.name ?? "No Name")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .padding(.bottom, 15)
-                                .fixedSize(horizontal: false, vertical: true)
+                            HStack {
+                                Text(business.name ?? "No Name")
+                                    .font(.largeTitle)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .padding(.bottom, 15)
+                                    .padding(.horizontal, 30)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Button(action: {
+                                    Task {
+                                        if bookmarked {
+                                            bookmarked = false
+                                            await viewModel.removeBookmark(collectionId: collectionID ?? "", businessId: business.id)
+                                        } else {
+                                            bookmarked = true
+                                            await viewModel.bookmarkBusiness(businessID: business.id)
+                                        }
+                                    }
+                                }) {
+                                    Image(systemName: bookmarked ? "bookmark.fill" : "bookmark")
+                                        .font(.system(size: 28))
+                                        .foregroundColor(.white)
+                                        .padding()
+                                }
+                            }
+                            
+                            
                             
                             // contact info section
                             if let website = business.website, let url = URL(string: website),
@@ -117,6 +156,7 @@ struct BusinessDetailView: View {
                             }
                         }
                         .padding(.vertical, 15)
+                        
                     }
                     
                     VStack(alignment: .leading, spacing: 25) {
@@ -132,9 +172,17 @@ struct BusinessDetailView: View {
                     
                     //                Spacer()
                 }
-                .onAppear{
-                    
+                .onAppear {
                     viewModel.fetchReviews(for: business.id)
+                    if let data = UserDefaults.standard.data(forKey: "collections") {
+                        let decoder = JSONDecoder()
+                        if let loadedCollections = try? decoder.decode([Collection].self, from: data) {
+                            print(loadedCollections)
+                            collections = loadedCollections
+                            // filter to only collections that don't have this id in their businesses field
+                            collections = collectionsExcludingBusiness()
+                        }
+                    }
                 }
                 .task {
                     await viewModel.fetchBusinessData(businessID: business.id)
@@ -193,9 +241,9 @@ struct BusinessDetailView: View {
             ForEach(viewModel.reviews, id: \.id) { review in
                 ReviewCardView(review: review, viewModel: viewModel)
             }
-    }
+        }
         .padding(.horizontal, 30)
-}
+    }
     
     
     
@@ -301,8 +349,8 @@ struct BusinessDetailView: View {
     //        formatter.dateStyle = .medium
     //        return formatter.string(from: date)
     //    }
-    private var ratingsSection: some View {
-        HStack(alignment: .center, spacing: 5) {
+    var ratingsSection: some View {
+        return HStack(alignment: .center, spacing: 5) {
             if let avg_rating = viewModel.avg_rating {
                 Text("\(String(format: "%.1f", avg_rating))")
                     .bold()
@@ -311,111 +359,158 @@ struct BusinessDetailView: View {
                 ProgressView()
                     .font(.title)
             }
-            Image(systemName: "star.fill")
-                .foregroundColor(.yellow)
-                .font(.system(size: 24))
-            if let totalReviews = viewModel.total_reviews {
-                Text("(\(totalReviews))")
-                    .font(.system(size: 24))
-                    .foregroundColor(.gray)
-            } else {
-                ProgressView()
-                    .font(.system(size: 24))
+            // Image(systemName: "star.fill")
+            //     .foregroundColor(.yellow)
+            //     .font(.system(size: 24))
+            Spacer()
+            Button(action: {
+                showCollectionPicker = true
+                collections = collectionsExcludingBusiness()
+            }) {
+                Text("Add to Collection")
+            }
+            .font(.headline)
+            .foregroundColor(.white)
+            .padding()
+            .background(Color.mainGreen)
+            .cornerRadius(10)
+            .frame(width: 160, height: 80)
+            .sheet(isPresented: $showCollectionPicker) {
+                // Dummy UI for now; replace with your real collection picker view
+                VStack {
+                    Text("Choose a Collection")
+                        .font(.title2)
+                        .padding()
+                    
+                    //                    List {
+                    //                        Text("Favorites")
+                    //                        Text("Try Soon")
+                    //                        Text("Top Vegan")
+                    //                    }
+                    
+                    ForEach(collections, id: \.id) { collection in Button(action: {
+                        Task {
+                            await viewModel.addBusinessToCollection(collectionName: collection.name, businessID: business.id)
+                            showCollectionPicker = false
+                        }
+                    }) {
+                        Text(collection.name)
+                            .font(.footnote)
+                            .fontWeight(.semibold)
+                            .frame(width: 380, height: 68)
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(4)
+                    }
+                    }
+                    
+                    Button("Cancel") {
+                        showCollectionPicker = false
+                    }
+                    .padding()
+                }
+                if let totalReviews = viewModel.total_reviews {
+                    Text("(\(totalReviews))")
+                        .font(.system(size: 24))
+                        .foregroundColor(.gray)
+                } else {
+                    ProgressView()
+                        .font(.system(size: 24))
+                }
             }
         }
     }
-    
-    private var descriptionSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Description")
-                .font(.title2)
-                .fontWeight(.semibold)
-            Text(business.description ?? "No description available.")
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-    
-    private var menuSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Menu")
-                .font(.title2)
-                .fontWeight(.semibold)
-            if let menu = business.menu, let url = URL(string: menu) {
-                Link(destination: url) {
-                    Label("Visit Menu", systemImage: "menucard.fill")
-                }
-                .foregroundColor(Color.mainGreen.darker())
-            } else {
-                Text("No menu available.")
+        
+        var descriptionSection: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Description")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                Text(business.description ?? "No description available.")
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
-    }
-    
-    private var addressSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Address")
-                .font(.title2)
-                .fontWeight(.semibold)
-            if let address = business.address {
-                Button(action: { showMapAlert = true }) {
-                    Label(address, systemImage: "map")
-                        .foregroundColor(Color.mainGreen.darker())
+        
+        var menuSection: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Menu")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                if let menu = business.menu, let url = URL(string: menu) {
+                    Link(destination: url) {
+                        Label("Visit Menu", systemImage: "menucard.fill")
+                    }
+                    .foregroundColor(Color.mainGreen.darker())
+                } else {
+                    Text("No menu available.")
                 }
-                .buttonStyle(.plain)
-                .confirmationDialog("Open in Maps", isPresented: $showMapAlert) {
-                    Button("Open in Maps") { openInAppleMaps(address: address) }
-                    Button("Cancel", role: .cancel) {}
-                }
-            } else {
-                Text("No address available.")
-                    .foregroundColor(Color.mainGreen)
             }
         }
-    }
-    
-    private func openInAppleMaps(address: String) {
-        let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        if let url = URL(string: "http://maps.apple.com/?address=\(encodedAddress)") {
-            UIApplication.shared.open(url)
+        
+        var addressSection: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Address")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                if let address = business.address {
+                    Button(action: { showMapAlert = true }) {
+                        Label(address, systemImage: "map")
+                            .foregroundColor(Color.mainGreen.darker())
+                    }
+                    .buttonStyle(.plain)
+                    .confirmationDialog("Open in Maps", isPresented: $showMapAlert) {
+                        Button("Open in Maps") { openInAppleMaps(address: address) }
+                        Button("Cancel", role: .cancel) {}
+                    }
+                } else {
+                    Text("No address available.")
+                        .foregroundColor(Color.mainGreen)
+                }
+            }
         }
-    }
-    
-    
-    private func callPhoneNumber(phonenumber: String?) {
-        if let phonenumber = phonenumber {
-            let sanitizedPhoneNumber = phonenumber.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
-            if let url = URL(string: "tel://\(sanitizedPhoneNumber)"),
-               UIApplication.shared.canOpenURL(url) {
+        
+        func openInAppleMaps(address: String) {
+            let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+            if let url = URL(string: "http://maps.apple.com/?address=\(encodedAddress)") {
                 UIApplication.shared.open(url)
-            } else {
-                print("Invalid phone number: \(phonenumber)")
+            }
+        }
+        
+        
+        func callPhoneNumber(phonenumber: String?) {
+            if let phonenumber = phonenumber {
+                let sanitizedPhoneNumber = phonenumber.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+                if let url = URL(string: "tel://\(sanitizedPhoneNumber)"),
+                   UIApplication.shared.canOpenURL(url) {
+                    UIApplication.shared.open(url)
+                } else {
+                    print("Invalid phone number: \(phonenumber)")
+                }
             }
         }
     }
-}
-
-//extension Business {
-//    static var sampleBusiness: Business {
-//        let jsonData = """
-//        {
-//            "name": "Tasty Bites",
-//            "website": "https://tastybites.com",
-//            "description": "Enjoy a warm, inviting atmosphere and delicious homemade meals at our cozy restaurant. We pride ourselves on quality ingredients and comforting flavors.",
-//            "cuisines": [1, 2],
-//            "menu": "https://tastybites.com/menu",
-//            "address": "123 Main St, New York, NY",
-//            "dietary_restrictions": [
-//                {"preference": "Vegan", "preference_type": "Diet"}
-//            ]
-//        }
-//        """.data(using: .utf8)!
-//
-//        let decoder = JSONDecoder()
-//        return try! decoder.decode(Business.self, from: jsonData)
-//    }
-//}
-
-
+    
+    //extension Business {
+    //    static var sampleBusiness: Business {
+    //        let jsonData = """
+    //        {
+    //            "name": "Tasty Bites",
+    //            "website": "https://tastybites.com",
+    //            "description": "Enjoy a warm, inviting atmosphere and delicious homemade meals at our cozy restaurant. We pride ourselves on quality ingredients and comforting flavors.",
+    //            "cuisines": [1, 2],
+    //            "menu": "https://tastybites.com/menu",
+    //            "address": "123 Main St, New York, NY",
+    //            "dietary_restrictions": [
+    //                {"preference": "Vegan", "preference_type": "Diet"}
+    //            ]
+    //        }
+    //        """.data(using: .utf8)!
+    //
+    //        let decoder = JSONDecoder()
+    //        return try! decoder.decode(Business.self, from: jsonData)
+    //    }
+    //}
+    
+    
 #Preview {
-    //    BusinessDetailView(business: Business.sampleBusiness)
+    BusinessDetailView(business: Business(id: "1", name: "Test Business", website: "Hello.com", description: "Hey!", cuisines: [], menu: nil, address: "Yo mom's house", dietary_restrictions: []))
 }

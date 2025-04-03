@@ -11,34 +11,64 @@ struct OwnerBusinessDetailView: View {
     let business: Business
     @State private var showMapAlert = false
     @State private var showingCallConfirmation = false
-    // temp variables
-    //    let phonenumber: String? = "8124552066"
-    let rating: Double = 4.5
-    
-    @State private var upvoteCount: Int = 10  // Replace with actual count
-    @State private var downvoteCount: Int = 3  // Replace with actual count
+    @State private var upvoteCount: Int = 10
+    @State private var downvoteCount: Int = 3
     @State private var userVote: Int? = nil
     @StateObject private var viewModel = BusinessDetailViewModel()
-    //    let businessId = business.id
+    @StateObject private var ownerViewModel = OwnerBusinessDetailViewModel()
     @State private var selectedFilter: String = "Most Recent"
     @State private var showDropdown: Bool = false
-    //    @Published var reviews: [Review] = []
-    
+    @State private var showPreferencePicker: Bool = false
+
     let filterOptions: [String] = ["Most Recent", "Least Recent", "Highest Rating", "Lowest Rating", "Most Popular", "Least Popular"]
+    let dietaryPreferences: [String] = ["Halal", "Kosher", "Vegetarian", "Vegan"]
+    let allergies: [String] = ["Dairy", "Gluten", "Peanuts", "Shellfish"]
     
+    @State var submitDietPref: [String] = []
+    @State var submitAllergy: [String] = []
+
+    @State private var enabled: [String: Int] = [
+        "Halal": 0,
+        "Kosher": 0,
+        "Vegetarian": 0,
+        "Vegan": 0,
+        "Dairy": 0,
+        "Gluten": 0,
+        "Peanuts": 0,
+        "Shellfish": 0
+    ]
+    
+    func handleEnable(for preference: String) {
+        ownerViewModel.enabled[preference] = ownerViewModel.enabled[preference] == 1 ? 0 : 1
+        
+        if dietaryPreferences.contains(preference) {
+            if ownerViewModel.enabled[preference] == 1 {
+                ownerViewModel.dietPref.append(preference)
+            } else {
+                let index = ownerViewModel.dietPref.firstIndex(of: preference)!
+                ownerViewModel.dietPref.remove(at: index)
+            }
+        } else {
+            if ownerViewModel.enabled[preference] == 1 {
+                ownerViewModel.allergy.append(preference)
+            } else {
+                let index = ownerViewModel.allergy.firstIndex(of: preference)!
+                ownerViewModel.allergy.remove(at: index)
+            }
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    // header section
                     ZStack {
                         RoundedRectangle(cornerRadius: 27)
                             .fill(Color.mainGreen)
                             .frame(maxWidth: .infinity)
                             .padding([.leading, .trailing], 16)
                             .padding(.vertical, 8)
-                        
-                        // contact info section
+
                         VStack {
                             Text(business.name ?? "No Name")
                                 .font(.largeTitle)
@@ -46,8 +76,7 @@ struct OwnerBusinessDetailView: View {
                                 .foregroundColor(.white)
                                 .padding(.bottom, 15)
                                 .fixedSize(horizontal: false, vertical: true)
-                            
-                            // contact info section
+
                             if let website = business.website, let url = URL(string: website),
                                let phonenumber = business.tel, !phonenumber.isEmpty {
                                 HStack(spacing: 10) {
@@ -90,7 +119,6 @@ struct OwnerBusinessDetailView: View {
                                 .font(.system(size: 20, weight: .medium))
                             } else if let phonenumber = business.tel, !phonenumber.isEmpty {
                                 HStack(spacing: 10) {
-                                    
                                     Text("No website.")
                                     Text("|")
                                     Button(action: {
@@ -118,7 +146,7 @@ struct OwnerBusinessDetailView: View {
                         }
                         .padding(.vertical, 15)
                     }
-                    
+
                     VStack(alignment: .leading, spacing: 25) {
                         ratingsSection
                         descriptionSection
@@ -127,14 +155,19 @@ struct OwnerBusinessDetailView: View {
                     }
                     .padding([.bottom, .horizontal], 30)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    
+
                     reviewsSection
-                    
-                    //                Spacer()
                 }
-                .onAppear{
-                    
+                .onAppear {
                     viewModel.fetchReviews(for: business.id)
+                    business.dietary_restrictions?.forEach { restriction in
+                        if restriction.preference_type == "Dietary Restriction" {
+                            ownerViewModel.dietPref.append(restriction.preference)
+                        } else {
+                            ownerViewModel.allergy.append(restriction.preference)
+                        }
+                        ownerViewModel.enabled[restriction.preference] = 1
+                    }
                 }
                 .task {
                     await viewModel.fetchBusinessData(businessID: business.id)
@@ -143,122 +176,80 @@ struct OwnerBusinessDetailView: View {
             }
         }
     }
-    
-    private var reviewsSection: some View {
+
+    var reviewsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                HStack() {
-                    Text("Reviews")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    Spacer()
-                    Menu {
-                        ForEach(filterOptions, id: \.self) { option in
-                            Button(action: {
-                                selectedFilter = option
-                                viewModel.sortReviews(by: option)
-                            }) {
-                                Text(option)
-                                
-                            }
-                        }
-                    } label: {
-                        HStack {
-                            Text(selectedFilter)
-                                .font(.subheadline)
-                                .foregroundColor(.black)
-                            
-                            Image(systemName: "chevron.down")
-                                .foregroundColor(.gray)
-                        }
-                        .padding(6)
-                        .background(Color.white)
-                        .cornerRadius(6)
-                        .shadow(radius: 1)
-                        .frame(width: 180)
-                        
-                    }
-                }
+                Text("Reviews")
+                    .font(.title2)
+                    .fontWeight(.semibold)
                 Spacer()
-//                NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
-//                    viewModel.fetchReviews(for: business.id)// Reload reviews after submission
-//                }, businessId: business.id)) {
-//                    Text("Write a Review")
-//                        .font(.headline)
-//                        .foregroundColor(.white)
-//                        .padding()
-//                        .background(Color.mainGreen)
-//                        .cornerRadius(10)
-//                }
-            }.padding(.bottom, 20)
+                Menu {
+                    ForEach(filterOptions, id: \.self) { option in
+                        Button(action: {
+                            selectedFilter = option
+                            viewModel.sortReviews(by: option)
+                        }) {
+                            Text(option)
+                        }
+                    }
+                } label: {
+                    HStack {
+                        Text(selectedFilter)
+                            .font(.subheadline)
+                            .foregroundColor(.black)
+                        Image(systemName: "chevron.down")
+                            .foregroundColor(.gray)
+                    }
+                    .padding(6)
+                    .background(Color.white)
+                    .cornerRadius(6)
+                    .shadow(radius: 1)
+                    .frame(width: 180)
+                }
+            }
+            .padding(.bottom, 20)
+
             ForEach(viewModel.reviews, id: \.id) { review in
                 ReviewCardView(review: review, viewModel: viewModel)
             }
-    }
+        }
         .padding(.horizontal, 30)
-}
-    
-    
-    
-    // Extracted Review Card to simplify `reviewsSection`
+    }
+
     struct ReviewCardView: View {
         let review: Review
         @ObservedObject var viewModel: BusinessDetailViewModel
         @State private var userVote: Int? = nil
-        
+
         var body: some View {
             VStack(alignment: .leading, spacing: 8) {
-                // Username + Date
                 HStack {
                     Text("\(review.userName) ")
                         .font(.headline)
                         .foregroundColor(.black)
-                    
                     Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
                         .font(.caption)
                         .foregroundColor(.gray)
                 }
-                
-                // Star Rating
+
                 HStack(spacing: 2) {
                     ForEach(0..<5, id: \.self) { index in
                         Image(systemName: index < review.rating ? "star.fill" : "star")
                             .foregroundColor(index < review.rating ? .yellow : .gray)
                     }
                 }
-                
-                // Review Content
+
                 Text(review.reviewContent)
                     .font(.body)
                     .foregroundColor(.black)
                     .lineLimit(2)
-                
-                // Upvote / Downvote
-//                HStack {
-//                    Button(action: { viewModel.upvoteReview(review.id) }) {
-//                        Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
-//                            .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
-//                            .font(.headline)
-//                    }
-//                    
-//                    Text("\(review.upvotes - review.downvotes)")
-//                        .font(.subheadline)
-//                    
-//                    Button(action: { viewModel.downvoteReview(review.id) }) {
-//                        Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
-//                            .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
-//                            .font(.headline)
-//                    }
-//                }
-//                .padding(.top, 3)
-//                .padding(.bottom, 5)
             }
             .padding()
             .background(Color.gray.opacity(0.1))
             .cornerRadius(10)
         }
-        
-        // Helper function for date formatting
+
         private func formattedDate(from timestamp: Double) -> String {
             let date = Date(timeIntervalSince1970: timestamp)
             let formatter = DateFormatter()
@@ -268,7 +259,7 @@ struct OwnerBusinessDetailView: View {
         }
     }
 
-    private var ratingsSection: some View {
+    var ratingsSection: some View {
         HStack(alignment: .center, spacing: 5) {
             if let avg_rating = viewModel.avg_rating {
                 Text("\(String(format: "%.1f", avg_rating))")
@@ -278,9 +269,11 @@ struct OwnerBusinessDetailView: View {
                 ProgressView()
                     .font(.title)
             }
+
             Image(systemName: "star.fill")
                 .foregroundColor(.yellow)
                 .font(.system(size: 24))
+
             if let totalReviews = viewModel.total_reviews {
                 Text("(\(totalReviews))")
                     .font(.system(size: 24))
@@ -289,10 +282,93 @@ struct OwnerBusinessDetailView: View {
                 ProgressView()
                     .font(.system(size: 24))
             }
+
+            Spacer()
+
+            Button(action: {
+                showPreferencePicker = true
+            }) {
+                Text("Edit Preferences Supported")
+            }
+            .font(.headline)
+            .foregroundColor(.white)
+            .padding()
+            .background(Color.mainGreen)
+            .cornerRadius(10)
+            .frame(width: 160, height: 100)
+            .sheet(isPresented: $showPreferencePicker) {
+                VStack {
+                    Text("Select Preferences")
+                        .font(.title2)
+                        .padding()
+
+                    Text("Dietary Preferences")
+                        .font(.body)
+                    Divider()
+                        .frame(width:200)
+                    ForEach(dietaryPreferences, id: \.self) { preference in
+                        HStack {
+                            Image(systemName: ownerViewModel.enabled[preference] == 1 ? "checkmark.square" : "square")
+                                .foregroundColor(.gray)
+                                .opacity(1)
+                                .frame(width: 24, height: 24)
+                            Text(preference)
+                                .font(.body)
+                        }
+                        .onTapGesture {
+                            handleEnable(for: preference)
+                        }
+                        .padding(.horizontal)
+                    }
+                    
+                    Text("")
+                        .padding()
+                    
+                    Text("Allergies")
+                    Divider()
+                        .frame(width:200)
+                    ForEach(allergies, id: \.self) { preference in
+                        HStack {
+                            Image(systemName: ownerViewModel.enabled[preference] == 1 ? "checkmark.square" : "square")
+                                .foregroundColor(.gray)
+                                .opacity(1)
+                                .frame(width: 24, height: 24)
+                            Text(preference)
+                                .font(.body)
+                        }
+                        .onTapGesture {
+                            handleEnable(for: preference)
+                        }
+                        .padding(.horizontal)
+                    }
+                    
+                    Text("")
+                        .padding()
+                    
+                    Button(action: {
+                        Task {
+                            await ownerViewModel.addPreferencesToBusiness(businessID: business.id)
+                            showPreferencePicker = false
+                        }
+                    }) {
+                        Text("Save")
+                    }
+
+                    Button("Cancel") {
+                        submitDietPref.removeAll()
+                        submitAllergy.removeAll()
+                        for (key, _) in enabled {
+                            enabled[key] = 0
+                        }
+                        showPreferencePicker = false
+                    }
+                    .padding()
+                }
+            }
         }
     }
-    
-    private var descriptionSection: some View {
+
+    var descriptionSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Description")
                 .font(.title2)
@@ -301,8 +377,8 @@ struct OwnerBusinessDetailView: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
-    
-    private var menuSection: some View {
+
+    var menuSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Menu")
                 .font(.title2)
@@ -317,8 +393,8 @@ struct OwnerBusinessDetailView: View {
             }
         }
     }
-    
-    private var addressSection: some View {
+
+    var addressSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Address")
                 .font(.title2)
@@ -339,16 +415,15 @@ struct OwnerBusinessDetailView: View {
             }
         }
     }
-    
-    private func openInAppleMaps(address: String) {
+
+    func openInAppleMaps(address: String) {
         let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         if let url = URL(string: "http://maps.apple.com/?address=\(encodedAddress)") {
             UIApplication.shared.open(url)
         }
     }
-    
-    
-    private func callPhoneNumber(phonenumber: String?) {
+
+    func callPhoneNumber(phonenumber: String?) {
         if let phonenumber = phonenumber {
             let sanitizedPhoneNumber = phonenumber.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
             if let url = URL(string: "tel://\(sanitizedPhoneNumber)"),
@@ -361,28 +436,17 @@ struct OwnerBusinessDetailView: View {
     }
 }
 
-//extension Business {
-//    static var sampleBusiness: Business {
-//        let jsonData = """
-//        {
-//            "name": "Tasty Bites",
-//            "website": "https://tastybites.com",
-//            "description": "Enjoy a warm, inviting atmosphere and delicious homemade meals at our cozy restaurant. We pride ourselves on quality ingredients and comforting flavors.",
-//            "cuisines": [1, 2],
-//            "menu": "https://tastybites.com/menu",
-//            "address": "123 Main St, New York, NY",
-//            "dietary_restrictions": [
-//                {"preference": "Vegan", "preference_type": "Diet"}
-//            ]
-//        }
-//        """.data(using: .utf8)!
-//
-//        let decoder = JSONDecoder()
-//        return try! decoder.decode(Business.self, from: jsonData)
-//    }
-//}
-
-
 #Preview {
-    //    BusinessDetailView(business: Business.sampleBusiness)
+    OwnerBusinessDetailView(
+        business: Business(
+            id: "1",
+            name: "Test Business",
+            website: "https://example.com",
+            description: "Test description",
+            cuisines: [],
+            menu: nil,
+            address: "123 Test Street",
+            dietary_restrictions: []
+        )
+    )
 }

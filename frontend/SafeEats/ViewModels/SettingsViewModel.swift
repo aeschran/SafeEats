@@ -24,8 +24,6 @@ class SettingsViewModel: ObservableObject {
         if tags.isEmpty {
             tags.append(Tag(value: "", isInitial: false))  // Ensure at least one input box is there
         }
-        
-        print("loggedIn is: \(UserDefaults.standard.bool(forKey: "loggedIn"))")
     }
     
     func fetchExistingPreferences() async -> [String]{
