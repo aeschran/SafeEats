@@ -18,8 +18,6 @@ class CollectionDetailViewModel: ObservableObject {
     
     private let baseURL = "http://127.0.0.1:8000"
     
-    
-
     func getBusinessInformation(businessId: String) async {
         guard let url = URL(string: "\(baseURL)/business_search/get/\(businessId)") else { return }
         
@@ -71,7 +69,13 @@ class CollectionDetailViewModel: ObservableObject {
                 return
             }
             
+            print(data, response)
+            
             if let jsonString = String(data: data, encoding: .utf8) {
+                print(jsonString)
+                if jsonString == "null" {
+                    self.errorMessage = "There is a collection by this name already."
+                }
             }
             
             DispatchQueue.main.async {
