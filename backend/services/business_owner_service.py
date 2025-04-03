@@ -7,10 +7,12 @@ from models.business_owner import BusinessOwner
 import random
 import string
 from schemas.business_owner import BusinessOwnerResponse, BusinessOwnerCreate
+from schemas.business import BusinessResponse
 from services.base_service import BaseService
 import sendgrid
 from sendgrid.helpers.mail import Mail, Email, To, Content
 from twilio.rest import Client
+from typing import List
 
 from fastapi import Depends, HTTPException, status
 from services.jwttoken import verify_token, create_access_token
@@ -193,3 +195,22 @@ class BusinessOwnerService(BaseService):
         await self.db.password_resets.delete_one({"email": email})
 
         return {"message": "Password reset successful"}
+
+    async def get_business_listing_search(self, query: str) -> List[BusinessResponse]:
+        try:
+            search_results_cursor = self.db.businesses.find(
+                {
+                    "$and": [
+                        {"name": {"$regex": query, "$options": "i"}},  # Case-insensitive name search
+                        {"owner_id": "None"}  # Only return businesses where owner_id is None
+                    ]
+                },
+                # {"_id": 1, "name": 1, "address": 1, "website": 1}  # Return only relevant fields
+            )  # Limit to 10 results
+            search_results = await search_results_cursor.to_list(length=10)
+
+            businesses = [BusinessResponse(**{**business, "id": str(business["_id"])}) for business in search_results]
+
+            return businesses
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
