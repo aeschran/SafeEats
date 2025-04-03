@@ -7,7 +7,7 @@ from schemas.cuisine import CuisineResponse, CuisineCreate
 
 class BusinessCreate(BaseModel):
     name: str
-    owner_id: Optional[PyObjectId] = None
+    owner_id: Optional[str] = None
     website: Optional[str] = None
     description: Optional[str] = None
     cuisines: List[int] = []
@@ -18,6 +18,7 @@ class BusinessCreate(BaseModel):
 
 class BusinessResponse(BaseModel):
     id: PyObjectId = Field(..., alias="_id")
+    owner_id: Optional[str] = None
     name: str
     website: Optional[str] = None
     description: Optional[str] = None
@@ -25,6 +26,8 @@ class BusinessResponse(BaseModel):
     menu: Optional[str] = None
     address: Optional[str] = None
     dietary_restrictions: List[PreferenceResponse] = []
+    
+
 
 
 class BusinessSearch(BaseModel):

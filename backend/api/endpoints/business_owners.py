@@ -40,6 +40,6 @@ async def verify_business_owner_endpoint(request: VerificationCall):
 async def verify_business_owner_endpoint(request: VerifyBusinessOwner):
     
     # endpoint for admin to validate a business owner
-    return await business_owner_service.verify_phone_code(request.owner_id, request.code)
+    return await business_owner_service.verify_phone_code(request.owner_id, request.business_id, request.code)
 
     

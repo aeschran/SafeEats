@@ -18,6 +18,7 @@ class PreferenceResponse: Codable {
 
 class Business: Decodable, Identifiable {
     let id: String
+    let owner_id: String?
     let name: String?
     let website: String?
     let description: String?
@@ -28,6 +29,7 @@ class Business: Decodable, Identifiable {
     
     enum CodingKeys: String, CodingKey {
         case id = "_id"
+        case owner_id
         case name
         case website
         case description

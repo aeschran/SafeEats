@@ -67,6 +67,7 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
             if let error = error {
                 DispatchQueue.main.async {
                     self.errorMessage = "Request failed: \(error.localizedDescription)"
+                    self.preferencesLoaded = true
                 }
                 return
             }
@@ -93,7 +94,6 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
                     }
                 } catch {
                     DispatchQueue.main.async {
-                        self.errorMessage = "Failed to parse user preferences: \(error.localizedDescription)"
                         self.preferencesLoaded = true
                     }
                 }

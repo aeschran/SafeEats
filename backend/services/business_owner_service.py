@@ -131,9 +131,9 @@ class BusinessOwnerService(BaseService):
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to send verification call: {str(e)}")
 
-        return {"message": "Verification code sent via phone call."}
+        return {"success": True, "message": "Verification code sent via phone call."}
     
-    async def verify_phone_code(self, owner_id: str, code: str):
+    async def verify_phone_code(self, owner_id: str, business_id:str, code: str):
         record = await self.db.phone_verifications.find_one({"owner_id": ObjectId(owner_id)})
         if not record or record["code"] != code:
             raise HTTPException(status_code=400, detail="Invalid verification code")
@@ -144,6 +144,11 @@ class BusinessOwnerService(BaseService):
         result = await self.db.business_owners.update_one(
             {"_id": ObjectId(owner_id)}, 
             {"$set": {"isVerified": True}}
+        )
+
+        business_update = await self.db.businesses.update_one(
+            {"_id": ObjectId(business_id)}, 
+            {"$set": {"owner_id": ObjectId(owner_id)}}
         )
 
         # clean up

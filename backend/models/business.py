@@ -17,8 +17,8 @@ class Business:
         self.dietary_restrictions = []
     def to_dict(self):
         return {
+            "owner_id": str(self.owner_id) if self.owner_id else None,
             "name": self.name,
-            "owner_id": str(self.owner_id),
             "website": self.website,
             "description": self.description,
             "cuisines": self.cuisines,

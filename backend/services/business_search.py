@@ -59,8 +59,8 @@ class BusinessSearchService(BaseService):
         results_dict = []
         for result in response.json()['results']:
             results_dict.append({
+                "owner_id": str(result['owner_id']) if 'owner_id' in result and result['owner_id'] else None,
                 "name": result['name'],
-                "owner_id": None,
                 "website": result['website'] if 'website' in result else None,
                 "description": result['description'] if 'description' in result else None,
                 "cuisines": [result['categories'][i]['id'] for i in range(len(result['categories']))] if 'categories' in result else [],
@@ -149,7 +149,14 @@ class BusinessSearchService(BaseService):
                         break
         else:
             final_businesses = db_businesses
-            
+        
+        final_businesses = [
+            {
+                **business,
+                "owner_id": str(business["owner_id"])
+            }
+            for business in final_businesses
+        ]
         return [BusinessResponse(**business) for business in final_businesses]
         
     
