@@ -105,4 +105,35 @@ class FeedViewModel: ObservableObject {
         }
 
     
+    func fetchMyReviews() {
+        guard let id = id_ else {
+            print("Error: User ID not found")
+            return
+        }
+        
+        print("current ID \(id)")
+        guard let url = URL(string: "\(baseURL)/review/personal_feed/\(id)") else {
+            print("Invalid URL")
+            return
+        }
+
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                let decodedReviews = try JSONDecoder().decode([FriendReview].self, from: data)
+
+                DispatchQueue.main.async {
+                    self.reviews = decodedReviews
+                    for review in self.reviews {
+                        print(review.userName)
+                        print(review.userId)
+                    }
+                }
+            } catch {
+                print("Error fetching your reviews:", error)
+            }
+        }
+    }
+
+    
 }

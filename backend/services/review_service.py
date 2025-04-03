@@ -117,6 +117,61 @@ class ReviewService(BaseService):
         except Exception as e:
             return []
 
+    async def get_own_reviews(self, user_id: str):
+    
+        try:
+            user_object_id = ObjectId(user_id)
+
+            # Step 1: Find Reviews by the User
+            reviews_cursor = self.db.user_reviews.find({"user_id": user_object_id})
+            reviews = await reviews_cursor.to_list(None)
+            print("User Reviews:", reviews)  # Debugging step
+
+            if not reviews:
+                return []  # Return empty list if the user has no reviews
+
+            # Step 2: Get Business Names
+            business_ids = {ObjectId(review["business_id"]) for review in reviews if review.get("business_id")}
+            print("Business IDs being queried:", business_ids)  # Debugging step
+
+            # Query MongoDB for business names
+            businesses_cursor = self.db.businesses.find({"_id": {"$in": list(business_ids)}})
+            businesses = {str(business["_id"]): business["name"] for business in await businesses_cursor.to_list(None)}
+            print("Fetched Businesses:", businesses)  # Debugging step
+
+            # Step 3: Get User's Name
+            user_cursor = await self.db.users.find_one({"_id": user_object_id})
+            user_name = user_cursor["name"] if user_cursor else "Unknown"
+            print("User Name:", user_name)  # Debugging step
+
+            # Step 4: Format the Response
+            result = []
+            for review in reviews:
+                result.append({
+                    "review_id": str(review["_id"]),
+                    "user_id": str(review["user_id"]),
+                    "business_id": str(review["business_id"]),
+                    "user_name": user_name,  # Only one user, so use the `user_name` here
+                    "business_name": businesses.get(str(review["business_id"]), "Unknown"),
+                    "review_content": review["review_content"],
+                    "rating": review["rating"],
+                    "review_image": review.get("review_image", None),  # Handle missing field
+                    "review_timestamp": review["review_timestamp"],
+                })
+
+            return result if result else []
+
+        except Exception as e:
+            print("Error:", str(e))  # Print any error that occurs
+            return []
+
+
+       
+
+
+
+
+
     async def get_business_reviews(self, business_id: str, user_id: str):
         try:
             reviews_cursor = self.db.user_reviews.find({"business_id": ObjectId(business_id)})
@@ -223,3 +278,26 @@ class ReviewService(BaseService):
 
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
+
+    async def delete_review(self, review_id: str):
+        try:
+            result = await self.db.user_reviews.delete_one({"_id": ObjectId(review_id)})
+            return result.deleted_count > 0  
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    async def edit_review(self, review_id: str, review_update: ReviewCreate):
+        try:
+            update_fields = {k: v for k, v in review_update.dict().items() if v is not None}  # Filter out None values
+            result = await self.db.user_reviews.find_one_and_update(
+                {"_id": ObjectId(review_id)},
+                {"$set": update_fields},
+                return_document=True
+            )
+            if not result:
+                return None
+            return result  
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+

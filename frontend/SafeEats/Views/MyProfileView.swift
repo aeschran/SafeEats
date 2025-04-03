@@ -161,6 +161,8 @@ struct MyProfileView: View {
                     }
                     if selectedTab == "Collections" {
                         collectionsView
+                    } else if selectedTab == "Reviews"{
+                        ProfileReviewView(viewModel: FeedViewModel())
                     }
                 }
                 .padding(6)
@@ -179,6 +181,8 @@ struct MyProfileView: View {
 //                    viewModel.collections = loadCollectionsFromUserDefaults()
                     await loadProfileData()
                 }
+                
+                
             }
         }
         .tint(.black)
@@ -236,6 +240,170 @@ struct MyProfileView: View {
         .onChange(of: viewModel.collections.count) { _, _ in
             viewModel.objectWillChange.send()
         }
+    }
+}
+
+struct ProfileReviewView: View {
+    @ObservedObject var viewModel: FeedViewModel
+    @ObservedObject var reviewViewModel: CreateReviewViewModel = CreateReviewViewModel()
+    @State private var showDeleteConfirmation = false
+    @State private var reviewToDelete: FriendReview? = nil
+    
+    @State private var showEditSheet = false
+    @State private var reviewToEdit: FriendReview? = nil
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 12) {
+                ForEach(viewModel.reviews, id: \.reviewId) { review in
+                    ProfileReviewCard(review: review, onEdit: { editReview(review) },
+                                      onDelete: { deleteReview(review) })
+                    .padding(.horizontal)
+                }
+            }
+        }
+        .onAppear {
+            viewModel.fetchMyReviews()
+        }
+        .alert(isPresented: $showDeleteConfirmation) {
+            Alert(
+                title: Text("Are you sure?"),
+                message: Text("You are about to delete this review."),
+                primaryButton: .destructive(Text("Delete")) {
+                    confirmDeleteReview()
+                },
+                secondaryButton: .cancel()
+            )
+        }
+        
+        .sheet(isPresented: $showEditSheet) {
+            if let review = reviewToEdit {
+                EditReviewView(review: review, onSave: { updatedReview in
+                    // Handle save logic here (e.g., update the review)
+                    print("Updated Review: \(updatedReview)")
+                    showEditSheet = false
+                })
+            }
+        }
+    }
+    private func editReview(_ review: FriendReview) {
+        reviewToEdit = review
+        showEditSheet = true
+    }
+    private func deleteReview(_ review: FriendReview) {
+        reviewToDelete = review
+        showDeleteConfirmation = true
+    }
+
+    private func confirmDeleteReview() {
+        if let review = reviewToDelete {
+            reviewViewModel.deleteReview(reviewID: review.reviewId) { success in
+                if success {
+                    print("Review deleted successfully")
+                } else {
+                    print("Failed to delete review")
+                }
+            }
+        }
+        showDeleteConfirmation = false
+    }
+    
+}
+
+import SwiftUI
+
+struct ProfileReviewCard: View {
+    let review: FriendReview
+    var onEdit: () -> Void
+    var onDelete: () -> Void
+
+    var body: some View {
+        ZStack(alignment: .topTrailing) {
+            HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(review.businessName)
+                        .font(.headline)
+                        .foregroundColor(.black)
+                        .lineLimit(1)
+                        .truncationMode(.tail) // Ensure it doesn't wrap too soon
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    Text(review.reviewContent)
+                        .font(.body)
+                    
+                    HStack {
+                        ForEach(0..<review.rating, id: \.self) { _ in
+                            Image(systemName: "star.fill")
+                                .foregroundColor(.yellow)
+                        }
+                    }
+                    
+                    Text("Reviewed on \(formattedDate(review.reviewTimestamp))")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                .padding()
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }.padding()
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+            .frame(maxWidth: .infinity)
+
+            // Overlay with edit and delete buttons
+            HStack(spacing: 10) {
+                Button(action: onEdit) {
+                    Image(systemName: "pencil")
+                        .foregroundColor(.mainGreen)
+                        .padding(8)
+                        .background(Color.white)
+                        .clipShape(Circle())
+                        .shadow(radius: 1)
+                }
+
+                Button(action: onDelete) {
+                    Image(systemName: "trash")
+                        .foregroundColor(.red)
+                        .padding(8)
+                        .background(Color.white)
+                        .clipShape(Circle())
+                        .shadow(radius: 1)
+                }
+            }
+            .padding()
+        }
+    }
+
+    private func formattedDate(_ timestamp: Double) -> String {
+        let date = Date(timeIntervalSince1970: timestamp)
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
+    }
+}
+
+struct EditReviewView: View {
+    @State private var editedContent: String
+    @State private var mutableReview: FriendReview
+    
+    var onSave: (FriendReview) -> Void
+
+    init(review: FriendReview, onSave: @escaping (FriendReview) -> Void) {
+        self._mutableReview = State(initialValue: review) // Using a mutable copy of review
+        self._editedContent = State(initialValue: review.reviewContent)
+        self.onSave = onSave
+    }
+
+    var body: some View {
+        VStack {
+            Text("Edit Review")
+                .font(.headline)
+                .padding()
+
+            TextField("Review Content", text: $editedContent)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding()
+
+        }
+        .padding()
     }
 }
 
