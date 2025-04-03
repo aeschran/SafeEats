@@ -24,15 +24,15 @@ struct SearchBar: View {
     }
 }
 
-struct BusinessSearchBar: View {
-    @ObservedObject var viewModel: BusinessSearchViewModel
+struct ClaimBusinessSearchBar: View {
+    @ObservedObject var viewModel: ClaimBusinessViewModel
     
     var body: some View {
         HStack {
             Image(systemName: "magnifyingglass")
             TextField("Search for business...", text: $viewModel.query)
                 .onSubmit {
-                    viewModel.searchBusinesses()
+                    viewModel.fetchSearchResults()
                 }
         }
         .padding(10)
