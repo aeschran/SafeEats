@@ -19,7 +19,13 @@ struct BusinessDetailView: View {
     @State private var downvoteCount: Int = 3  // Replace with actual count
     @State private var userVote: Int? = nil
     @StateObject private var viewModel = BusinessDetailViewModel()
-    let businessId = "67c0f434d995a74c126ecfd7"
+//    let businessId = business.id
+    @State private var selectedFilter: String = "Most Recent"
+    @State private var showDropdown: Bool = false
+//    @Published var reviews: [Review] = []
+        
+    let filterOptions: [String] = ["Most Recent", "Least Recent", "Highest Rating", "Lowest Rating", "Most Popular", "Least Popular"]
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -127,8 +133,8 @@ struct BusinessDetailView: View {
                     //                Spacer()
                 }
                 .onAppear{
-                    viewModel.fetchReviews(for: businessId)
-                    
+
+                    viewModel.fetchReviews(for: business.id)
                 }
                 .task {
                     await viewModel.fetchBusinessData(businessID: business.id)
@@ -139,25 +145,54 @@ struct BusinessDetailView: View {
     }
     
     private var reviewsSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Reviews")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                Spacer()
-                NavigationLink(destination: CreateReviewView()) {
-                    Text("Write a Review")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.mainGreen)
-                        .cornerRadius(10)
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text("Reviews")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                        Menu {
+                            ForEach(filterOptions, id: \.self) { option in
+                                Button(action: {
+                                    selectedFilter = option
+                                    viewModel.sortReviews(by: option)
+                                }) {
+                                    Text(option)
+                                    
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Text(selectedFilter)
+                                    .font(.subheadline)
+                                    .foregroundColor(.black)
+                                
+                                Image(systemName: "chevron.down")
+                                    .foregroundColor(.gray)
+                            }
+                            .padding(6)
+                            .background(Color.white)
+                            .cornerRadius(6)
+                            .shadow(radius: 1)
+                            .frame(width: 180)
+                            
+                        }
+                    }
+                            Spacer()
+                    NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
+                        viewModel.fetchReviews(for: business.id)// Reload reviews after submission
+                    }, businessId: business.id)) {
+                                Text("Write a Review")
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .padding()
+                                    .background(Color.mainGreen)
+                                    .cornerRadius(10)
+                            }
+                        }.padding(.bottom, 20)
+                ForEach(viewModel.reviews, id: \.id) { review in
+                    ReviewCardView(review: review, viewModel: viewModel)
                 }
-            }
-            .padding(.bottom, 8)
-            
-            ForEach(viewModel.reviews, id: \.id) { review in
-                ReviewCardView(review: review, viewModel: viewModel)
             }
         }
         .padding(.horizontal, 30)
