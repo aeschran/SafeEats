@@ -8,5 +8,6 @@ class VerificationCall(BaseModel):
 
 class VerifyBusinessOwner(BaseModel):
     owner_id: str
+    business_id: str
     code: str
     expires_at: str

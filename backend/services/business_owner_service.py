@@ -133,9 +133,9 @@ class BusinessOwnerService(BaseService):
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to send verification call: {str(e)}")
 
-        return {"message": "Verification code sent via phone call."}
+        return {"success": True, "message": "Verification code sent via phone call."}
     
-    async def verify_phone_code(self, owner_id: str, code: str):
+    async def verify_phone_code(self, owner_id: str, business_id:str, code: str):
         record = await self.db.phone_verifications.find_one({"owner_id": ObjectId(owner_id)})
         if not record or record["code"] != code:
             raise HTTPException(status_code=400, detail="Invalid verification code")
@@ -146,6 +146,11 @@ class BusinessOwnerService(BaseService):
         result = await self.db.business_owners.update_one(
             {"_id": ObjectId(owner_id)}, 
             {"$set": {"isVerified": True}}
+        )
+
+        business_update = await self.db.businesses.update_one(
+            {"_id": ObjectId(business_id)}, 
+            {"$set": {"owner_id": owner_id}}
         )
 
         # clean up
@@ -196,17 +201,28 @@ class BusinessOwnerService(BaseService):
 
         return {"message": "Password reset successful"}
 
-    async def get_business_listing_search(self, query: str) -> List[BusinessResponse]:
+    async def get_business_listing_search(self, query: str = "") -> List[BusinessResponse]:
         try:
-            search_results_cursor = self.db.businesses.find(
-                {
-                    "$and": [
-                        {"name": {"$regex": query, "$options": "i"}},  # Case-insensitive name search
-                        {"owner_id": "None"}  # Only return businesses where owner_id is None
-                    ]
-                },
-                # {"_id": 1, "name": 1, "address": 1, "website": 1}  # Return only relevant fields
-            )  # Limit to 10 results
+            print(query + "HI")
+            if query.strip() == "":
+                search_results_cursor = self.db.businesses.find(
+                    {
+                        "$and": [
+                            {"owner_id": "None"}  # Only return businesses where owner_id is None
+                        ]
+                    },
+                    # {"_id": 1, "name": 1, "address": 1, "website": 1}  # Return only relevant fields
+                )  # Limit to 10 results
+            else:
+                search_results_cursor = self.db.businesses.find(
+                    {
+                        "$and": [
+                            {"name": {"$regex": query, "$options": "i"}},  # Case-insensitive name search
+                            {"owner_id": "None"}  # Only return businesses where owner_id is None
+                        ]
+                    },
+                    # {"_id": 1, "name": 1, "address": 1, "website": 1}  # Return only relevant fields
+                )  # Limit to 10 results
             search_results = await search_results_cursor.to_list(length=10)
 
             businesses = [BusinessResponse(**{**business, "id": str(business["_id"])}) for business in search_results]
@@ -217,8 +233,9 @@ class BusinessOwnerService(BaseService):
 
     async def get_owner_listings(self, id: str):
         try:
+            print(id)
             search_results_cursor = self.db.businesses.find(
-                {"owner_id": str(id)}
+                {"owner_id": id}
             ) 
             search_results = await search_results_cursor.to_list(length=10)
 

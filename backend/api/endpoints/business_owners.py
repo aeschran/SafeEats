@@ -25,7 +25,7 @@ async def create_business_owner_endpoint(business_owner: BusinessOwnerCreate):
     
 @router.get("/search", response_model=List[BusinessResponse])
 async def get_business_listing_search_endpoint(
-    query: str = Query(..., min_length=1)
+    query: str = Query(..., min_length=0)
 ):
     return await business_owner_service.get_business_listing_search(query)
 
@@ -53,5 +53,5 @@ async def verify_business_owner_endpoint(request: VerificationCall):
 async def verify_business_owner_endpoint(request: VerifyBusinessOwner):
     
     # endpoint for admin to validate a business owner
-    return await business_owner_service.verify_phone_code(request.owner_id, request.code)
+    return await business_owner_service.verify_phone_code(request.owner_id, request.business_id, request.code)
 
