@@ -39,6 +39,7 @@ struct CollectionDetailView: View {
     @State private var editedCollectionName: String = ""
     @State private var displayedName: String = ""
     @State private var hasAppeared = false
+    @State private var showErrorMessage: Bool = false
     
     func getBusinessInformation(businessId: String) async {
         await viewModel.getBusinessInformation(businessId: businessId)
@@ -134,7 +135,6 @@ struct CollectionDetailView: View {
                 Task {
                     viewModel.errorMessage = nil
                     await viewModel.editCollectionName(collectionId: collection.id, editedName: editedCollectionName)
-                    collection.name = editedCollectionName
 //                    if let updatedName = collection.name {
 //                        DispatchQueue.main.async {
 //                            collection.name = updatedName
@@ -142,9 +142,17 @@ struct CollectionDetailView: View {
 //                    }
                     isEditingName = false
                     if viewModel.errorMessage != nil {
-                        print("uh oh")
+                        showErrorMessage = true
+                    } else {
+                        collection.name = editedCollectionName
                     }
                 }
+            }
+        }
+        .alert("\(viewModel.errorMessage ?? "An error occurred")", isPresented: $showErrorMessage) {
+            Button("OK") {
+                showErrorMessage = false
+                viewModel.errorMessage = nil
             }
         }
     }

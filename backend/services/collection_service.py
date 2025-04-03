@@ -99,6 +99,19 @@ class CollectionService(BaseService):
             print("no collection")
             return None
         
+        # Get the names of the other collections under this user
+        # This is to ensure we do not have duplicate collection names for the same user
+        existing_collections = await self.db.collections.find({
+            "user_id": existing_collection["user_id"],
+            "_id": {"$ne": ObjectId(collection.collection_id)} # Exclude the current collection being edited
+        }).to_list(length=None)
+
+        # Check for duplicate names
+        for existing in existing_collections:
+            if existing["name"] == collection.name:
+                print(f"A collection with the name '{collection.name}' already exists for this user.")
+                return None
+        
         # Update the collection's name
         result = await self.db.collections.update_one(
             {"_id": ObjectId(collection.collection_id)},
