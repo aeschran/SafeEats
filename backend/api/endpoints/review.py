@@ -21,7 +21,6 @@ async def add_image(image: ReviewImage):
     
     return review
 
-
 @router.post("/create")
 async def create_review(review_create: ReviewCreate):
     review = await review_service.create_review(review_create)
@@ -50,3 +49,10 @@ async def review_vote(review_vote: ReviewAddVote):
     if not review:
         raise HTTPException(status_code=500, detail="Failed to create review")
     return review
+
+
+@router.get("/{review_id}")
+async def get_detailed_review(review_id: str):
+    reviews = await review_service.get_detailed_review(review_id)
+
+    return reviews

@@ -244,6 +244,12 @@ struct OwnerBusinessDetailView: View {
                     .font(.body)
                     .foregroundColor(.black)
                     .lineLimit(2)
+                HStack {
+                    Text("votes: \(review.upvotes - review.downvotes)")
+                        .font(.subheadline)
+                }
+                .padding(.top, 3)
+                .padding(.bottom, 5)
             }
             .padding()
             .background(Color.gray.opacity(0.1))
