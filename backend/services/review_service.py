@@ -151,11 +151,11 @@ class ReviewService(BaseService):
                     "review_id": str(review["_id"]),
                     "user_id": str(review["user_id"]),
                     "business_id": str(review["business_id"]),
-                    "user_name": user_name,  # Only one user, so use the `user_name` here
+                    "user_name": user_name,  
                     "business_name": businesses.get(str(review["business_id"]), "Unknown"),
                     "review_content": review["review_content"],
                     "rating": review["rating"],
-                    "review_image": review.get("review_image", None),  # Handle missing field
+                    "review_image": review.get("review_image", None),  
                     "review_timestamp": review["review_timestamp"],
                 })
 
@@ -287,9 +287,16 @@ class ReviewService(BaseService):
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
     
+    from bson import ObjectId
+
     async def edit_review(self, review_id: str, review_update: ReviewCreate):
         try:
-            update_fields = {k: v for k, v in review_update.dict().items() if v is not None}  # Filter out None values
+            print("HERE" + review_id)
+            update_fields = {
+                    k: (ObjectId(v) if k in ["user_id", "business_id"] and v is not None else v)
+                    for k, v in review_update.dict().items() if v is not None
+                }
+            update_fields["review_timestamp"] = time.time()
             result = await self.db.user_reviews.find_one_and_update(
                 {"_id": ObjectId(review_id)},
                 {"$set": update_fields},
@@ -297,7 +304,13 @@ class ReviewService(BaseService):
             )
             if not result:
                 return None
+            
+            # Convert the ObjectId to string before returning
+            result["user_id"] = str(result["user_id"])  # Convert the ObjectId to string
+            result["business_id"] = str(result["business_id"])
+            result["_id"] = str(result["_id"])
             return result  
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
 
