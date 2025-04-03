@@ -46,7 +46,7 @@ class BusinessDetailViewModel: ObservableObject {
     @AppStorage("id") var id_: String?
     private let baseURL = "http://127.0.0.1:8000"
     
-
+    
     
     func fetchReviews(for businessId: String) {
         guard let id = id_ else {
@@ -94,11 +94,11 @@ class BusinessDetailViewModel: ObservableObject {
                 review.userVote = 1
                 updateReviewVote(reviewID, vote: 1)
             }
-
+            
             reviews[index] = review
         }
     }
-
+    
     func downvoteReview(_ reviewID: String) {
         if let index = reviews.firstIndex(where: { $0.id == reviewID }) {
             var review = reviews[index]
@@ -120,44 +120,42 @@ class BusinessDetailViewModel: ObservableObject {
                 review.userVote = -1
                 updateReviewVote(reviewID, vote: 0)
             }
-
+            
             reviews[index] = review
         }
     }
-        private func updateReviewVote(_ reviewID: String, vote: Int) {
-            guard let id = id_ else {
-                print("Error: User data is not available")
-                return
-            }
-            guard let url = URL(string: "http://127.0.0.1:8000/review/vote/") else { return }
-            var request = URLRequest(url: url)
-            request.httpMethod = "POST"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            
-            let body: [String: Any] = [
-                "review_id": reviewID,
-                "user_id": id,  // Replace with the actual user ID
-                "vote": vote
-            ]
-            
-            // If the user has already downvoted, remove the downvote
-            if review.userVote == -1 {
-                review.downvotes -= 1
-                review.userVote = nil
-                updateReviewVote(reviewID, vote: 2)  // Remove downvote
-            } else {
-                // If the user previously upvoted, remove the upvote
-                if review.userVote == 1 {
-                    review.upvotes -= 1
-                }
-                
-                review.downvotes += 1
-                review.userVote = -1
-                updateReviewVote(reviewID, vote: 0)  // Add downvote
-            }
-            
-            reviews[index] = review
-        }
+    
+    private func updateReviewVote(_ reviewID: String, vote: Int) {
+                guard let id = id_ else {
+                        print("Error: User data is not available")
+                        return
+                    }
+                    guard let url = URL(string: "http://127.0.0.1:8000/review/vote/") else { return }
+                    var request = URLRequest(url: url)
+                    request.httpMethod = "POST"
+                    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                    
+                    let body: [String: Any] = [
+                            "review_id": reviewID,
+                            "user_id": id,  // Replace with the actual user ID
+                            "vote": vote
+                        ]
+                    
+                    do {
+                            let data = try JSONSerialization.data(withJSONObject: body, options: [])
+                            request.httpBody = data
+                            
+                            URLSession.shared.dataTask(with: request) { _, _, _ in
+                                    // Handle response or error if needed
+                                }.resume()
+                        } catch {
+                                print("Error encoding vote data:", error)
+                            }
+        
+        
+            }
+    
+    
     
     // BUSINESS DETAILS
     
@@ -210,21 +208,21 @@ class BusinessDetailViewModel: ObservableObject {
     
     
     func sortReviews(by filter: String) {
-            switch filter {
-            case "Most Recent":
-                reviews.sort { $0.reviewTimestamp > $1.reviewTimestamp }
-            case "Least Recent":
-                reviews.sort { $0.reviewTimestamp < $1.reviewTimestamp }
-            case "Most Popular":
-                reviews.sort { ($0.upvotes - $0.downvotes) > ($1.upvotes - $1.downvotes) }
-            case "Least Popular":
-                reviews.sort { ($0.upvotes - $0.downvotes) < ($1.upvotes - $1.downvotes) }
-            case "Lowest Rating":
-                reviews.sort{ $0.rating < $1.rating }
-            case "Highest Rating":
-                reviews.sort{ $0.rating > $1.rating }
-            default:
-                break
-            }
+        switch filter {
+        case "Most Recent":
+            reviews.sort { $0.reviewTimestamp > $1.reviewTimestamp }
+        case "Least Recent":
+            reviews.sort { $0.reviewTimestamp < $1.reviewTimestamp }
+        case "Most Popular":
+            reviews.sort { ($0.upvotes - $0.downvotes) > ($1.upvotes - $1.downvotes) }
+        case "Least Popular":
+            reviews.sort { ($0.upvotes - $0.downvotes) < ($1.upvotes - $1.downvotes) }
+        case "Lowest Rating":
+            reviews.sort{ $0.rating < $1.rating }
+        case "Highest Rating":
+            reviews.sort{ $0.rating > $1.rating }
+        default:
+            break
         }
+    }
 }
