@@ -24,7 +24,7 @@ struct BusinessSearchRequest: Codable {
     let query: String
     var cuisines: [String]? = nil
     var dietary_restrictions: [PreferenceStruct]? = nil
-    var radius: Int? = nil
+    var radius: Double? = nil
 }
 
 class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDelegate {
@@ -38,7 +38,7 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
     @Published var preferencesLoaded: Bool = false
-    @Published var radius: Int = 5
+    @Published var radius: Double = 5
     @Published var businessesMap: [BusinessMapLocation] = []
     
     private var cancellables = Set<AnyCancellable>()
@@ -211,7 +211,7 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
             all_preferences.append(preference)
         }
         
-        let requestBody = BusinessSearchRequest(lat: latitude, lon: longitude, query: query, cuisines: Array(selectedCuisines), dietary_restrictions: all_preferences, radius: Int(radius))
+        let requestBody = BusinessSearchRequest(lat: latitude, lon: longitude, query: query, cuisines: Array(selectedCuisines), dietary_restrictions: all_preferences, radius: radius)
         
         do {
             request.httpBody = try JSONEncoder().encode(requestBody)

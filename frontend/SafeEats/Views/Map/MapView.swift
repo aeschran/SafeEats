@@ -102,7 +102,7 @@ struct MapView: View {
                     }
                 }
                 .sheet(isPresented: $showFilters) {
-                    PickPreferences(selectedCuisines: $viewModel.selectedCuisines, selectedAllergies: $viewModel.selectedAllergies, selectedDietaryRestrictions: $viewModel.selectedDietaryRestrictions)
+                    FilterMapView(selectedCuisines: $viewModel.selectedCuisines, selectedAllergies: $viewModel.selectedAllergies, selectedDietaryRestrictions: $viewModel.selectedDietaryRestrictions, radius: $viewModel.radius)
                         .presentationDetents([.medium, .large])
                         .padding(.top, 40)
                 }
