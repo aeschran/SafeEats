@@ -9,10 +9,12 @@ import SwiftUI
 
 
 struct ContentView: View {
-    @State private var tabSelected: Tab = .house
+//    @State private var tabSelected: Tab = .house
+    @State private var tabSelected: Tab
     @StateObject private var viewModel = BusinessSearchViewModel()
     init() {
         UITabBar.appearance().isHidden = true
+        _tabSelected = State(initialValue: AuthViewModel().userType == "Business" ? .building : .house)
     }
     
     var body: some View {
@@ -31,7 +33,9 @@ struct ContentView: View {
                         case .person:
                             MyProfileView()
                         case .building:
-                            LandingPage()
+                            OwnerListingsView()
+                        case .listing:
+                            ClaimBusinessView()
                         }
                         
                     }

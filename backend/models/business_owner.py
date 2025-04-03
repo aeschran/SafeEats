@@ -18,3 +18,10 @@ class BusinessOwner:
             "password": self.password,
             "isVerified": self.isVerified
         }
+    
+class BusinessSearchResponse:
+    def __init__(self, id: str, name: str, address: str, website: str):
+        self.id = id
+        self.name = name
+        self.address = address
+        self.website = website

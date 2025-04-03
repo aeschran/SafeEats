@@ -1,3 +1,4 @@
+from bson import ObjectId
 import requests
 from core.config import settings
 from services.base_service import BaseService
@@ -42,7 +43,7 @@ class BusinessSearchService(BaseService):
             "near": near,
             "query": query,
             "limit": self.limit,
-            "fields": "name,website,description,categories,menu,geocodes,location"
+            "fields": "name,website,tel,description,categories,menu,geocodes,location"
         }
 
         response = requests.get(self.url, params=params, headers=self.headers)
@@ -55,7 +56,7 @@ class BusinessSearchService(BaseService):
             "ll": f"{business_search.lat},{business_search.lon}",
             "query": business_search.query,
             "limit": self.limit,
-            "fields": "name,website,description,categories,menu,geocodes,location"
+            "fields": "name,website,tel,description,categories,menu,geocodes,location"
         }
 
         response = requests.get(self.url, params=params, headers=self.headers)
@@ -73,6 +74,7 @@ class BusinessSearchService(BaseService):
                 "name": result['name'],
                 "owner_id": None,
                 "website": result['website'] if 'website' in result else None,
+                "tel": result['tel'] if 'tel' in result else None,
                 "description": result['description'] if 'description' in result else None,
                 "cuisines": [result['categories'][i]['id'] for i in range(len(result['categories']))] if 'categories' in result else [],
                 "menu": result['menu'] if 'menu' in result else None,
@@ -204,6 +206,20 @@ class BusinessSearchService(BaseService):
 
         return cuisines
     
+    async def get_business_by_id(self, business_id: str):
+        """
+        Get a business by its ID from the database
+        """
+        try:
+            print(f"Retrieving business by id: {business_id}")
+            business = await self.db.businesses.find_one({"_id": ObjectId(business_id)}) # Ensure to convert business_id to ObjectId
+            if business is None:
+                return None
+            return BusinessResponse(**business)
+        except Exception as e:
+            print(f"Error retrieving business by id: {e}")
+            return None
+    
     async def get_businesses_within_radius(self, business_search: BusinessSearch):
         # Fetch businesses from the database within the specified radius
         businesses = await self.db.businesses.find({
@@ -231,7 +247,9 @@ class BusinessSearchService(BaseService):
                     "lat": business["location"]["coordinates"][1],
                     "lon": business["location"]["coordinates"][0]
                 },
-                "dietary_restrictions": business["dietary_restrictions"]
+                "dietary_restrictions": business["dietary_restrictions"],
+                "avg_rating": business["avg_rating"] if "avg_rating" in business else 0.0,
+                "tel": business["tel"] if "tel" in business else None
             })
         db_businesses = []
         if self.cuisine_ranges != []:

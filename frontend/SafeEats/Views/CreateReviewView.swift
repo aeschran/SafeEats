@@ -10,11 +10,19 @@ import SwiftUI
 
 
 struct CreateReviewView: View {
+    @ObservedObject var viewModel = CreateReviewViewModel()
+    @Environment(\.presentationMode) var presentationMode
+    
     @State private var rating: Int = 0
     @State private var reviewText: String = ""
     @State private var selectedImage: UIImage? = nil
     @State private var showImagePicker = false
+    @State private var showSuccessMessage = false
+    var onReviewSubmitted: () -> Void
     
+    
+    
+    let businessId: String
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
             Text("Rate this Restaurant")
@@ -58,11 +66,26 @@ struct CreateReviewView: View {
             .sheet(isPresented: $showImagePicker) {
                 ReviewImagePicker(image: $selectedImage)
             }
+            // Display selected image
+            if let image = selectedImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 200)
+                    .cornerRadius(10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.gray, lineWidth: 1)
+                    )
+                    .padding(.vertical)
+            }
             
             Spacer()
             
             Button(action: {
-                submitReview()
+                viewModel.submitReview(businessId: businessId, reviewContent: reviewText, rating: rating, image: selectedImage)
+                onReviewSubmitted()
+                presentationMode.wrappedValue.dismiss()
             }) {
                 Text("Create Review")
                     .font(.headline)
@@ -72,6 +95,10 @@ struct CreateReviewView: View {
                     .background(Color.mainGreen)
                     .cornerRadius(10)
             }
+//            .alert("Your review has been created!", isPresented: $showSuccessMessage) {
+//                Button("OK") {
+//                }
+//            }
         }
         .padding()
         .navigationTitle("Write a Review")
@@ -115,5 +142,5 @@ struct ReviewImagePicker: UIViewControllerRepresentable {
 
 
 #Preview {
-    CreateReviewView()
+    CreateReviewView(onReviewSubmitted: {}, businessId: "67c0f434d995a74c126ecfd7")
 }

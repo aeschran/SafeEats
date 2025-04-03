@@ -9,7 +9,6 @@ import SwiftUI
 
 struct CompactBusinessCard: View {
     var business: Business
-    var rating: Double
     
     var body: some View {
         VStack(spacing: 6) {
@@ -23,7 +22,7 @@ struct CompactBusinessCard: View {
                
                 
                 HStack(spacing: 3) {
-                    Text("\(String(format: "%.1f", rating))")
+                    Text("\(String(format: "%.1f", business.avg_rating ?? 0.0))")
                         .font(.body)
                         .bold()
                     Image(systemName: "star.fill")

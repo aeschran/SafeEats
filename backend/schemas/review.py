@@ -12,7 +12,10 @@ class ReviewCreate(BaseModel):
     rating: int
     # review_timestamp: float
     review_content: str
-    review_image: Optional[str] = None 
+    # review_image: Optional[str] = None 
+class ReviewImage(BaseModel):
+    review_id: str
+    review_image: str
 
 class ReviewResponse(BaseModel):
     business_id: PyObjectId

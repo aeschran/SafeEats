@@ -17,12 +17,14 @@ class BusinessService(BaseService):
             name=business.name,
             owner_id=business.owner_id,
             website=business.website,
+            tel=business.tel,
             description=business.description,
             cuisines=business.cuisines,
             menu=business.menu,
             address=business.address,
             location=updated_location,
-            dietary_restrictions=business.dietary_restrictions
+            dietary_restrictions=business.dietary_restrictions,
+            avg_rating=business.avg_rating
         )
         existing_doc = await self.db.businesses.find_one({
             "name": business.name,
@@ -35,6 +37,8 @@ class BusinessService(BaseService):
             added_business["_id"] = business_id.inserted_id
             return BusinessResponse(**added_business)
         else:
+            existing_avg_rating = existing_doc.get("avg_rating", 0.0)  # Preserve existing rating
+            business.avg_rating = existing_avg_rating  # Assign it before updating
             return self.update_business(business_id=existing_doc["_id"], business=business)
 
     def get_businesses(self):
@@ -63,12 +67,14 @@ class BusinessService(BaseService):
             name=business.name,
             owner_id=business.owner_id,
             website=business.website,
+            tel=business.tel,
             description=business.description,
             cuisines=business.cuisines,
             menu=business.menu,
             address=business.address,
             location=updated_location,
-            dietary_restrictions=business.dietary_restrictions
+            dietary_restrictions=business.dietary_restrictions,
+            avg_rating=business.avg_rating
         )
         update_data = {k: v for k, v in updated_business.to_dict().items() if v is not None}
 
@@ -89,3 +95,51 @@ class BusinessService(BaseService):
         if result.deleted_count == 0:
             return None
         return True
+    
+    async def get_average_rating(self, business_id: str) -> float:
+        business_object_id = ObjectId(business_id)
+        business = await self.db.businesses.find_one({"_id": business_object_id}, {"avg_rating": 1})
+        if business and "avg_rating" in business:
+            return business["avg_rating"]
+        return 0.0
+    
+    async def update_average_rating(self, business_id: str):
+        business_object_id = ObjectId(business_id)
+        
+        # ratings = await self.db.user_reviews.find({"business_id": business_object_id}).to_list(length=None)
+        # print(f"Ratings: {[r['rating'] for r in ratings]}")
+
+        pipeline = [
+            {"$match": {"business_id": business_object_id}}, 
+            {"$group": {"_id": None, "avg_rating": {"$avg": "$rating"}}} 
+        ]
+
+        result = await self.db.user_reviews.aggregate(pipeline).to_list(length=1)
+        
+
+        if result:
+            avg_rating = result[0]["avg_rating"]
+        else:
+            avg_rating = 0.0
+
+        avg_rating = round(avg_rating, 1)
+
+        await self.db.businesses.update_one(
+            {"_id": business_object_id},
+            {"$set": {"avg_rating": float(avg_rating)}}
+
+        )
+
+        return avg_rating
+
+    
+    async def get_review_count(self, business_id: str) -> int:
+        business_object_id = ObjectId(business_id)
+
+        count = await self.db.user_reviews.count_documents({"business_id": business_object_id})
+        return count
+
+    
+
+    
+    

@@ -22,7 +22,7 @@ struct MapView: View {
     ]
     
     private func getBusiness(businessMap: BusinessMapLocation) -> Business {
-        return Business(id: businessMap.id, name: businessMap.name, website: businessMap.website, description: businessMap.description, cuisines: businessMap.cuisines, menu: businessMap.menu, address: businessMap.address, dietary_restrictions: businessMap.dietary_restrictions)
+        return Business(id: businessMap.id, name: businessMap.name, website: businessMap.website, description: businessMap.description, cuisines: businessMap.cuisines, menu: businessMap.menu, address: businessMap.address, dietary_restrictions: businessMap.dietary_restrictions, tel: businessMap.tel, avg_rating: businessMap.avg_rating)
     }
     
     func getCuisineIcon(for business: BusinessMapLocation) -> String {
@@ -68,7 +68,7 @@ struct MapView: View {
                                 
                                 if selectedBusinessId == business.id {
                                     ZStack(alignment: .topTrailing) { // Aligns button to the top-right
-                                        CompactBusinessCard(business: business, rating: 4.5)
+                                        CompactBusinessCard(business: business)
                                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                                             .background(Color.white)
                                             .cornerRadius(10)

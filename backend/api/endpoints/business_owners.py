@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from schemas.business_owner import BusinessOwnerCreate, BusinessOwnerResponse
+from schemas.business import BusinessResponse, BusinessCreate
 from schemas.business_verification import VerificationCall, VerifyBusinessOwner
 from services.business_owner_service import BusinessOwnerService
 from core.security import credentials_exception
 from services.jwttoken import verify_token, get_token
+from typing import List
 
 router = APIRouter(tags=["Business Owners"])
 
@@ -19,6 +21,17 @@ async def get_business_owners_endpoint(token: str = Depends(get_token),
 @router.post("")
 async def create_business_owner_endpoint(business_owner: BusinessOwnerCreate):
     return await business_owner_service.create_new_business_owner(business_owner)
+
+    
+@router.get("/search", response_model=List[BusinessResponse])
+async def get_business_listing_search_endpoint(
+    query: str = Query(..., min_length=0)
+):
+    return await business_owner_service.get_business_listing_search(query)
+
+@router.get("/listings/{_id}")
+async def get_business_owner_listings(_id: str):
+    return await business_owner_service.get_owner_listings(_id)
 
 @router.get("/{email}")
 async def get_business_owner_endpoint(email: str, token: str = Depends(get_token), 
@@ -40,6 +53,8 @@ async def verify_business_owner_endpoint(request: VerificationCall):
 async def verify_business_owner_endpoint(request: VerifyBusinessOwner):
     
     # endpoint for admin to validate a business owner
-    return await business_owner_service.verify_phone_code(request.owner_id, request.code)
+    return await business_owner_service.verify_phone_code(request.owner_id, request.business_id, request.code)
 
-    
+@router.post("/listings/create")
+async def create_owner_listing(new_business: BusinessCreate):
+    return await business_owner_service.create_owner_listing(new_business)

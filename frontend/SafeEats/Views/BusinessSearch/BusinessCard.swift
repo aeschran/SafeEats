@@ -11,6 +11,7 @@ struct BusinessCard: View {
     var business: Business
     var rating: Double
     var imageName: String // Business logo
+    @StateObject private var viewModel = BusinessDetailViewModel()
     
     var body: some View {
         HStack {
@@ -45,12 +46,23 @@ struct BusinessCard: View {
                 
                 // Rating
                 HStack(spacing: 3) {
-                    Text("\(String(format: "%.1f", rating))")
-                        .font(.subheadline)
-                        .bold()
+                    if let avg_rating = viewModel.avg_rating {
+                        Text("\(String(format: "%.1f", avg_rating))")
+                            .font(.headline)
+                            .bold()
+                    } else {
+                        ProgressView()
+                            .font(.title)
+                    }
                     Image(systemName: "star.fill")
                         .foregroundColor(.yellow)
-                    Text("(200+)")
+                    if let totalReviews = viewModel.total_reviews {
+                        Text("(\(totalReviews))")
+                            .foregroundColor(.gray)
+                    } else {
+                        ProgressView()
+                            .font(.system(size: 24))
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -58,5 +70,8 @@ struct BusinessCard: View {
         .padding()
         .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
         .frame(maxWidth: .infinity, alignment: .leading)
+        .task {
+            await viewModel.fetchBusinessData(businessID: business.id)
+        }
     }
 }

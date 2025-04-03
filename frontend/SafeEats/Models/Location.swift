@@ -23,8 +23,10 @@ class BusinessMapLocation: Decodable, Identifiable {
     let menu: String?
     let address: String?
     let dietary_restrictions: [PreferenceResponse]?
+    var avg_rating: Double = 0.0
+    let tel: String?
 
-    init(id: String, location: Location, name: String?, website: String?, description: String?, cuisines: [Int], menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?) {
+    init(id: String, location: Location, name: String?, website: String?, description: String?, cuisines: [Int], menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?, avg_rating: Double, tel: String?) {
         self.id = id
         self.location = location
         self.name = name
@@ -34,6 +36,8 @@ class BusinessMapLocation: Decodable, Identifiable {
         self.menu = menu
         self.address = address
         self.dietary_restrictions = dietary_restrictions
+        self.avg_rating = avg_rating
+        self.tel = tel
     }
     
     enum CodingKeys: String, CodingKey {
@@ -46,6 +50,8 @@ class BusinessMapLocation: Decodable, Identifiable {
         case cuisines
         case address
         case dietary_restrictions
+        case avg_rating
+        case tel
     }
 }
 

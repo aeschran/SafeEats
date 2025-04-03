@@ -13,6 +13,7 @@ enum Tab: String, CaseIterable {
     case location
     case person
     case building
+    case listing
 }
 
 struct CustomTabBar: View {
@@ -32,6 +33,9 @@ struct CustomTabBar: View {
             return selectedTab == tab ? "person.fill" : "person"
         case .building:
             return selectedTab == tab ? "building.2.fill" : "building.2"
+        case .listing:
+            return selectedTab == tab ? "list.bullet.clipboard.fill" : "list.bullet.clipboard"
+        
         }
     }
     
@@ -41,7 +45,7 @@ struct CustomTabBar: View {
     private var filteredTabs: [Tab] {
         switch userType {
         case "Business":
-            return [.house, .building]
+            return [.listing, .building]
         case "User":
             return [.house, .location, .search, .person]
         default:

@@ -174,11 +174,9 @@ class AuthViewModel: ObservableObject {
         request.httpBody = jsonData
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
-        print(request.httpBody)
         do {
             let (data, response) = try await URLSession.shared.data(for: request)
             
-            print(data)
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
                 print("Response Status Code: \(httpResponse.statusCode)")
                 DispatchQueue.main.async {
@@ -193,6 +191,7 @@ class AuthViewModel: ObservableObject {
                    let email = json["email"] as? String,
                    let phone = json["phone"] as? String,
                    let username = json["username"] as? String {
+                    self.id_ = id
                     DispatchQueue.main.async {
                         self.id_ = id
                         self.name_ = name
@@ -409,6 +408,50 @@ class AuthViewModel: ObservableObject {
                     DispatchQueue.main.async {
                         self.errorMessage = "Failed to delete account. Status code: \(httpResponse.statusCode)"
                     }
+                }
+            }
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Network error: \(error.localizedDescription)"
+            }
+        }
+    }
+    
+    func createBookmarksCollection() async {
+        guard let id = id_ else {
+            print("ID is nil")
+            return
+        }
+        
+        guard let url = URL(string: "\(baseURL)/collections") else { return }
+        
+        
+        let requestBody: [String: Any] = [
+            "name": "Bookmarks",
+            "user_id": id,
+            "businesses": []
+        ]
+        
+        guard let jsonData = try? JSONSerialization.data(withJSONObject: requestBody) else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.httpBody = jsonData
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+                DispatchQueue.main.async {
+                    self.errorMessage = "Registration failed"
+                }
+                return
+            }
+            if let json = try? JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
+            } else {
+                DispatchQueue.main.async {
+                    self.errorMessage = "Invalid response data"
                 }
             }
         } catch {

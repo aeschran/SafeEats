@@ -7,10 +7,12 @@ from models.business_owner import BusinessOwner
 import random
 import string
 from schemas.business_owner import BusinessOwnerResponse, BusinessOwnerCreate
+from schemas.business import BusinessResponse, BusinessCreate
 from services.base_service import BaseService
 import sendgrid
 from sendgrid.helpers.mail import Mail, Email, To, Content
 from twilio.rest import Client
+from typing import List
 
 from fastapi import Depends, HTTPException, status
 from services.jwttoken import verify_token, create_access_token
@@ -131,9 +133,9 @@ class BusinessOwnerService(BaseService):
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to send verification call: {str(e)}")
 
-        return {"message": "Verification code sent via phone call."}
+        return {"success": True, "message": "Verification code sent via phone call."}
     
-    async def verify_phone_code(self, owner_id: str, code: str):
+    async def verify_phone_code(self, owner_id: str, business_id:str, code: str):
         record = await self.db.phone_verifications.find_one({"owner_id": ObjectId(owner_id)})
         if not record or record["code"] != code:
             raise HTTPException(status_code=400, detail="Invalid verification code")
@@ -144,6 +146,11 @@ class BusinessOwnerService(BaseService):
         result = await self.db.business_owners.update_one(
             {"_id": ObjectId(owner_id)}, 
             {"$set": {"isVerified": True}}
+        )
+
+        business_update = await self.db.businesses.update_one(
+            {"_id": ObjectId(business_id)}, 
+            {"$set": {"owner_id": owner_id}}
         )
 
         # clean up
@@ -193,3 +200,67 @@ class BusinessOwnerService(BaseService):
         await self.db.password_resets.delete_one({"email": email})
 
         return {"message": "Password reset successful"}
+
+    async def get_business_listing_search(self, query: str = "") -> List[BusinessResponse]:
+        try:
+            print(query + "HI")
+            if query.strip() == "":
+                search_results_cursor = self.db.businesses.find(
+                    {
+                        "$and": [
+                            {"owner_id": "None"}  # Only return businesses where owner_id is None
+                        ]
+                    },
+                    # {"_id": 1, "name": 1, "address": 1, "website": 1}  # Return only relevant fields
+                )  # Limit to 10 results
+            else:
+                search_results_cursor = self.db.businesses.find(
+                    {
+                        "$and": [
+                            {"name": {"$regex": query, "$options": "i"}},  # Case-insensitive name search
+                            {"owner_id": "None"}  # Only return businesses where owner_id is None
+                        ]
+                    },
+                    # {"_id": 1, "name": 1, "address": 1, "website": 1}  # Return only relevant fields
+                )  # Limit to 10 results
+            search_results = await search_results_cursor.to_list(length=10)
+
+            businesses = [BusinessResponse(**{**business, "id": str(business["_id"])}) for business in search_results]
+
+            return businesses
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    async def get_owner_listings(self, id: str):
+        try:
+            print(id)
+            search_results_cursor = self.db.businesses.find(
+                {"owner_id": id}
+            ) 
+            search_results = await search_results_cursor.to_list(length=10)
+
+            businesses = [BusinessResponse(**{**business, "id": str(business["_id"])}) for business in search_results]
+            return businesses
+        
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    async def create_owner_listing(self, business_create):
+        try:
+            new_business = BusinessCreate (
+                name=business_create.name,
+                owner_id=business_create.owner_id,
+                website=business_create.website,
+                tel=business_create.tel,
+                description=business_create.description,
+                cuisines=business_create.cuisines,
+                menu=business_create.menu,
+                address=business_create.address,
+                location=business_create.location,
+                dietary_restrictions=business_create.dietary_restrictions
+            )
+            result = await self.db.business.insert_one(new_business.to_dict())
+            if result.inserted_id:
+                return 1
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))

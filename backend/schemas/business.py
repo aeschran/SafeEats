@@ -9,22 +9,26 @@ class BusinessCreate(BaseModel):
     name: str
     owner_id: Optional[PyObjectId] = None
     website: Optional[str] = None
+    tel: Optional[str] = None
     description: Optional[str] = None
     cuisines: List[int] = []
     menu: Optional[str] = None
     address: Optional[str] = None
     location: Optional[LocationCreate] = None
     dietary_restrictions: List[PreferenceResponse] = []
+    avg_rating: Optional[float] = 0.0
 
 class BusinessResponse(BaseModel):
     id: PyObjectId = Field(..., alias="_id")
     name: str
     website: Optional[str] = None
+    tel: Optional[str] = None
     description: Optional[str] = None
     cuisines: List[int] = []
     menu: Optional[str] = None
     address: Optional[str] = None
     dietary_restrictions: List[PreferenceResponse] = []
+    avg_rating: Optional[float] = 0.0
 
 
 class BusinessSearch(BaseModel):
@@ -51,3 +55,11 @@ class BusinessAndLocationResponse(BaseModel):
     address: Optional[str] = None
     dietary_restrictions: List[PreferenceResponse] = []
     location: LatLon
+    avg_rating: Optional[float] = 0.0
+    tel: Optional[str] = None
+
+class BusinessCollectionEntry(BaseModel):
+    business_id: str
+    business_name: str
+    business_description: str
+    business_address: str

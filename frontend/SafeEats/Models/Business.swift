@@ -28,13 +28,28 @@ class Business: Decodable, Identifiable {
     let id: String
     let name: String?
     let website: String?
+    let tel: String?
     let description: String?
     let cuisines: [Int]?
     let menu: String?
     let address: String?
     let dietary_restrictions: [PreferenceResponse]?
+    var avg_rating: Double = 0.0
     
-    init(id: String, name: String?, website: String?, description: String?, cuisines: [Int]?, menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?) {
+    enum CodingKeys: String, CodingKey {
+        case id = "_id"
+        case name
+        case website
+        case tel 
+        case description
+        case cuisines
+        case menu
+        case address
+        case dietary_restrictions
+        case avg_rating
+    }
+
+    init(id: String, name: String?, website: String?, description: String?, cuisines: [Int]?, menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?, tel: String?, avg_rating: Double) {
         self.id = id
         self.name = name
         self.website = website
@@ -43,17 +58,8 @@ class Business: Decodable, Identifiable {
         self.menu = menu
         self.address = address
         self.dietary_restrictions = dietary_restrictions
-    }
-    
-    enum CodingKeys: String, CodingKey {
-        case id = "_id"
-        case name
-        case website
-        case description
-        case cuisines
-        case menu
-        case address
-        case dietary_restrictions
+        self.tel = tel
+        self.avg_rating = avg_rating
     }
 }
 
