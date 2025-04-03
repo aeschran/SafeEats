@@ -39,7 +39,7 @@ class BusinessSearchService(BaseService):
             "near": near,
             "query": query,
             "limit": self.limit,
-            "fields": "name,website,description,categories,menu,geocodes,location"
+            "fields": "name,website,tel,description,categories,menu,geocodes,location"
         }
 
         response = requests.get(self.url, params=params, headers=self.headers)
@@ -52,7 +52,7 @@ class BusinessSearchService(BaseService):
             "ll": f"{business_search.lat},{business_search.lon}",
             "query": business_search.query,
             "limit": self.limit,
-            "fields": "name,website,description,categories,menu,geocodes,location"
+            "fields": "name,website,tel,description,categories,menu,geocodes,location"
         }
 
         response = requests.get(self.url, params=params, headers=self.headers)
@@ -63,6 +63,7 @@ class BusinessSearchService(BaseService):
                 "name": result['name'],
                 "owner_id": None,
                 "website": result['website'] if 'website' in result else None,
+                "tel": result['tel'] if 'tel' in result else None,
                 "description": result['description'] if 'description' in result else None,
                 "cuisines": [result['categories'][i]['id'] for i in range(len(result['categories']))] if 'categories' in result else [],
                 "menu": result['menu'] if 'menu' in result else None,

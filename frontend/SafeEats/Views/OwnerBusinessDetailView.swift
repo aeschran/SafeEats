@@ -1,13 +1,13 @@
 //
-//  BusinessDetailView.swift
+//  OwnerBusinessDetailView.swift
 //  SafeEats
 //
-//  Created by Aditi Patel on 3/9/25.
+//  Created by harshini on 4/2/25.
 //
 
 import SwiftUI
 
-struct BusinessDetailView: View {
+struct OwnerBusinessDetailView: View {
     let business: Business
     @State private var showMapAlert = false
     @State private var showingCallConfirmation = false
@@ -18,25 +18,7 @@ struct BusinessDetailView: View {
     @State private var upvoteCount: Int = 10  // Replace with actual count
     @State private var downvoteCount: Int = 3  // Replace with actual count
     @State private var userVote: Int? = nil
-    @State private var showCollectionPicker = false
     @StateObject private var viewModel = BusinessDetailViewModel()
-    
-    @State private var collections: [Collection] = UserDefaults.standard.object(forKey: "collections") as? [Collection] ?? []
-    
-    @State var bookmarked: Bool = false
-    @State var collectionID: String? = nil
-    
-    func collectionsExcludingBusiness() -> [Collection] {
-        for collection in $collections {
-            if collection.name.wrappedValue == "Bookmarks" && collection.businesses.contains(where: { $0.businessId.wrappedValue == business.id }) {
-                collectionID = collection.id.wrappedValue
-                bookmarked = true
-            }
-        }
-        return collections.filter { collection in
-            !collection.businesses.contains(where: { $0.businessId == business.id })
-            }
-    }
     //    let businessId = business.id
     @State private var selectedFilter: String = "Most Recent"
     @State private var showDropdown: Bool = false
@@ -58,33 +40,12 @@ struct BusinessDetailView: View {
                         
                         // contact info section
                         VStack {
-                            HStack {
-                                Text(business.name ?? "No Name")
-                                    .font(.largeTitle)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                    .padding(.bottom, 15)
-                                    .padding(.horizontal, 30)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                Button(action: {
-                                        Task {
-                                            if bookmarked {
-                                                bookmarked = false
-                                                await viewModel.removeBookmark(collectionId: collectionID ?? "", businessId: business.id)
-                                            } else {
-                                                bookmarked = true
-                                                await viewModel.bookmarkBusiness(businessID: business.id)
-                                            }
-                                        }
-                                    }) {
-                                        Image(systemName: bookmarked ? "bookmark.fill" : "bookmark")
-                                            .font(.system(size: 28))
-                                            .foregroundColor(.white)
-                                            .padding()
-                                    }
-                            }
-                            
-                            
+                            Text(business.name ?? "No Name")
+                                .font(.largeTitle)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding(.bottom, 15)
+                                .fixedSize(horizontal: false, vertical: true)
                             
                             // contact info section
                             if let website = business.website, let url = URL(string: website),
@@ -156,7 +117,6 @@ struct BusinessDetailView: View {
                             }
                         }
                         .padding(.vertical, 15)
-                        
                     }
                     
                     VStack(alignment: .leading, spacing: 25) {
@@ -172,17 +132,9 @@ struct BusinessDetailView: View {
                     
                     //                Spacer()
                 }
-                .onAppear {
-                    viewModel.fetchReviews(for: businessId)
-                    if let data = UserDefaults.standard.data(forKey: "collections") {
-                        let decoder = JSONDecoder()
-                        if let loadedCollections = try? decoder.decode([Collection].self, from: data) {
-                            print(loadedCollections)
-                            collections = loadedCollections
-                            // filter to only collections that don't have this id in their businesses field
-                            collections = collectionsExcludingBusiness()
-                        }
-                    }
+                .onAppear{
+                    
+                    viewModel.fetchReviews(for: business.id)
                 }
                 .task {
                     await viewModel.fetchBusinessData(businessID: business.id)
@@ -195,10 +147,11 @@ struct BusinessDetailView: View {
     private var reviewsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                VStack(alignment: .leading) {
+                HStack() {
                     Text("Reviews")
                         .font(.title2)
                         .fontWeight(.semibold)
+                    Spacer()
                     Menu {
                         ForEach(filterOptions, id: \.self) { option in
                             Button(action: {
@@ -227,16 +180,16 @@ struct BusinessDetailView: View {
                     }
                 }
                 Spacer()
-                NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
-                    viewModel.fetchReviews(for: business.id)// Reload reviews after submission
-                }, businessId: business.id)) {
-                    Text("Write a Review")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.mainGreen)
-                        .cornerRadius(10)
-                }
+//                NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
+//                    viewModel.fetchReviews(for: business.id)// Reload reviews after submission
+//                }, businessId: business.id)) {
+//                    Text("Write a Review")
+//                        .font(.headline)
+//                        .foregroundColor(.white)
+//                        .padding()
+//                        .background(Color.mainGreen)
+//                        .cornerRadius(10)
+//                }
             }.padding(.bottom, 20)
             ForEach(viewModel.reviews, id: \.id) { review in
                 ReviewCardView(review: review, viewModel: viewModel)
@@ -281,24 +234,24 @@ struct BusinessDetailView: View {
                     .lineLimit(2)
                 
                 // Upvote / Downvote
-                HStack {
-                    Button(action: { viewModel.upvoteReview(review.id) }) {
-                        Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
-                            .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
-                            .font(.headline)
-                    }
-                    
-                    Text("\(review.upvotes - review.downvotes)")
-                        .font(.subheadline)
-                    
-                    Button(action: { viewModel.downvoteReview(review.id) }) {
-                        Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
-                            .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
-                            .font(.headline)
-                    }
-                }
-                .padding(.top, 3)
-                .padding(.bottom, 5)
+//                HStack {
+//                    Button(action: { viewModel.upvoteReview(review.id) }) {
+//                        Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
+//                            .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
+//                            .font(.headline)
+//                    }
+//                    
+//                    Text("\(review.upvotes - review.downvotes)")
+//                        .font(.subheadline)
+//                    
+//                    Button(action: { viewModel.downvoteReview(review.id) }) {
+//                        Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
+//                            .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
+//                            .font(.headline)
+//                    }
+//                }
+//                .padding(.top, 3)
+//                .padding(.bottom, 5)
             }
             .padding()
             .background(Color.gray.opacity(0.1))
@@ -314,41 +267,7 @@ struct BusinessDetailView: View {
             return formatter.string(from: date)
         }
     }
-    
-    //        private func handleUpvote() {
-    //            if userVote == 1 {
-    //                upvoteCount -= 1
-    //                userVote = nil
-    //            } else if userVote == -1 {
-    //                downvoteCount -= 1
-    //                upvoteCount += 1
-    //                userVote = 1
-    //            } else {
-    //                upvoteCount += 1
-    //                userVote = 1
-    //            }
-    //        }
-    //
-    //        private func handleDownvote() {
-    //            if userVote == -1 {
-    //                downvoteCount -= 1
-    //                userVote = nil
-    //            } else if userVote == 1 {
-    //                upvoteCount -= 1
-    //                downvoteCount += 1
-    //                userVote = -1
-    //            } else {
-    //                downvoteCount += 1
-    //                userVote = -1
-    //            }
-    //        }
-    
-    //    private func formattedDate(from timestamp: Double) -> String {
-    //        let date = Date(timeIntervalSince1970: timestamp)
-    //        let formatter = DateFormatter()
-    //        formatter.dateStyle = .medium
-    //        return formatter.string(from: date)
-    //    }
+
     private var ratingsSection: some View {
         HStack(alignment: .center, spacing: 5) {
             if let avg_rating = viewModel.avg_rating {
@@ -359,55 +278,9 @@ struct BusinessDetailView: View {
                 ProgressView()
                     .font(.title)
             }
-            // Image(systemName: "star.fill")
-            //     .foregroundColor(.yellow)
-            //     .font(.system(size: 24))
-            Spacer()
-            Button(action: {
-                showCollectionPicker = true
-                collections = collectionsExcludingBusiness()
-            }) {
-                Text("Add to Collection")
-            }
-            .font(.headline)
-            .foregroundColor(.white)
-            .padding()
-            .background(Color.mainGreen)
-            .cornerRadius(10)
-            .frame(width: 160, height: 80)
-            .sheet(isPresented: $showCollectionPicker) {
-                // Dummy UI for now; replace with your real collection picker view
-                VStack {
-                    Text("Choose a Collection")
-                        .font(.title2)
-                        .padding()
-
-//                    List {
-//                        Text("Favorites")
-//                        Text("Try Soon")
-//                        Text("Top Vegan")
-//                    }
-                    
-                    ForEach(collections, id: \.id) { collection in Button(action: {
-                        Task {
-                            await viewModel.addBusinessToCollection(collectionName: collection.name, businessID: business.id)
-                            showCollectionPicker = false
-                        }
-                    }) {
-                        Text(collection.name)
-                            .font(.footnote)
-                            .fontWeight(.semibold)
-                            .frame(width: 380, height: 68)
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(4)
-                    }
-                    }
-
-                    Button("Cancel") {
-                        showCollectionPicker = false
-                    }
-                    .padding()
-                }
+            Image(systemName: "star.fill")
+                .foregroundColor(.yellow)
+                .font(.system(size: 24))
             if let totalReviews = viewModel.total_reviews {
                 Text("(\(totalReviews))")
                     .font(.system(size: 24))
@@ -511,5 +384,5 @@ struct BusinessDetailView: View {
 
 
 #Preview {
-    BusinessDetailView(business: Business(id: "1", name: "Test Business", website: "Hello.com", description: "Hey!", cuisines: [], menu: nil, address: "Yo mom's house", dietary_restrictions: []))
+    //    BusinessDetailView(business: Business.sampleBusiness)
 }

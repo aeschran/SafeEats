@@ -1,5 +1,5 @@
-from models.review import Review, ReviewVote
-from schemas.review import ReviewCreate, ReviewResponse, ReviewAddVote
+from models.review import Review, ReviewVote, ReviewAddImage
+from schemas.review import ReviewCreate, ReviewResponse, ReviewAddVote, ReviewImage
 from services.base_service import BaseService
 import logging
 from bson import ObjectId
@@ -14,20 +14,36 @@ class ReviewService(BaseService):
         
     async def create_review(self, review_create: ReviewCreate):
         try :
-            review_image = review_create.review_image if review_create.review_image else None  # Ensure it's None if empty
+            # review_image = review_create.review_image if review_create.review_image else None  # Ensure it's None if empty
             review = Review(
                 user_id=ObjectId(review_create.user_id),
                 business_id=ObjectId(review_create.business_id),
                 review_content=review_create.review_content,
                 rating=review_create.rating,
-                review_image=review_image,
+                # review_image=review_image,
                 upvotes=0,
                 downvotes=0
             )
             result = await self.db.user_reviews.insert_one(review.to_dict())
 
             if result.inserted_id:
-                return 1  # Success
+                return str(result.inserted_id) # Success
+            return None
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    async def add_image(self, image: ReviewImage):
+        try :
+            # review_image = review_create.review_image if review_create.review_image else None  # Ensure it's None if empty
+            review_image = ReviewAddImage(
+                review_id=ObjectId(image.review_id),
+                review_image=image.review_image,
+            )
+            result = await self.db.review_images.insert_one(review_image.to_dict())
+
+            if result.inserted_id:
+                return str(result.inserted_id) # Success
             return None
 
         except Exception as e:
@@ -169,6 +185,7 @@ class ReviewService(BaseService):
                     review_id=ObjectId(review_vote.review_id),
                     vote=review_vote.vote,
                 )
+            print(vote.vote)
             if vote.vote < 2:
                 print(vote)
                 result = await self.db.review_votes.insert_one(vote.to_dict())
