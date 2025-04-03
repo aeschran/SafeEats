@@ -11,6 +11,7 @@ struct BusinessCard: View {
     var business: Business
     var rating: Double
     var imageName: String // Business logo
+    @StateObject private var viewModel = BusinessDetailViewModel()
     
     var body: some View {
         HStack {
@@ -27,21 +28,41 @@ struct BusinessCard: View {
                 // Allergen icons
                 HStack(spacing: 6) {
                     ForEach(business.dietary_restrictions ?? [], id: \.self) { icon in
-                        Image(systemName: "leaf.circle.fill") // Load from Assets
-                            .resizable()
-                            .foregroundColor(Color.mainGreen)
-                            .frame(width: 20, height: 20) // Small icons
+                        if let restriction = PreferenceCategories(from: icon.preference) {
+                            Image(restriction.assetName)
+                                .resizable()
+                                .renderingMode(.template) // Optional for coloring
+                                .foregroundColor(Color.mainGreen)
+                                .frame(width: 20, height: 20)
+                        } else {
+                            // Fallback if no match is found
+                            Image(systemName: "questionmark.circle")
+                                .resizable()
+                                .foregroundColor(.gray)
+                                .frame(width: 20, height: 20)
+                        }
                     }
                 }
                 
                 // Rating
                 HStack(spacing: 3) {
-                    Text("\(String(format: "%.1f", rating))")
-                        .font(.subheadline)
-                        .bold()
+                    if let avg_rating = viewModel.avg_rating {
+                        Text("\(String(format: "%.1f", avg_rating))")
+                            .font(.headline)
+                            .bold()
+                    } else {
+                        ProgressView()
+                            .font(.title)
+                    }
                     Image(systemName: "star.fill")
                         .foregroundColor(.yellow)
-                    Text("(200+)")
+                    if let totalReviews = viewModel.total_reviews {
+                        Text("(\(totalReviews))")
+                            .foregroundColor(.gray)
+                    } else {
+                        ProgressView()
+                            .font(.system(size: 24))
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -49,5 +70,8 @@ struct BusinessCard: View {
         .padding()
         .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
         .frame(maxWidth: .infinity, alignment: .leading)
+        .task {
+            await viewModel.fetchBusinessData(businessID: business.id)
+        }
     }
 }

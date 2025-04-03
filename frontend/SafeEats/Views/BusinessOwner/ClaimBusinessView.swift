@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ClaimBusinessView: View {
     @StateObject private var viewModel = ClaimBusinessViewModel()
+    @StateObject var createListingViewModel = CreateListingViewModel()
     @State private var isCreatingListing = false
     @State private var navigateToClaim = false
     @State private var selectedBusiness: Business?
@@ -26,26 +27,25 @@ struct ClaimBusinessView: View {
                 } else if let errorMessage = viewModel.errorMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
-                } else if viewModel.businesses.isEmpty {
-                    VStack {
+                } else {
+                    HStack {
                         Text("Didn't find your business?")
                             .font(.headline)
                             .padding()
                         
-                        NavigationLink(destination: CreateListingView(), isActive: $isCreatingListing) {
+                        NavigationLink(destination: CreateListingView(viewModel: createListingViewModel), isActive: $isCreatingListing) {
                             Button("Create a New Listing") {
                                 isCreatingListing = true
                             }
                             .padding()
-                            .background(Color.mainGreen)
+                            .background(Color.mainGray)
                             .cornerRadius(17)
-                            .foregroundColor(.white)
+                            .foregroundColor(.black)
                             .frame(maxWidth: .infinity)
                         }
-                        .padding()
-                        
+
                     }
-                } else {
+                    Divider().background(Color.gray)
                     List(viewModel.businesses, id: \.name) { business in
                         VStack(spacing: 10) {
                             HStack {

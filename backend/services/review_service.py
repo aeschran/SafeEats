@@ -280,6 +280,7 @@ class ReviewService(BaseService):
             raise HTTPException(status_code=500, detail=str(e))
 
 
+
     async def delete_review(self, review_id: str):
         try:
             result = await self.db.user_reviews.delete_one({"_id": ObjectId(review_id)})
@@ -313,4 +314,24 @@ class ReviewService(BaseService):
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
+
+
+        
+    async def get_detailed_review(self, review_id: str):
+        review = await self.db.user_reviews.find_one({"_id": ObjectId(review_id)})
+        if not review:
+            return None
+        review["_id"] = str(review["_id"])
+        review["user_id"] = str(review["user_id"]) 
+        review["business_id"] = str(review["business_id"]) 
+        user = await self.db.users.find_one({"_id": ObjectId(review["user_id"])})
+        business = await self.db.businesses.find_one({"_id": ObjectId(review["business_id"])})
+        review["business_name"] = business["name"]
+        review["user_name"] = user["name"]
+        review_image_cursor = await self.db.review_images.find_one({"review_id": ObjectId(review_id)})
+        if review_image_cursor and review_image_cursor:
+            review["review_image"] = review_image_cursor["review_image"]
+            
+        review["_id"] = str(review["_id"]) 
+        return review
 

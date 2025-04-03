@@ -244,6 +244,12 @@ struct OwnerBusinessDetailView: View {
                     .font(.body)
                     .foregroundColor(.black)
                     .lineLimit(2)
+                HStack {
+                    Text("votes: \(review.upvotes - review.downvotes)")
+                        .font(.subheadline)
+                }
+                .padding(.top, 3)
+                .padding(.bottom, 5)
             }
             .padding()
             .background(Color.gray.opacity(0.1))
@@ -436,17 +442,17 @@ struct OwnerBusinessDetailView: View {
     }
 }
 
-#Preview {
-    OwnerBusinessDetailView(
-        business: Business(
-            id: "1",
-            name: "Test Business",
-            website: "https://example.com",
-            description: "Test description",
-            cuisines: [],
-            menu: nil,
-            address: "123 Test Street",
-            dietary_restrictions: []
-        )
-    )
-}
+//#Preview {
+//    OwnerBusinessDetailView(
+//        business: Business(
+//            id: "1",
+//            name: "Test Business",
+//            website: "https://example.com",
+//            description: "Test description",
+//            cuisines: [],
+//            menu: nil,
+//            address: "123 Test Street",
+//            dietary_restrictions: []
+//        )
+//    )
+//}

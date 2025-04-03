@@ -1,4 +1,3 @@
-//
 //  Business.swift
 //  SafeEats
 //
@@ -35,8 +34,7 @@ class Business: Decodable, Identifiable {
     let menu: String?
     let address: String?
     let dietary_restrictions: [PreferenceResponse]?
-    let avg_rating: Double?
-
+    var avg_rating: Double = 0.0
     
     enum CodingKeys: String, CodingKey {
         case id = "_id"
@@ -51,7 +49,7 @@ class Business: Decodable, Identifiable {
         case avg_rating
     }
 
-    init(id: String, name: String?, website: String?, description: String?, cuisines: [Int]?, menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?) {
+    init(id: String, name: String?, website: String?, description: String?, cuisines: [Int]?, menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?, tel: String?, avg_rating: Double) {
         self.id = id
         self.name = name
         self.website = website
@@ -60,7 +58,47 @@ class Business: Decodable, Identifiable {
         self.menu = menu
         self.address = address
         self.dietary_restrictions = dietary_restrictions
-        self.tel = nil
-        self.avg_rating = nil
+        self.tel = tel
+        self.avg_rating = avg_rating
+    }
+}
+
+enum PreferenceCategories: String, CaseIterable {
+    case dairy = "Dairy"
+    case halal = "Halal"
+    case kosher = "Kosher"
+    case vegan = "Vegan"
+    case vegetarian = "Vegetarian"
+    case peanut = "Peanuts"
+    case gluten = "Gluten"
+    case shellfish = "Shellfish"
+
+    /// Get the corresponding asset name from the enum
+    var assetName: String {
+        switch self {
+        case .dairy:
+            return "Dairy"
+        case .halal:
+            return "Halal"
+        case .kosher:
+            return "Kosher"
+        case .vegan:
+            return "Vegan"
+        case .vegetarian:
+            return "Vegetarian"
+        case .peanut:
+            return "Peanuts"
+        case .gluten:
+            return "Gluten"
+        case .shellfish:
+            return "Shellfish"
+        }
+    }
+}
+
+extension PreferenceCategories {
+    /// Initialize from a string (handles invalid values gracefully)
+    init?(from rawValue: String) {
+        self.init(rawValue: rawValue)
     }
 }

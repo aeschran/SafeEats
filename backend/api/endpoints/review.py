@@ -21,7 +21,6 @@ async def add_image(image: ReviewImage):
     
     return review
 
-
 @router.post("/create")
 async def create_review(review_create: ReviewCreate):
     review = await review_service.create_review(review_create)
@@ -71,3 +70,10 @@ async def edit_review(review_id: str, review_update: ReviewCreate):
     return {"message": "Review updated successfully", "review": updated_review}
 
 
+
+
+@router.get("/{review_id}")
+async def get_detailed_review(review_id: str):
+    reviews = await review_service.get_detailed_review(review_id)
+
+    return reviews

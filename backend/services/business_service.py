@@ -1,5 +1,5 @@
 from models.business import Business
-from schemas.business import BusinessCreate, BusinessResponse
+from schemas.business import BusinessCreate, BusinessResponse, BusinessAddPreferences
 from services.base_service import BaseService
 from typing import List
 from bson import ObjectId
@@ -52,10 +52,10 @@ class BusinessService(BaseService):
         return None
     
     async def get_business_by_name_and_location(self, business: BusinessCreate):
-        updated_location = Location(coordinates=[business.location.coordinates[0], business.location.coordinates[1]])
+        #updated_location = Location(coordinates=[business.location.coordinates[0], business.location.coordinates[1]])
         business = await self.db.businesses.find_one({
             "name": business.name,
-            "location": updated_location.to_dict()
+            "address": business.address
         })
         if business:
             return business
@@ -89,6 +89,7 @@ class BusinessService(BaseService):
             return None
         response = BusinessResponse(**update_data)
         return response
+    
     def delete_business(self, business_id: ObjectId):
         result = self.db.businesses.delete_one({"_id": business_id})
         if result.deleted_count == 0:
@@ -104,21 +105,32 @@ class BusinessService(BaseService):
     
     async def update_average_rating(self, business_id: str):
         business_object_id = ObjectId(business_id)
+        
+        # ratings = await self.db.user_reviews.find({"business_id": business_object_id}).to_list(length=None)
+        # print(f"Ratings: {[r['rating'] for r in ratings]}")
+
         pipeline = [
             {"$match": {"business_id": business_object_id}}, 
             {"$group": {"_id": None, "avg_rating": {"$avg": "$rating"}}} 
         ]
 
         result = await self.db.user_reviews.aggregate(pipeline).to_list(length=1)
+        
 
-        avg_rating = round(result[0]["avg_rating"], 1) if result else 0.0
+        if result:
+            avg_rating = result[0]["avg_rating"]
+        else:
+            avg_rating = 0.0
+
+        avg_rating = round(avg_rating, 1)
 
         await self.db.businesses.update_one(
             {"_id": business_object_id},
-            {"$set": {"avg_rating": avg_rating}}
+            {"$set": {"avg_rating": float(avg_rating)}}
+
         )
 
-        return avg_rating  
+        return avg_rating
 
     
     async def get_review_count(self, business_id: str) -> int:
@@ -126,6 +138,28 @@ class BusinessService(BaseService):
 
         count = await self.db.user_reviews.count_documents({"business_id": business_object_id})
         return count
+    
+    async def add_preferences_to_business(self, business_id:str, preferences: BusinessAddPreferences):
+        business_object_id = ObjectId(business_id)
+        dietPref = preferences.dietPref
+        allergy = preferences.allergy
+
+        print(preferences)
+
+        updatedList = []
+        for diet in dietPref:
+            updatedList.append({"preference": diet, "preference_type": "Dietary Restriction"})
+        
+        for allerg in allergy:
+            updatedList.append({"preference": allerg, "preference_type": "Allergy"})
+
+        print(f"Adding dietary restrictions/allergies to business {business_id}: {updatedList}")
+
+        result = await self.db.businesses.update_one(
+            {"_id": business_object_id},
+            {"$set": {"dietary_restrictions": updatedList}}
+        )
+        return result.modified_count > 0
 
     
 

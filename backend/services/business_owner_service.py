@@ -7,12 +7,18 @@ from models.business_owner import BusinessOwner
 import random
 import string
 from schemas.business_owner import BusinessOwnerResponse, BusinessOwnerCreate
-from schemas.business import BusinessResponse
+from schemas.business import BusinessResponse, BusinessCreate
+from models.business import Business
+from models.location import Location
 from services.base_service import BaseService
 import sendgrid
 from sendgrid.helpers.mail import Mail, Email, To, Content
 from twilio.rest import Client
 from typing import List
+import aiohttp
+import asyncio
+import os
+
 
 from fastapi import Depends, HTTPException, status
 from services.jwttoken import verify_token, create_access_token
@@ -244,3 +250,68 @@ class BusinessOwnerService(BaseService):
         
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+
+    async def get_lat_long(self, address: str):
+            base_url = "https://geocode.maps.co/search"
+            params = {
+                "q": address,
+                "api_key": settings.GEOCODE_KEY
+            }
+
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(base_url, params=params) as response:
+                        if response.status == 200:
+                            data = await response.json()
+                            if data:
+                                # Extract the first result's lat and lon
+                                first_result = data[0]
+                                lat = first_result.get('lat')
+                                lon = first_result.get('lon')
+                                print(lat)
+                                print(lon)
+                                if lat is None or lon is None:
+                                    raise HTTPException(status_code=400, detail="Missing latitude or longitude in response.")
+
+                                return lat, lon
+                            else:
+                                raise HTTPException(status_code=400, detail="No geolocation data found.")
+
+                        return None
+            except Exception as e:
+                print(f"Error while fetching geocode data: {e}")
+                return None
+
+    async def create_owner_listing(self, business_create):
+        try:
+            lat, lon = await self.get_lat_long(business_create.address)
+            if lat is None or lon is None:
+                raise HTTPException(status_code=400, detail="Failed to fetch geolocation for the address.")
+            print(lat)
+            print(lon)
+            # cuisine_arr = await self.get_cuisines(business_create.cuisines)
+            # print(cuisine_arr)
+            # if cuisine_arr is None:
+            #     raise HTTPException(status_code=400, detail="Failed to fetch geolocation for the address.")
+
+            new_business = Business(
+                name=business_create.name,
+                owner_id=business_create.owner_id,
+                website=business_create.website,
+                tel=business_create.tel,
+                description=business_create.description,
+                cuisines=business_create.cuisines,
+                menu=business_create.menu,
+                address=business_create.address,
+                location=Location([float(lon), float(lat)]),
+                dietary_restrictions=business_create.dietary_restrictions,
+                avg_rating=business_create.avg_rating
+            )
+            
+            result = await self.db.businesses.insert_one(new_business.to_dict())
+            if result.inserted_id:
+                return 1
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+        
+       

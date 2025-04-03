@@ -1,18 +1,18 @@
 //
-//  CreateListingView.swift
+//  CreateNewListingView.swift
 //  SafeEats
 //
-//  Created by Aditi Patel on 3/31/25.
+//  Created by Aditi Patel on 4/3/25.
 //
 
 import SwiftUI
 
-struct CreateListingView: View {
+struct CreateNewListingView: View {
     var body: some View {
         Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
     }
 }
 
 #Preview {
-    CreateListingView()
+    CreateNewListingView()
 }

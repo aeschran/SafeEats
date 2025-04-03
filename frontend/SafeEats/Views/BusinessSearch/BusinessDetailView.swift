@@ -183,6 +183,7 @@ struct BusinessDetailView: View {
                             collections = collectionsExcludingBusiness()
                         }
                     }
+                    viewModel.updateAverageRating(businessId: business.id)
                 }
                 .task {
                     await viewModel.fetchBusinessData(businessID: business.id)
@@ -228,7 +229,9 @@ struct BusinessDetailView: View {
                 }
                 Spacer()
                 NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
+                    viewModel.updateAverageRating(businessId: business.id)
                     viewModel.fetchReviews(for: business.id)// Reload reviews after submission
+                    
                 }, businessId: business.id)) {
                     Text("Write a Review")
                         .font(.headline)
@@ -253,56 +256,60 @@ struct BusinessDetailView: View {
         @ObservedObject var viewModel: BusinessDetailViewModel
         @State private var userVote: Int? = nil
         
-        var body: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                // Username + Date
-                HStack {
-                    Text("\(review.userName) ")
-                        .font(.headline)
+        
+            var body: some View {
+                NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
+                VStack(alignment: .leading, spacing: 8) {
+                    // Username + Date
+                    HStack {
+                        Text("\(review.userName) ")
+                            .font(.headline)
+                            .foregroundColor(.black)
+                        
+                        Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    
+                    // Star Rating
+                    HStack(spacing: 2) {
+                        ForEach(0..<5, id: \.self) { index in
+                            Image(systemName: index < review.rating ? "star.fill" : "star")
+                                .foregroundColor(index < review.rating ? .yellow : .gray)
+                        }
+                    }
+                    
+                    // Review Content
+                    Text(review.reviewContent)
+                        .font(.body)
                         .foregroundColor(.black)
+                        .lineLimit(2)
                     
-                    Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
-                
-                // Star Rating
-                HStack(spacing: 2) {
-                    ForEach(0..<5, id: \.self) { index in
-                        Image(systemName: index < review.rating ? "star.fill" : "star")
-                            .foregroundColor(index < review.rating ? .yellow : .gray)
+                    // Upvote / Downvote
+                    HStack {
+                        Button(action: { viewModel.upvoteReview(review.id) }) {
+                            Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
+                                .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
+                                .font(.headline)
+                        }
+                        
+                        Text("\(review.upvotes - review.downvotes)")
+                            .font(.subheadline)
+                        
+                        Button(action: { viewModel.downvoteReview(review.id) }) {
+                            Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
+                                .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
+                                .font(.headline)
+                        }
                     }
+                    .padding(.top, 3)
+                    .padding(.bottom, 5)
                 }
-                
-                // Review Content
-                Text(review.reviewContent)
-                    .font(.body)
-                    .foregroundColor(.black)
-                    .lineLimit(2)
-                
-                // Upvote / Downvote
-                HStack {
-                    Button(action: { viewModel.upvoteReview(review.id) }) {
-                        Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
-                            .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
-                            .font(.headline)
-                    }
-                    
-                    Text("\(review.upvotes - review.downvotes)")
-                        .font(.subheadline)
-                    
-                    Button(action: { viewModel.downvoteReview(review.id) }) {
-                        Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
-                            .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
-                            .font(.headline)
-                    }
-                }
-                .padding(.top, 3)
-                .padding(.bottom, 5)
+                .padding()
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(10)
             }
-            .padding()
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(10)
+            .buttonStyle(PlainButtonStyle())
         }
         
         // Helper function for date formatting
@@ -359,9 +366,17 @@ struct BusinessDetailView: View {
                 ProgressView()
                     .font(.title)
             }
-            // Image(systemName: "star.fill")
-            //     .foregroundColor(.yellow)
-            //     .font(.system(size: 24))
+             Image(systemName: "star.fill")
+                 .foregroundColor(.yellow)
+                 .font(.system(size: 24))
+            if let totalReviews = viewModel.total_reviews {
+                Text("(\(totalReviews))")
+                    .font(.system(size: 24))
+                    .foregroundColor(.gray)
+            } else {
+                ProgressView()
+                    .font(.system(size: 24))
+            }
             Spacer()
             Button(action: {
                 showCollectionPicker = true
@@ -408,14 +423,7 @@ struct BusinessDetailView: View {
                     }
                     .padding()
                 }
-                if let totalReviews = viewModel.total_reviews {
-                    Text("(\(totalReviews))")
-                        .font(.system(size: 24))
-                        .foregroundColor(.gray)
-                } else {
-                    ProgressView()
-                        .font(.system(size: 24))
-                }
+                
             }
         }
     }
@@ -511,6 +519,6 @@ struct BusinessDetailView: View {
     //}
     
     
-#Preview {
-    BusinessDetailView(business: Business(id: "1", name: "Test Business", website: "Hello.com", description: "Hey!", cuisines: [], menu: nil, address: "Yo mom's house", dietary_restrictions: []))
-}
+//#Preview {
+//    BusinessDetailView(business: Business(id: "1", name: "Test Business", website: "Hello.com", description: "Hey!", cuisines: [], menu: nil, address: "Yo mom's house", dietary_restrictions: []))
+//}
