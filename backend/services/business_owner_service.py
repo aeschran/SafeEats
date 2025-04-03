@@ -7,7 +7,7 @@ from models.business_owner import BusinessOwner
 import random
 import string
 from schemas.business_owner import BusinessOwnerResponse, BusinessOwnerCreate
-from schemas.business import BusinessResponse
+from schemas.business import BusinessResponse, BusinessCreate
 from services.base_service import BaseService
 import sendgrid
 from sendgrid.helpers.mail import Mail, Email, To, Content
@@ -242,5 +242,25 @@ class BusinessOwnerService(BaseService):
             businesses = [BusinessResponse(**{**business, "id": str(business["_id"])}) for business in search_results]
             return businesses
         
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    async def create_owner_listing(self, business_create):
+        try:
+            new_business = BusinessCreate (
+                name=business_create.name,
+                owner_id=business_create.owner_id,
+                website=business_create.website,
+                tel=business_create.tel,
+                description=business_create.description,
+                cuisines=business_create.cuisines,
+                menu=business_create.menu,
+                address=business_create.address,
+                location=business_create.location,
+                dietary_restrictions=business_create.dietary_restrictions
+            )
+            result = await self.db.business.insert_one(new_business.to_dict())
+            if result.inserted_id:
+                return 1
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))

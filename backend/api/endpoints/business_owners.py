@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from schemas.business_owner import BusinessOwnerCreate, BusinessOwnerResponse
-from schemas.business import BusinessResponse
+from schemas.business import BusinessResponse, BusinessCreate
 from schemas.business_verification import VerificationCall, VerifyBusinessOwner
 from services.business_owner_service import BusinessOwnerService
 from core.security import credentials_exception
@@ -55,3 +55,6 @@ async def verify_business_owner_endpoint(request: VerifyBusinessOwner):
     # endpoint for admin to validate a business owner
     return await business_owner_service.verify_phone_code(request.owner_id, request.business_id, request.code)
 
+@router.post("/listings/create")
+async def create_owner_listing(new_business: BusinessCreate):
+    return await business_owner_service.create_owner_listing(new_business)
