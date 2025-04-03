@@ -69,7 +69,7 @@ enum PreferenceCategories: String, CaseIterable {
     case kosher = "Kosher"
     case vegan = "Vegan"
     case vegetarian = "Vegetarian"
-    case peanut = "Peanut"
+    case peanut = "Peanuts"
     case gluten = "Gluten"
     case shellfish = "Shellfish"
 
@@ -87,7 +87,7 @@ enum PreferenceCategories: String, CaseIterable {
         case .vegetarian:
             return "Vegetarian"
         case .peanut:
-            return "Peanut"
+            return "Peanuts"
         case .gluten:
             return "Gluten"
         case .shellfish:

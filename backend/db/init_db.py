@@ -35,11 +35,11 @@ async def connect_db():
             await db.businesses.delete_many({"_id": {"$in": unique_ids}})
 
     # Delete businesses that do not have at least one cuisine in the range [13000, 14000]
-    await db.businesses.delete_many({
-        "cuisines": {
-            "$not": {"$elemMatch": {"$gte": 13000, "$lte": 14000}}
-        }
-    })
+    # await db.businesses.delete_many({
+    #     "cuisines": {
+    #         "$not": {"$elemMatch": {"$gte": 13000, "$lte": 14000}}
+    #     }
+    # })
 
     # Ensure uniqueness of businesses based on name & address
     await db.businesses.create_index(

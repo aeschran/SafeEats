@@ -63,3 +63,7 @@ class BusinessCollectionEntry(BaseModel):
     business_name: str
     business_description: str
     business_address: str
+
+class BusinessAddPreferences(BaseModel):
+    dietPref: List[str]
+    allergy: List[str]
