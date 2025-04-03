@@ -44,6 +44,9 @@ class LatLon(BaseModel):
 class BusinessAndLocationResponse(BaseModel):
     id: PyObjectId = Field(..., alias="_id")
     name: str
+    website: Optional[str] = None
+    description: Optional[str] = None
+    menu: Optional[str] = None
     cuisines: List[int] = []
     address: Optional[str] = None
     dietary_restrictions: List[PreferenceResponse] = []

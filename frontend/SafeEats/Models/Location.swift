@@ -19,12 +19,12 @@ class BusinessMapLocation: Decodable, Identifiable {
     let name: String?
     let website: String?
     let description: String?
-    let cuisines: [Int]?
+    var cuisines: [Int] = []
     let menu: String?
     let address: String?
     let dietary_restrictions: [PreferenceResponse]?
 
-    init(id: String, location: Location, name: String?, website: String?, description: String?, cuisines: [Int]?, menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?) {
+    init(id: String, location: Location, name: String?, website: String?, description: String?, cuisines: [Int], menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?) {
         self.id = id
         self.location = location
         self.name = name
@@ -45,7 +45,7 @@ class BusinessMapLocation: Decodable, Identifiable {
         case menu
         case cuisines
         case address
-        case dietary_restrictions = "dietary_preferences"
+        case dietary_restrictions
     }
 }
 

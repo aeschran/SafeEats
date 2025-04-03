@@ -210,7 +210,7 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
             let preference = PreferenceStruct(preference: restriction, preference_type: "Dietary Restriction")
             all_preferences.append(preference)
         }
-        
+        print("selected Cuisines: ",selectedCuisines)
         let requestBody = BusinessSearchRequest(lat: latitude, lon: longitude, query: query, cuisines: Array(selectedCuisines), dietary_restrictions: all_preferences, radius: radius)
         
         do {
@@ -236,6 +236,9 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
                     DispatchQueue.main.async {
                         self.businessesMap = businessesMap
                         self.isLoading = false
+                    }
+                    for business in businessesMap {
+                        print("restrictions: ",business.dietary_restrictions)
                     }
                 } catch {
                     DispatchQueue.main.async {

@@ -12,7 +12,7 @@ struct CompactBusinessCard: View {
     var rating: Double
     
     var body: some View {
-        HStack(spacing: 6) {
+        VStack(spacing: 6) {
             VStack(alignment: .leading, spacing: 2) {
                 NavigationLink(destination: BusinessDetailView(business: business))
                 {
@@ -34,13 +34,13 @@ struct CompactBusinessCard: View {
             }
             
             HStack(spacing: 4) {
-                ForEach(business.dietary_restrictions ?? [], id: \.self) { restriction in
+                ForEach(business.dietary_restrictions ?? [], id: \.preference) { restriction in
                     if let category = PreferenceCategories(from: restriction.preference) {
                         Image(category.assetName)
                             .resizable()
                             .renderingMode(.template)
                             .foregroundColor(.green)
-                            .frame(width: 6, height: 6)
+                            .frame(width: 36, height: 36)
                     } else {
                         Image(systemName: "questionmark.circle")
                             .resizable()
@@ -52,5 +52,6 @@ struct CompactBusinessCard: View {
         }
         .padding(20)
         .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemBackground)).shadow(radius: 2))
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }

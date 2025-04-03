@@ -10,22 +10,29 @@ struct MapView: View {
     )
     @State private var selectedBusinessId: String? = nil
     
-    /// Computed property that maps BusinessMapLocation to Business while retaining location data
-    private var mappedBusinesses: [(BusinessMapLocation, Business)] {
-        viewModel.businessesMap.compactMap { business in
-            guard let id = business.id as? String else { return nil } // Ensure id exists
-            let mappedBusiness = Business(
-                id: id,
-                name: business.name ?? "No Name",
-                website: business.website ?? "No Website",
-                description: business.description ?? "No description",
-                cuisines: business.cuisines ?? [],
-                menu: business.menu ?? "No menu",
-                address: business.address ?? "No Address",
-                dietary_restrictions: business.dietary_restrictions ?? []
-            )
-            return (business, mappedBusiness) // Tuple retains both BusinessMapLocation & Business
+    let cuisineRanges: [(range: ClosedRange<Int>, icon: String)] = [
+        (13072...13072, "Asian"),      // Asian
+        (13099...13132, "Asian"),    // Asian
+        (13225...13233, "Asian"),     // Asian
+        (13263...13285, "Asian"),   // Asian
+        (13289...13295, "Asian"), // Asian
+        (13236...13262, "Italian"),  // Italian
+        (13303...13308, "Mexican"), // Mexican
+        (13198...13224, "Indian") // Indian
+    ]
+    
+    private func getBusiness(businessMap: BusinessMapLocation) -> Business {
+        return Business(id: businessMap.id, name: businessMap.name, website: businessMap.website, description: businessMap.description, cuisines: businessMap.cuisines, menu: businessMap.menu, address: businessMap.address, dietary_restrictions: businessMap.dietary_restrictions)
+    }
+    
+    func getCuisineIcon(for business: BusinessMapLocation) -> String {
+        for cuisineNumber in business.cuisines {
+            if let matchedCuisine = cuisineRanges.first(where: { $0.range.contains(cuisineNumber) }) {
+                    return matchedCuisine.icon
+            }
         }
+        
+        return "Food" // Fallback icon
     }
     
     var body: some View {
@@ -33,23 +40,31 @@ struct MapView: View {
             ZStack {
                 Map {
                     // User location radius
-                    MapCircle(center: CLLocationCoordinate2D(latitude: viewModel.latitude, longitude: viewModel.longitude), radius: CLLocationDistance(viewModel.radius))
+                    MapCircle(center: CLLocationCoordinate2D(latitude: viewModel.latitude, longitude: viewModel.longitude), radius: CLLocationDistance(viewModel.radius * 1609))
                         .foregroundStyle(.blue.opacity(0.2))
                     
+                    Annotation("Your Location", coordinate: CLLocationCoordinate2D(latitude: viewModel.latitude, longitude: viewModel.longitude))
+                    { ZStack {
+                        Circle()
+                            .fill(Color.blue)
+                            .frame(width: 15, height: 15)
+                    }
+                    }
+                    
                     // Specialized Markers for businesses
-                    ForEach(mappedBusinesses, id: \.0.id) { (businessMapLocation: BusinessMapLocation, business: Business) in
+                    ForEach(viewModel.businessesMap, id: \.id) { businessMapLocation in
                         let coordinate = CLLocationCoordinate2D(latitude: businessMapLocation.location.lat, longitude: businessMapLocation.location.lon)
-                        
+                        let business = getBusiness(businessMap: businessMapLocation)
                         Annotation("", coordinate: coordinate) {
                             ZStack {
                                 Circle()
-                                    .fill(Color.green.opacity(0.5))
+                                    .fill(Color.mainGray.opacity(0.3))
                                     .frame(width: 25, height: 25)
                                     .onTapGesture {
                                         selectedBusinessId = business.id
                                     }
-                                Image(systemName: "fork.knife.circle.fill")
-                                    .foregroundColor(.black)
+                                Image(getCuisineIcon(for: businessMapLocation))
+                                    .foregroundColor(Color.black)
                                 
                                 if selectedBusinessId == business.id {
                                     ZStack(alignment: .topTrailing) { // Aligns button to the top-right
@@ -68,6 +83,7 @@ struct MapView: View {
                                                 .padding(4)
                                         }
                                     }
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 }
                             }
                         }
@@ -107,7 +123,9 @@ struct MapView: View {
                         .padding(.top, 40)
                 }
                 .onChange(of: showFilters) { _, _ in
-                    viewModel.searchBusinessesMap()
+                    if showFilters == false {
+                        viewModel.searchBusinessesMap()
+                    }
                 }
             }
 

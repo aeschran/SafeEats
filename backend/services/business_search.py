@@ -25,9 +25,13 @@ class BusinessSearchService(BaseService):
         }
 
     async def search_operator(self, business_search: BusinessSearch):
-        if business_search.cuisines != []:
+        if business_search.cuisines == []:
+            self.cuisine_ranges = []
+        else:
             cuisine_list = [self.mapping[cuisine] for cuisine in business_search.cuisines]
             self.cuisine_ranges = await self.get_cuisine_ranges(cuisine_list)
+        if business_search.radius != 5000:
+            return await self.get_businesses_within_radius(business_search)
         if business_search.query != "restaurant" and business_search.query != "":
             return await self.search_by_lat_long(business_search)
         else:
@@ -211,7 +215,7 @@ class BusinessSearchService(BaseService):
                     ]
                 }
             }
-        }).to_list(self.limit)
+        }).to_list()
 
         response = []
         for business in businesses:
@@ -229,4 +233,20 @@ class BusinessSearchService(BaseService):
                 },
                 "dietary_restrictions": business["dietary_restrictions"]
             })
-        return [BusinessAndLocationResponse(**business) for business in response]
+        db_businesses = []
+        if self.cuisine_ranges != []:
+            for business in response:
+                for cuisine in business['cuisines']:
+                    found = False
+                    for cuisine_type in self.cuisine_ranges:
+                        for cuisine_range in cuisine_type['ranges']:
+                            if cuisine <= cuisine_range['max'] and cuisine >= cuisine_range['min']:
+                                found = True
+                                break
+                        if found:
+                            db_businesses.append(business)
+                            break
+        else:
+            db_businesses = response
+        final_businesses = [BusinessAndLocationResponse(**business) for business in db_businesses]
+        return final_businesses
