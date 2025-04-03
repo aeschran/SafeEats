@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     TWILIO_SID: str
     TWILIO_AUTH_TOKEN: str
     TWILIO_PHONE: str
+    GEOCODE_KEY: str
 
 
     class Config:
