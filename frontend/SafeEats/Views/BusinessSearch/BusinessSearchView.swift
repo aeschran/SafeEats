@@ -24,7 +24,7 @@ struct BusinessSearchView: View {
                     Text(errorMessage)
                         .foregroundColor(.red)
                 } else {
-                    List(viewModel.businesses, id: \.name) { business in
+                    List(viewModel.businesses, id: \.id) { business in
                         NavigationLink(destination: BusinessDetailView(business: business)) {
                             
                             BusinessCard(

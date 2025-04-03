@@ -1,10 +1,3 @@
-//
-//  MapView.swift
-//  SafeEats
-//
-//  Created by Aditi Patel on 2/22/25.
-//
-
 import SwiftUI
 import MapKit
 
@@ -15,6 +8,25 @@ struct MapView: View {
         center: CLLocationCoordinate2D(latitude: 40.4237, longitude: -86.9212), // Default to Purdue University
         span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
     )
+    @State private var selectedBusinessId: String? = nil
+    
+    /// Computed property that maps BusinessMapLocation to Business while retaining location data
+    private var mappedBusinesses: [(BusinessMapLocation, Business)] {
+        viewModel.businessesMap.compactMap { business in
+            guard let id = business.id as? String else { return nil } // Ensure id exists
+            let mappedBusiness = Business(
+                id: id,
+                name: business.name ?? "No Name",
+                website: business.website ?? "No Website",
+                description: business.description ?? "No description",
+                cuisines: business.cuisines ?? [],
+                menu: business.menu ?? "No menu",
+                address: business.address ?? "No Address",
+                dietary_restrictions: business.dietary_restrictions ?? []
+            )
+            return (business, mappedBusiness) // Tuple retains both BusinessMapLocation & Business
+        }
+    }
     
     var body: some View {
         NavigationStack {
@@ -25,16 +37,38 @@ struct MapView: View {
                         .foregroundStyle(.blue.opacity(0.2))
                     
                     // Specialized Markers for businesses
-                    ForEach(viewModel.businessesMap) { business in
-                        let coordinate = CLLocationCoordinate2D(latitude: business.location.lat, longitude: business.location.lon)
+                    ForEach(mappedBusinesses, id: \.0.id) { (businessMapLocation: BusinessMapLocation, business: Business) in
+                        let coordinate = CLLocationCoordinate2D(latitude: businessMapLocation.location.lat, longitude: businessMapLocation.location.lon)
                         
-                        Annotation(business.name, coordinate: coordinate) {
+                        Annotation("", coordinate: coordinate) {
                             ZStack {
-                                RoundedRectangle(cornerRadius: 5)
-                                    .fill(Color.green.opacity(0.8))
-                                    .frame(width: 40, height: 40)
-                                Text("🍽️") // Customize with icons for different cuisines
-                                    .font(.title)
+                                Circle()
+                                    .fill(Color.green.opacity(0.5))
+                                    .frame(width: 25, height: 25)
+                                    .onTapGesture {
+                                        selectedBusinessId = business.id
+                                    }
+                                Image(systemName: "fork.knife.circle.fill")
+                                    .foregroundColor(.black)
+                                
+                                if selectedBusinessId == business.id {
+                                    ZStack(alignment: .topTrailing) { // Aligns button to the top-right
+                                        CompactBusinessCard(business: business, rating: 4.5)
+                                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                            .background(Color.white)
+                                            .cornerRadius(10)
+                                            .shadow(radius: 5)
+
+                                        Button(action: {
+                                            selectedBusinessId = nil
+                                        }) {
+                                            Image(systemName: "xmark.circle.fill")
+                                                .foregroundColor(.red)
+                                                .font(.title2) // Adjust size if needed
+                                                .padding(4)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -45,24 +79,25 @@ struct MapView: View {
                     viewModel.searchBusinessesMap() // Start fetching data
                 }
                 .onReceive(viewModel.$businessesMap) { _ in
-                    region = MKCoordinateRegion(
-                        center: CLLocationCoordinate2D(latitude: viewModel.latitude, longitude: viewModel.longitude), 
-                        span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
-                    )
+                    DispatchQueue.main.async {
+                        region = MKCoordinateRegion(
+                            center: CLLocationCoordinate2D(latitude: viewModel.latitude, longitude: viewModel.longitude),
+                            span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
+                        )
+                    }
                 }
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
-                        Button( action: {
-                            // Action to open filter modal
+                        Button(action: {
                             showFilters.toggle()
                         }) {
-                            Image(systemName: "line.horizontal.3.decrease.circle.fill") // A more stylish filter icon
+                            Image(systemName: "line.horizontal.3.decrease.circle.fill")
                                 .resizable()
-                                .frame(width: 22, height: 22) // Adjust size
-                                .foregroundColor(.mainGreen) // Match theme
+                                .frame(width: 22, height: 22)
+                                .foregroundColor(.mainGreen)
                                 .padding(10)
-                                .background(Color.mainGreen.opacity(0.2)) // Light green background
-                                .clipShape(Circle()) // Makes it circular
+                                .background(Color.mainGreen.opacity(0.2))
+                                .clipShape(Circle())
                         }
                     }
                 }
@@ -71,22 +106,11 @@ struct MapView: View {
                         .presentationDetents([.medium, .large])
                         .padding(.top, 40)
                 }
-                .onChange(of: showFilters) { oldValue, newValue in
+                .onChange(of: showFilters) { _, _ in
                     viewModel.searchBusinessesMap()
                 }
-                
-                VStack {
-                    Text("Map Page")
-                        .font(.title)
-                        .padding()
-                        .background(Color.white.opacity(0.8))
-                        .cornerRadius(10)
-                        .shadow(radius: 5)
-                        .padding(.top, 20)
-                    
-                    Spacer()
-                }
             }
+
         }
     }
 }

@@ -15,17 +15,23 @@ struct Location: Decodable {
 
 class BusinessMapLocation: Decodable, Identifiable {
     let id: String
-    var location: Location
-    var name: String
-    var cuisines: [Int]?
-    var address: String?
-    var dietary_restrictions: [PreferenceResponse]?
-    
-    init(id: String, location: Location, name: String, cuisines: [Int]? = nil, address: String? = nil, dietary_restrictions: [PreferenceResponse]? = nil) {
+    let location: Location
+    let name: String?
+    let website: String?
+    let description: String?
+    let cuisines: [Int]?
+    let menu: String?
+    let address: String?
+    let dietary_restrictions: [PreferenceResponse]?
+
+    init(id: String, location: Location, name: String?, website: String?, description: String?, cuisines: [Int]?, menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?) {
         self.id = id
         self.location = location
         self.name = name
+        self.website = website
+        self.description = description
         self.cuisines = cuisines
+        self.menu = menu
         self.address = address
         self.dietary_restrictions = dietary_restrictions
     }
@@ -34,6 +40,9 @@ class BusinessMapLocation: Decodable, Identifiable {
         case id = "_id"
         case location
         case name
+        case website
+        case description
+        case menu
         case cuisines
         case address
         case dietary_restrictions = "dietary_preferences"

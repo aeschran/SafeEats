@@ -38,7 +38,7 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
     @Published var isLoading: Bool = false
     @Published var errorMessage: String? = nil
     @Published var preferencesLoaded: Bool = false
-    @Published var radius: Int = 5000
+    @Published var radius: Int = 5
     @Published var businessesMap: [BusinessMapLocation] = []
     
     private var cancellables = Set<AnyCancellable>()

@@ -200,7 +200,7 @@ class BusinessSearchService(BaseService):
 
         return cuisines
     
-    async def get_businesses_near_lat_lon(self, business_search: BusinessSearch):
+    async def get_businesses_within_radius(self, business_search: BusinessSearch):
         # Fetch businesses from the database within the specified radius
         businesses = await self.db.businesses.find({
             "location.coordinates": {
