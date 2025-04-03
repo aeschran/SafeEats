@@ -35,6 +35,8 @@ class Business: Decodable, Identifiable {
     let menu: String?
     let address: String?
     let dietary_restrictions: [PreferenceResponse]?
+    let avg_rating: Double?
+
     
     enum CodingKeys: String, CodingKey {
         case id = "_id"
@@ -46,5 +48,6 @@ class Business: Decodable, Identifiable {
         case menu
         case address
         case dietary_restrictions
+        case avg_rating
     }
 }

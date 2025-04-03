@@ -30,6 +30,8 @@ struct ContentView: View {
                         case .person:
                             MyProfileView()
                         case .building:
+                            LandingPage()
+                        case .listing:
                             ClaimBusinessView()
                         }
                         

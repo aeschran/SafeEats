@@ -16,6 +16,7 @@ class BusinessCreate(BaseModel):
     address: Optional[str] = None
     location: Optional[LocationCreate] = None
     dietary_restrictions: List[PreferenceResponse] = []
+    avg_rating: Optional[float] = 0.0
 
 class BusinessResponse(BaseModel):
     id: PyObjectId = Field(..., alias="_id")
@@ -27,6 +28,7 @@ class BusinessResponse(BaseModel):
     menu: Optional[str] = None
     address: Optional[str] = None
     dietary_restrictions: List[PreferenceResponse] = []
+    avg_rating: Optional[float] = 0.0
 
 
 class BusinessSearch(BaseModel):
