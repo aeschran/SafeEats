@@ -13,6 +13,7 @@ struct OwnerListingsView: View {
     
     var body: some View {
         NavigationStack {
+
             VStack {
                 if viewModel.isLoading {
                     ProgressView("Loading listings...")
@@ -37,6 +38,15 @@ struct OwnerListingsView: View {
                 viewModel.fetchOwnerListings()
             }
             .navigationBarTitle("My Listings", displayMode: .inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: SettingsView().environmentObject(SettingsViewModel())) {
+                        Image(systemName: "line.3.horizontal") // Settings icon
+                            .font(.title2)
+                            .foregroundColor(.black)
+                    }
+                }
+            }
         }
     }
 }
