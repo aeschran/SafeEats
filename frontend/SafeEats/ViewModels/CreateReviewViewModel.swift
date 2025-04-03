@@ -139,6 +139,7 @@ class CreateReviewViewModel: ObservableObject {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         do {
+            
             let jsonData = try JSONEncoder().encode(updatedReview)
             request.httpBody = jsonData
         } catch {
@@ -152,6 +153,8 @@ class CreateReviewViewModel: ObservableObject {
                     if let index = self.reviews.firstIndex(where: { $0.reviewId == reviewID }) {
                         self.reviews[index] = updatedReview
                     }
+                    var ratingModel = BusinessDetailViewModel()
+                    ratingModel.updateAverageRating(businessId: updatedReview.businessId)
                     completion(true)
                 }
             } else {
