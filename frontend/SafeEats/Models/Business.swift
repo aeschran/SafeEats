@@ -60,5 +60,7 @@ class Business: Decodable, Identifiable {
         self.menu = menu
         self.address = address
         self.dietary_restrictions = dietary_restrictions
+        self.tel = nil
+        self.avg_rating = nil
     }
 }

@@ -35,7 +35,7 @@ struct BusinessDetailView: View {
         }
         return collections.filter { collection in
             !collection.businesses.contains(where: { $0.businessId == business.id })
-            }
+        }
     }
     //    let businessId = business.id
     @State private var selectedFilter: String = "Most Recent"
@@ -67,21 +67,21 @@ struct BusinessDetailView: View {
                                     .padding(.horizontal, 30)
                                     .fixedSize(horizontal: false, vertical: true)
                                 Button(action: {
-                                        Task {
-                                            if bookmarked {
-                                                bookmarked = false
-                                                await viewModel.removeBookmark(collectionId: collectionID ?? "", businessId: business.id)
-                                            } else {
-                                                bookmarked = true
-                                                await viewModel.bookmarkBusiness(businessID: business.id)
-                                            }
+                                    Task {
+                                        if bookmarked {
+                                            bookmarked = false
+                                            await viewModel.removeBookmark(collectionId: collectionID ?? "", businessId: business.id)
+                                        } else {
+                                            bookmarked = true
+                                            await viewModel.bookmarkBusiness(businessID: business.id)
                                         }
-                                    }) {
-                                        Image(systemName: bookmarked ? "bookmark.fill" : "bookmark")
-                                            .font(.system(size: 28))
-                                            .foregroundColor(.white)
-                                            .padding()
                                     }
+                                }) {
+                                    Image(systemName: bookmarked ? "bookmark.fill" : "bookmark")
+                                        .font(.system(size: 28))
+                                        .foregroundColor(.white)
+                                        .padding()
+                                }
                             }
                             
                             
@@ -173,7 +173,7 @@ struct BusinessDetailView: View {
                     //                Spacer()
                 }
                 .onAppear {
-                    viewModel.fetchReviews(for: businessId)
+                    viewModel.fetchReviews(for: business.id)
                     if let data = UserDefaults.standard.data(forKey: "collections") {
                         let decoder = JSONDecoder()
                         if let loadedCollections = try? decoder.decode([Collection].self, from: data) {
@@ -241,9 +241,9 @@ struct BusinessDetailView: View {
             ForEach(viewModel.reviews, id: \.id) { review in
                 ReviewCardView(review: review, viewModel: viewModel)
             }
-    }
+        }
         .padding(.horizontal, 30)
-}
+    }
     
     
     
@@ -349,8 +349,8 @@ struct BusinessDetailView: View {
     //        formatter.dateStyle = .medium
     //        return formatter.string(from: date)
     //    }
-    private var ratingsSection: some View {
-        HStack(alignment: .center, spacing: 5) {
+    var ratingsSection: some View {
+        return HStack(alignment: .center, spacing: 5) {
             if let avg_rating = viewModel.avg_rating {
                 Text("\(String(format: "%.1f", avg_rating))")
                     .bold()
@@ -381,12 +381,12 @@ struct BusinessDetailView: View {
                     Text("Choose a Collection")
                         .font(.title2)
                         .padding()
-
-//                    List {
-//                        Text("Favorites")
-//                        Text("Try Soon")
-//                        Text("Top Vegan")
-//                    }
+                    
+                    //                    List {
+                    //                        Text("Favorites")
+                    //                        Text("Try Soon")
+                    //                        Text("Top Vegan")
+                    //                    }
                     
                     ForEach(collections, id: \.id) { collection in Button(action: {
                         Task {
@@ -402,114 +402,115 @@ struct BusinessDetailView: View {
                             .cornerRadius(4)
                     }
                     }
-
+                    
                     Button("Cancel") {
                         showCollectionPicker = false
                     }
                     .padding()
                 }
-            if let totalReviews = viewModel.total_reviews {
-                Text("(\(totalReviews))")
-                    .font(.system(size: 24))
-                    .foregroundColor(.gray)
-            } else {
-                ProgressView()
-                    .font(.system(size: 24))
+                if let totalReviews = viewModel.total_reviews {
+                    Text("(\(totalReviews))")
+                        .font(.system(size: 24))
+                        .foregroundColor(.gray)
+                } else {
+                    ProgressView()
+                        .font(.system(size: 24))
+                }
             }
         }
     }
-    
-    private var descriptionSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Description")
-                .font(.title2)
-                .fontWeight(.semibold)
-            Text(business.description ?? "No description available.")
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-    
-    private var menuSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Menu")
-                .font(.title2)
-                .fontWeight(.semibold)
-            if let menu = business.menu, let url = URL(string: menu) {
-                Link(destination: url) {
-                    Label("Visit Menu", systemImage: "menucard.fill")
-                }
-                .foregroundColor(Color.mainGreen.darker())
-            } else {
-                Text("No menu available.")
+        
+        var descriptionSection: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Description")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                Text(business.description ?? "No description available.")
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
-    }
-    
-    private var addressSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Address")
-                .font(.title2)
-                .fontWeight(.semibold)
-            if let address = business.address {
-                Button(action: { showMapAlert = true }) {
-                    Label(address, systemImage: "map")
-                        .foregroundColor(Color.mainGreen.darker())
+        
+        var menuSection: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Menu")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                if let menu = business.menu, let url = URL(string: menu) {
+                    Link(destination: url) {
+                        Label("Visit Menu", systemImage: "menucard.fill")
+                    }
+                    .foregroundColor(Color.mainGreen.darker())
+                } else {
+                    Text("No menu available.")
                 }
-                .buttonStyle(.plain)
-                .confirmationDialog("Open in Maps", isPresented: $showMapAlert) {
-                    Button("Open in Maps") { openInAppleMaps(address: address) }
-                    Button("Cancel", role: .cancel) {}
-                }
-            } else {
-                Text("No address available.")
-                    .foregroundColor(Color.mainGreen)
             }
         }
-    }
-    
-    private func openInAppleMaps(address: String) {
-        let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-        if let url = URL(string: "http://maps.apple.com/?address=\(encodedAddress)") {
-            UIApplication.shared.open(url)
+        
+        var addressSection: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Address")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                if let address = business.address {
+                    Button(action: { showMapAlert = true }) {
+                        Label(address, systemImage: "map")
+                            .foregroundColor(Color.mainGreen.darker())
+                    }
+                    .buttonStyle(.plain)
+                    .confirmationDialog("Open in Maps", isPresented: $showMapAlert) {
+                        Button("Open in Maps") { openInAppleMaps(address: address) }
+                        Button("Cancel", role: .cancel) {}
+                    }
+                } else {
+                    Text("No address available.")
+                        .foregroundColor(Color.mainGreen)
+                }
+            }
         }
-    }
-    
-    
-    private func callPhoneNumber(phonenumber: String?) {
-        if let phonenumber = phonenumber {
-            let sanitizedPhoneNumber = phonenumber.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
-            if let url = URL(string: "tel://\(sanitizedPhoneNumber)"),
-               UIApplication.shared.canOpenURL(url) {
+        
+        func openInAppleMaps(address: String) {
+            let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+            if let url = URL(string: "http://maps.apple.com/?address=\(encodedAddress)") {
                 UIApplication.shared.open(url)
-            } else {
-                print("Invalid phone number: \(phonenumber)")
+            }
+        }
+        
+        
+        func callPhoneNumber(phonenumber: String?) {
+            if let phonenumber = phonenumber {
+                let sanitizedPhoneNumber = phonenumber.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+                if let url = URL(string: "tel://\(sanitizedPhoneNumber)"),
+                   UIApplication.shared.canOpenURL(url) {
+                    UIApplication.shared.open(url)
+                } else {
+                    print("Invalid phone number: \(phonenumber)")
+                }
             }
         }
     }
-}
-
-//extension Business {
-//    static var sampleBusiness: Business {
-//        let jsonData = """
-//        {
-//            "name": "Tasty Bites",
-//            "website": "https://tastybites.com",
-//            "description": "Enjoy a warm, inviting atmosphere and delicious homemade meals at our cozy restaurant. We pride ourselves on quality ingredients and comforting flavors.",
-//            "cuisines": [1, 2],
-//            "menu": "https://tastybites.com/menu",
-//            "address": "123 Main St, New York, NY",
-//            "dietary_restrictions": [
-//                {"preference": "Vegan", "preference_type": "Diet"}
-//            ]
-//        }
-//        """.data(using: .utf8)!
-//
-//        let decoder = JSONDecoder()
-//        return try! decoder.decode(Business.self, from: jsonData)
-//    }
-//}
-
-
+    
+    //extension Business {
+    //    static var sampleBusiness: Business {
+    //        let jsonData = """
+    //        {
+    //            "name": "Tasty Bites",
+    //            "website": "https://tastybites.com",
+    //            "description": "Enjoy a warm, inviting atmosphere and delicious homemade meals at our cozy restaurant. We pride ourselves on quality ingredients and comforting flavors.",
+    //            "cuisines": [1, 2],
+    //            "menu": "https://tastybites.com/menu",
+    //            "address": "123 Main St, New York, NY",
+    //            "dietary_restrictions": [
+    //                {"preference": "Vegan", "preference_type": "Diet"}
+    //            ]
+    //        }
+    //        """.data(using: .utf8)!
+    //
+    //        let decoder = JSONDecoder()
+    //        return try! decoder.decode(Business.self, from: jsonData)
+    //    }
+    //}
+    
+    
 #Preview {
     BusinessDetailView(business: Business(id: "1", name: "Test Business", website: "Hello.com", description: "Hey!", cuisines: [], menu: nil, address: "Yo mom's house", dietary_restrictions: []))
 }

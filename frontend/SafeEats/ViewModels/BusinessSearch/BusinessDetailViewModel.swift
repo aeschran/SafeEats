@@ -232,7 +232,7 @@ class BusinessDetailViewModel: ObservableObject {
         ]
         
         guard let jsonData = try? JSONSerialization.data(withJSONObject: requestBody) else { return }
-
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.httpBody = jsonData
@@ -259,36 +259,33 @@ class BusinessDetailViewModel: ObservableObject {
             }
         }
         return
-    
-    private func updateReviewVote(_ reviewID: String, vote: Int) {
-                guard let id = id_ else {
-                        print("Error: User data is not available")
-                        return
-                    }
-                    guard let url = URL(string: "http://127.0.0.1:8000/review/vote/") else { return }
-                    var request = URLRequest(url: url)
-                    request.httpMethod = "POST"
-                    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-                    
-                    let body: [String: Any] = [
-                            "review_id": reviewID,
-                            "user_id": id,  // Replace with the actual user ID
-                            "vote": vote
-                        ]
-                    
-                    do {
-                            let data = try JSONSerialization.data(withJSONObject: body, options: [])
-                            request.httpBody = data
-                            
-                            URLSession.shared.dataTask(with: request) { _, _, _ in
-                                    // Handle response or error if needed
-                                }.resume()
-                        } catch {
-                                print("Error encoding vote data:", error)
-                            }
+    }
         
-        
-            }
+        func updateReviewVote(_ reviewID: String, vote: Int) {
+            guard let id = id_ else {
+                print("Error: User data is not available")
+                return
+            }
+            guard let url = URL(string: "http://127.0.0.1:8000/review/vote/") else { return }
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            let body: [String: Any] = [
+                "review_id": reviewID,
+                "user_id": id,  // Replace with the actual user ID
+                "vote": vote
+            ]
+            do {
+                let data = try JSONSerialization.data(withJSONObject: body, options: [])
+                request.httpBody = data
+                URLSession.shared.dataTask(with: request) { _, _, _ in
+                    // Handle response or error if needed
+                }.resume()
+            } catch {
+                print("Error encoding vote data:", error)
+            }
+        }
     
     
     
