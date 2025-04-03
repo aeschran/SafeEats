@@ -9,9 +9,11 @@ import SwiftUI
 
 
 struct ContentView: View {
-    @State private var tabSelected: Tab = .house
+//    @State private var tabSelected: Tab = .house
+    @State private var tabSelected: Tab
     init() {
         UITabBar.appearance().isHidden = true
+        _tabSelected = State(initialValue: AuthViewModel().userType == "Business" ? .building : .house)
     }
     
     var body: some View {

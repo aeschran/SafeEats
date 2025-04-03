@@ -104,21 +104,32 @@ class BusinessService(BaseService):
     
     async def update_average_rating(self, business_id: str):
         business_object_id = ObjectId(business_id)
+        
+        # ratings = await self.db.user_reviews.find({"business_id": business_object_id}).to_list(length=None)
+        # print(f"Ratings: {[r['rating'] for r in ratings]}")
+
         pipeline = [
             {"$match": {"business_id": business_object_id}}, 
             {"$group": {"_id": None, "avg_rating": {"$avg": "$rating"}}} 
         ]
 
         result = await self.db.user_reviews.aggregate(pipeline).to_list(length=1)
+        
 
-        avg_rating = round(result[0]["avg_rating"], 1) if result else 0.0
+        if result:
+            avg_rating = result[0]["avg_rating"]
+        else:
+            avg_rating = 0.0
+
+        avg_rating = round(avg_rating, 1)
 
         await self.db.businesses.update_one(
             {"_id": business_object_id},
-            {"$set": {"avg_rating": avg_rating}}
+            {"$set": {"avg_rating": float(avg_rating)}}
+
         )
 
-        return avg_rating  
+        return avg_rating
 
     
     async def get_review_count(self, business_id: str) -> int:
