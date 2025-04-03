@@ -19,7 +19,7 @@ struct Review: Identifiable, Codable {
     var upvotes: Int
     var downvotes: Int
     var userVote: Int?
-
+    
     enum CodingKeys: String, CodingKey {
         case id = "review_id"  // Maps JSON "review_id" to Swift "id"
         case userID = "user_id"
@@ -39,6 +39,10 @@ struct Review: Identifiable, Codable {
 
 class BusinessDetailViewModel: ObservableObject {
     @Published var reviews: [Review] = []
+    
+    @Published var avg_rating: Double?
+    @Published var total_reviews: Int?
+    
     @AppStorage("id") var id_: String?
     private let baseURL = "http://127.0.0.1:8000"
     
@@ -136,19 +140,74 @@ class BusinessDetailViewModel: ObservableObject {
                 "vote": vote
             ]
             
-            do {
-                let data = try JSONSerialization.data(withJSONObject: body, options: [])
-                request.httpBody = data
+            // If the user has already downvoted, remove the downvote
+            if review.userVote == -1 {
+                review.downvotes -= 1
+                review.userVote = nil
+                updateReviewVote(reviewID, vote: 2)  // Remove downvote
+            } else {
+                // If the user previously upvoted, remove the upvote
+                if review.userVote == 1 {
+                    review.upvotes -= 1
+                }
                 
-                URLSession.shared.dataTask(with: request) { _, _, _ in
-                    // Handle response or error if needed
-                }.resume()
-            } catch {
-                print("Error encoding vote data:", error)
+                review.downvotes += 1
+                review.userVote = -1
+                updateReviewVote(reviewID, vote: 0)  // Add downvote
             }
-
-
+            
+            reviews[index] = review
         }
+    
+    // BUSINESS DETAILS
+    
+    func fetchBusinessData(businessID: String) async {
+        async let avg_rating_result = fetchAverageRating(businessID: businessID)
+        async let total_reviews_result = fetchReviewCount(businessID: businessID)
+        
+        let avg_rating = await avg_rating_result
+        let total_reviews = await total_reviews_result
+        
+        DispatchQueue.main.async {
+            self.avg_rating = avg_rating
+            self.total_reviews = total_reviews
+        }
+        
+    }
+    
+    private func fetchAverageRating(businessID: String) async -> Double? {
+        guard let url = URL(string: "\(baseURL)/businesses/\(businessID)/average-rating") else { return nil }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            return try? JSONDecoder().decode(Double.self, from: data)
+        } catch {
+            print("Failed to fetch average rating: \(error)")
+            return nil
+        }
+    }
+    
+    private func fetchReviewCount(businessID: String) async -> Int? {
+        guard let url = URL(string: "\(baseURL)/businesses/\(businessID)/total-reviews") else { return nil }
+        
+        // Creating URLRequest to set method and headers if needed
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        do {
+            // Use URLSession to fetch data
+            let (data, _) = try await URLSession.shared.data(for: request)
+            return try? JSONDecoder().decode(Int.self, from: data)
+        } catch {
+            print("Failed to fetch review count: \(error)")
+            return nil
+        }
+    }
+    
     
     func sortReviews(by filter: String) {
             switch filter {

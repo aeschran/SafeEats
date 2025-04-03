@@ -12,7 +12,7 @@ struct BusinessDetailView: View {
     @State private var showMapAlert = false
     @State private var showingCallConfirmation = false
     // temp variables
-//    let phonenumber: String? = "8124552066"
+    //    let phonenumber: String? = "8124552066"
     let rating: Double = 4.5
     
     @State private var upvoteCount: Int = 10  // Replace with actual count
@@ -39,7 +39,6 @@ struct BusinessDetailView: View {
                             .padding(.vertical, 8)
                         
                         // contact info section
-                        // TODO: add actual phone number of business
                         VStack {
                             Text(business.name ?? "No Name")
                                 .font(.largeTitle)
@@ -49,7 +48,6 @@ struct BusinessDetailView: View {
                                 .fixedSize(horizontal: false, vertical: true)
                             
                             // contact info section
-                            // TODO: add actual phone number of business
                             if let website = business.website, let url = URL(string: website),
                                let phonenumber = business.tel, !phonenumber.isEmpty {
                                 HStack(spacing: 10) {
@@ -120,25 +118,29 @@ struct BusinessDetailView: View {
                         }
                         .padding(.vertical, 15)
                     }
-                
-                VStack(alignment: .leading, spacing: 25) {
-                    ratingsSection
-                    descriptionSection
-                    menuSection
-                    addressSection
+                    
+                    VStack(alignment: .leading, spacing: 25) {
+                        ratingsSection
+                        descriptionSection
+                        menuSection
+                        addressSection
+                    }
+                    .padding([.bottom, .horizontal], 30)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    reviewsSection
+                    
+                    //                Spacer()
                 }
-                .padding([.bottom, .horizontal], 30)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                
-                reviewsSection
-                
-//                Spacer()
-            }
                 .onAppear{
+
                     viewModel.fetchReviews(for: business.id)
                 }
-            .padding(.top, 5)
-        }
+                .task {
+                    await viewModel.fetchBusinessData(businessID: business.id)
+                }
+                .padding(.top, 5)
+            }
         }
     }
     
@@ -192,10 +194,9 @@ struct BusinessDetailView: View {
                     ReviewCardView(review: review, viewModel: viewModel)
                 }
             }
-            .padding(.horizontal, 30)
-        
-        
         }
+        .padding(.horizontal, 30)
+    }
     
     // Extracted Review Card to simplify `reviewsSection`
     struct ReviewCardView: View {
@@ -203,8 +204,6 @@ struct BusinessDetailView: View {
         @ObservedObject var viewModel: BusinessDetailViewModel
         @State private var userVote: Int? = nil
         
-
-
         var body: some View {
             VStack(alignment: .leading, spacing: 8) {
                 // Username + Date
@@ -212,12 +211,12 @@ struct BusinessDetailView: View {
                     Text("\(review.userName) ")
                         .font(.headline)
                         .foregroundColor(.black)
-
+                    
                     Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
                         .font(.caption)
                         .foregroundColor(.gray)
                 }
-
+                
                 // Star Rating
                 HStack(spacing: 2) {
                     ForEach(0..<5, id: \.self) { index in
@@ -225,30 +224,30 @@ struct BusinessDetailView: View {
                             .foregroundColor(index < review.rating ? .yellow : .gray)
                     }
                 }
-
+                
                 // Review Content
                 Text(review.reviewContent)
                     .font(.body)
                     .foregroundColor(.black)
                     .lineLimit(2)
-
+                
                 // Upvote / Downvote
                 HStack {
-                              Button(action: { viewModel.upvoteReview(review.id) }) {
-                                  Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
-                                      .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
-                                      .font(.headline)
-                              }
-
-                              Text("\(review.upvotes - review.downvotes)")
-                                  .font(.subheadline)
-
-                              Button(action: { viewModel.downvoteReview(review.id) }) {
-                                  Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
-                                      .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
-                                      .font(.headline)
-                              }
-                          }
+                    Button(action: { viewModel.upvoteReview(review.id) }) {
+                        Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
+                            .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
+                            .font(.headline)
+                    }
+                    
+                    Text("\(review.upvotes - review.downvotes)")
+                        .font(.subheadline)
+                    
+                    Button(action: { viewModel.downvoteReview(review.id) }) {
+                        Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
+                            .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
+                            .font(.headline)
+                    }
+                }
                 .padding(.top, 3)
                 .padding(.bottom, 5)
             }
@@ -256,7 +255,7 @@ struct BusinessDetailView: View {
             .background(Color.gray.opacity(0.1))
             .cornerRadius(10)
         }
-
+        
         // Helper function for date formatting
         private func formattedDate(from timestamp: Double) -> String {
             let date = Date(timeIntervalSince1970: timestamp)
@@ -266,52 +265,62 @@ struct BusinessDetailView: View {
             return formatter.string(from: date)
         }
     }
-
-//        private func handleUpvote() {
-//            if userVote == 1 {
-//                upvoteCount -= 1
-//                userVote = nil
-//            } else if userVote == -1 {
-//                downvoteCount -= 1
-//                upvoteCount += 1
-//                userVote = 1
-//            } else {
-//                upvoteCount += 1
-//                userVote = 1
-//            }
-//        }
-//        
-//        private func handleDownvote() {
-//            if userVote == -1 {
-//                downvoteCount -= 1
-//                userVote = nil
-//            } else if userVote == 1 {
-//                upvoteCount -= 1
-//                downvoteCount += 1
-//                userVote = -1
-//            } else {
-//                downvoteCount += 1
-//                userVote = -1
-//            }
-//        }
     
-//    private func formattedDate(from timestamp: Double) -> String {
-//        let date = Date(timeIntervalSince1970: timestamp)
-//        let formatter = DateFormatter()
-//        formatter.dateStyle = .medium
-//        return formatter.string(from: date)
-//    }
+    //        private func handleUpvote() {
+    //            if userVote == 1 {
+    //                upvoteCount -= 1
+    //                userVote = nil
+    //            } else if userVote == -1 {
+    //                downvoteCount -= 1
+    //                upvoteCount += 1
+    //                userVote = 1
+    //            } else {
+    //                upvoteCount += 1
+    //                userVote = 1
+    //            }
+    //        }
+    //
+    //        private func handleDownvote() {
+    //            if userVote == -1 {
+    //                downvoteCount -= 1
+    //                userVote = nil
+    //            } else if userVote == 1 {
+    //                upvoteCount -= 1
+    //                downvoteCount += 1
+    //                userVote = -1
+    //            } else {
+    //                downvoteCount += 1
+    //                userVote = -1
+    //            }
+    //        }
+    
+    //    private func formattedDate(from timestamp: Double) -> String {
+    //        let date = Date(timeIntervalSince1970: timestamp)
+    //        let formatter = DateFormatter()
+    //        formatter.dateStyle = .medium
+    //        return formatter.string(from: date)
+    //    }
     private var ratingsSection: some View {
         HStack(alignment: .center, spacing: 5) {
-            Text("\(String(format: "%.1f", rating))")
-                .bold()
-                .font(.title)
+            if let avg_rating = viewModel.avg_rating {
+                Text("\(String(format: "%.1f", avg_rating))")
+                    .bold()
+                    .font(.title)
+            } else {
+                ProgressView()
+                    .font(.title)
+            }
             Image(systemName: "star.fill")
                 .foregroundColor(.yellow)
                 .font(.system(size: 24))
-            Text("(200+)")
-                .font(.system(size: 24))
-                .foregroundColor(.gray)
+            if let totalReviews = viewModel.total_reviews {
+                Text("(\(totalReviews))")
+                    .font(.system(size: 24))
+                    .foregroundColor(.gray)
+            } else {
+                ProgressView()
+                    .font(.system(size: 24))
+            }
         }
     }
     
@@ -369,8 +378,8 @@ struct BusinessDetailView: View {
             UIApplication.shared.open(url)
         }
     }
-
-
+    
+    
     private func callPhoneNumber(phonenumber: String?) {
         if let phonenumber = phonenumber {
             let sanitizedPhoneNumber = phonenumber.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
@@ -399,7 +408,7 @@ struct BusinessDetailView: View {
 //            ]
 //        }
 //        """.data(using: .utf8)!
-//        
+//
 //        let decoder = JSONDecoder()
 //        return try! decoder.decode(Business.self, from: jsonData)
 //    }
@@ -407,5 +416,5 @@ struct BusinessDetailView: View {
 
 
 #Preview {
-//    BusinessDetailView(business: Business.sampleBusiness)
+    //    BusinessDetailView(business: Business.sampleBusiness)
 }
