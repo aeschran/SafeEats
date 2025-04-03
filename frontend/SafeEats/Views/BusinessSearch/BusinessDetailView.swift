@@ -18,8 +18,27 @@ struct BusinessDetailView: View {
     @State private var upvoteCount: Int = 10  // Replace with actual count
     @State private var downvoteCount: Int = 3  // Replace with actual count
     @State private var userVote: Int? = nil
+    @State private var showCollectionPicker = false
     @StateObject private var viewModel = BusinessDetailViewModel()
     let businessId = "67c0f434d995a74c126ecfd7"
+    
+    @State private var collections: [Collection] = UserDefaults.standard.object(forKey: "collections") as? [Collection] ?? []
+    
+    @State var bookmarked: Bool = false
+    @State var collectionID: String? = nil
+    
+    func collectionsExcludingBusiness() -> [Collection] {
+        for collection in $collections {
+            if collection.name.wrappedValue == "Bookmarks" && collection.businesses.contains(where: { $0.businessId.wrappedValue == business.id }) {
+                collectionID = collection.id.wrappedValue
+                bookmarked = true
+            }
+        }
+        return collections.filter { collection in
+            !collection.businesses.contains(where: { $0.businessId == business.id })
+            }
+    }
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -33,13 +52,33 @@ struct BusinessDetailView: View {
                             .padding(.vertical, 8)
                         
                         VStack {
+                            HStack {
+                                Text(business.name ?? "No Name")
+                                    .font(.largeTitle)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                                    .padding(.bottom, 15)
+                                    .padding(.horizontal, 30)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Button(action: {
+                                        Task {
+                                            if bookmarked {
+                                                bookmarked = false
+                                                await viewModel.removeBookmark(collectionId: collectionID ?? "", businessId: business.id)
+                                            } else {
+                                                bookmarked = true
+                                                await viewModel.bookmarkBusiness(businessID: business.id)
+                                            }
+                                        }
+                                    }) {
+                                        Image(systemName: bookmarked ? "bookmark.fill" : "bookmark")
+                                            .font(.system(size: 28))
+                                            .foregroundColor(.white)
+                                            .padding()
+                                    }
+                            }
                             
-                            Text(business.name ?? "No Name")
-                                .font(.largeTitle)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
-                                .padding(.bottom, 15)
-                                .fixedSize(horizontal: false, vertical: true)
+                            
                             
                             // contact info section
                             // TODO: add actual phone number of business
@@ -113,6 +152,7 @@ struct BusinessDetailView: View {
                             }
                         }
                         .padding(.vertical, 15)
+                        
                     }
                 
                 VStack(alignment: .leading, spacing: 25) {
@@ -128,8 +168,17 @@ struct BusinessDetailView: View {
                 
 //                Spacer()
             }
-                .onAppear{
+                .onAppear {
                     viewModel.fetchReviews(for: businessId)
+                    if let data = UserDefaults.standard.data(forKey: "collections") {
+                        let decoder = JSONDecoder()
+                        if let loadedCollections = try? decoder.decode([Collection].self, from: data) {
+                            print(loadedCollections)
+                            collections = loadedCollections
+                            // filter to only collections that don't have this id in their businesses field
+                            collections = collectionsExcludingBusiness()
+                        }
+                    }
                 }
             .padding(.top, 5)
         }
@@ -242,7 +291,7 @@ struct BusinessDetailView: View {
 //                userVote = 1
 //            }
 //        }
-//        
+//
 //        private func handleDownvote() {
 //            if userVote == -1 {
 //                downvoteCount -= 1
@@ -274,6 +323,53 @@ struct BusinessDetailView: View {
             Text("(200+)")
                 .font(.system(size: 24))
                 .foregroundColor(.gray)
+            Spacer()
+            Button(action: {
+                showCollectionPicker = true
+                collections = collectionsExcludingBusiness()
+            }) {
+                Text("Add to Collection")
+            }
+            .font(.headline)
+            .foregroundColor(.white)
+            .padding()
+            .background(Color.mainGreen)
+            .cornerRadius(10)
+            .frame(width: 160, height: 80)
+            .sheet(isPresented: $showCollectionPicker) {
+                // Dummy UI for now; replace with your real collection picker view
+                VStack {
+                    Text("Choose a Collection")
+                        .font(.title2)
+                        .padding()
+
+//                    List {
+//                        Text("Favorites")
+//                        Text("Try Soon")
+//                        Text("Top Vegan")
+//                    }
+                    
+                    ForEach(collections, id: \.id) { collection in Button(action: {
+                        Task {
+                            await viewModel.addBusinessToCollection(collectionName: collection.name, businessID: business.id)
+                            showCollectionPicker = false
+                        }
+                    }) {
+                        Text(collection.name)
+                            .font(.footnote)
+                            .fontWeight(.semibold)
+                            .frame(width: 380, height: 68)
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(4)
+                    }
+                    }
+
+                    Button("Cancel") {
+                        showCollectionPicker = false
+                    }
+                    .padding()
+                }
+            }
         }
     }
     
@@ -361,7 +457,7 @@ struct BusinessDetailView: View {
 //            ]
 //        }
 //        """.data(using: .utf8)!
-//        
+//
 //        let decoder = JSONDecoder()
 //        return try! decoder.decode(Business.self, from: jsonData)
 //    }
@@ -369,5 +465,5 @@ struct BusinessDetailView: View {
 
 
 #Preview {
-//    BusinessDetailView(business: Business.sampleBusiness)
+    BusinessDetailView(business: Business(id: "1", name: "Test Business", website: "Hello.com", description: "Hey!", cuisines: [], menu: nil, address: "Yo mom's house", dietary_restrictions: []))
 }
