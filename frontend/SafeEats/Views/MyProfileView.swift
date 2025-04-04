@@ -559,17 +559,27 @@ struct EditReviewView: View {
             }
         }
 
-        guard let imageData = Data(base64Encoded: base64, op  print("❌ Could not decode base64")
-            return nil
-        }
+//        guard let imageData = Data(base64Encoded: base64, op  print("❌ Could not decode base64") else {
+//            return nil
+//        }
+//
+//        guard let image = UIImage(data: imageData) else {
+//            return nil
+//        }
+        guard let imageData = Data(base64Encoded: base64) else {
+                print("❌ Could not decode base64")
+                return nil
+            }
 
-        guard let image = UIImage(data: imageData) else {
-            return nil
-        }
+            guard let image = UIImage(data: imageData) else {
+                print("❌ Could not create UIImage from data")
+                return nil
+            }
 
         return image
     }
 
 
     
-}
+
+        }
