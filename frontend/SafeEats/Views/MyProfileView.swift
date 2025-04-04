@@ -9,7 +9,9 @@ import SwiftUI
 
 struct MyProfileView: View {
     @StateObject private var viewModel = MyProfileViewModel()
-    @State private var selectedTab: String = "Collections"
+    @StateObject var feedViewModel = FeedViewModel()
+
+    @State private var selectedTab: String = "Reviews"
     @State var showNewCollectionPopup = false
     @State var newCollectionName = ""
     @State var displayError: Bool = false
@@ -162,7 +164,8 @@ struct MyProfileView: View {
                     if selectedTab == "Collections" {
                         collectionsView
                     } else if selectedTab == "Reviews"{
-                        ProfileReviewView(viewModel: FeedViewModel())
+                        
+                        ProfileReviewView(viewModel: feedViewModel)
                     }
                 }
                 .padding(6)
@@ -180,6 +183,7 @@ struct MyProfileView: View {
                 .task {
 //                    viewModel.collections = loadCollectionsFromUserDefaults()
                     await loadProfileData()
+                    feedViewModel.fetchMyReviews()
                 }
                 
                 
@@ -241,6 +245,7 @@ struct MyProfileView: View {
             viewModel.objectWillChange.send()
         }
     }
+    
 }
 
 struct ProfileReviewView: View {
@@ -299,7 +304,7 @@ struct ProfileReviewView: View {
 
     private func confirmDeleteReview() {
         if let review = reviewToDelete {
-            reviewViewModel.deleteReview(reviewID: review.reviewId) { success in
+            reviewViewModel.deleteReview(reviewID: review.reviewId, businessID: review.businessId) { success in
                 if success {
                     print("Review deleted successfully")
                     viewModel.fetchMyReviews()
@@ -415,10 +420,18 @@ struct EditReviewView: View {
         _rating = State(initialValue: review.rating)
     }
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text(updatedReview.businessName)
+        VStack {
+            Text("Edit Your Review\(Image(systemName: "pencil")) ")
                 .font(.largeTitle)
                 .fontWeight(.semibold)
+            Text(updatedReview.businessName)
+                .font(.title2)
+                .fontWeight(.medium)
+                .foregroundColor(Color.mainGreen)
+        }
+        
+        VStack(alignment:.leading,spacing: 20) {
+            
             
             HStack {
                 ForEach(1...5, id: \..self) { star in
@@ -432,9 +445,7 @@ struct EditReviewView: View {
                 }
             }
             
-            Text("Edit Your Review")
-                .font(.title2)
-                .fontWeight(.semibold)
+            
             
             TextEditor(text: $reviewContent)
                 .frame(height: 150)
@@ -443,41 +454,122 @@ struct EditReviewView: View {
             
             
             
-            Spacer()
-            
-            Button(action: {
-                print(updatedReview.userId)
-                var newReview:FriendReview = FriendReview(reviewId: updatedReview.reviewId, userId: updatedReview.userId, businessId: updatedReview.businessId, userName: updatedReview.reviewId, businessName: updatedReview.businessName, reviewContent: reviewContent, rating: rating, reviewImage: updatedReview.reviewImage, reviewTimestamp: updatedReview.reviewTimestamp)
-                reviewModel.editReview(reviewID: updatedReview.reviewId, updatedReview: newReview) { success in
-                    if success {
-                        print("Review UPDATED successfully")
-                        showAlert = true
-                        viewModel.fetchMyReviews()
-                    } else {
-                        print("Failed to UPDATE review")
-                    }
-                }
-                
-                
-            }) {
-                Text("Update Review")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .padding()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.mainGreen)
+            if let selectedImage = selectedImage {
+                Image(uiImage: selectedImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 120)
+                    .cornerRadius(10)
+            } else if let existingImage = decodedImage() {
+                Image(uiImage: existingImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 120)
                     .cornerRadius(10)
             }
+
+            // Image Picker Button
+            Button(action: {
+                showImagePicker = true
+                
+            }) {
+                Text("Choose New Image")
+                    .font(.subheadline)
+                    .padding(8)
+                    .frame(maxWidth: .infinity)
+                    .background(Color.gray.opacity(0.2))
+                    .cornerRadius(8)
+            }
+            HStack {
+                Button(action: {
+                    var newImageBase64: String? = updatedReview.reviewImage
+                    
+                    if let selectedImage = selectedImage,
+                       let imageData = selectedImage.jpegData(compressionQuality: 0.8) {
+                        newImageBase64 = imageData.base64EncodedString()
+                    }
+                    
+                    let newReview = FriendReview(
+                        reviewId: updatedReview.reviewId,
+                        userId: updatedReview.userId,
+                        businessId: updatedReview.businessId,
+                        userName: updatedReview.userName,
+                        businessName: updatedReview.businessName,
+                        reviewContent: reviewContent,
+                        rating: rating,
+                        reviewImage: newImageBase64,
+                        reviewTimestamp: updatedReview.reviewTimestamp
+                    )
+                    
+                    reviewModel.editReview(reviewID: updatedReview.reviewId, updatedReview: newReview, newImage: selectedImage) { success in
+                        if success {
+                            showAlert = true
+                            viewModel.fetchMyReviews()
+                        } else {
+                            print("Failed to UPDATE review")
+                        }
+                    }
+                }) {
+                    Text("Update Review")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.mainGreen)
+                        .cornerRadius(10)
+                }
+                Button(action: {
+                    presentationMode.wrappedValue.dismiss()
+                }) {
+                    Text("Cancel")
+                        .font(.headline)
+                        .foregroundColor(.black)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.mainGray)
+                        .cornerRadius(10)
+                }
+            }
+
             
         }
         .padding()
         .navigationTitle("Update Review")
+        
         .alert("Update Successful", isPresented: $showAlert) {
-            Text("Your review was updated sucessfully!")
-            Button("OK", role: .cancel) {
-                presentationMode.wrappedValue.dismiss()
-            }
+            Button("OK", role: .cancel) { presentationMode.wrappedValue.dismiss()}
+        } message: {
+            Text("Your review of \(updatedReview.businessName) was successfully updated!")
+        }
+        .sheet(isPresented: $showImagePicker) {
+            ReviewImagePicker(image: $selectedImage)
         }
     }
+    
+    func decodedImage() -> UIImage? {
+        guard var base64 = updatedReview.reviewImage, !base64.isEmpty else {
+            
+            return nil
+        }
+
+        // Remove prefix if it exists
+        if base64.starts(with: "data:image") {
+            if let commaIndex = base64.firstIndex(of: ",") {
+                base64 = String(base64[base64.index(after: commaIndex)...])
+            }
+        }
+
+        guard let imageData = Data(base64Encoded: base64, op  print("❌ Could not decode base64")
+            return nil
+        }
+
+        guard let image = UIImage(data: imageData) else {
+            return nil
+        }
+
+        return image
+    }
+
+
     
 }

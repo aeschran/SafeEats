@@ -113,7 +113,7 @@ class CreateReviewViewModel: ObservableObject {
         return imageData.base64EncodedString()
     }
     
-    func deleteReview(reviewID: String, completion: @escaping (Bool) -> Void) {
+    func deleteReview(reviewID: String, businessID: String, completion: @escaping (Bool) -> Void) {
             guard let url = URL(string: "\(baseURL)/review/delete/\(reviewID)") else { return }
             
             var request = URLRequest(url: url)
@@ -122,7 +122,9 @@ class CreateReviewViewModel: ObservableObject {
             URLSession.shared.dataTask(with: request) { data, response, error in
                 if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
                     DispatchQueue.main.async {
-                        self.reviews.removeAll { $0.reviewId == reviewID } // Update UI
+                        self.reviews.removeAll { $0.reviewId == reviewID }
+                        var ratingModel = BusinessDetailViewModel()
+                        ratingModel.updateAverageRating(businessId: businessID)
                         completion(true)
                     }
                 } else {
@@ -131,22 +133,21 @@ class CreateReviewViewModel: ObservableObject {
             }.resume()
         }
     
-    func editReview(reviewID: String, updatedReview: FriendReview, completion: @escaping (Bool) -> Void) {
+    func editReview(reviewID: String, updatedReview: FriendReview, newImage: UIImage? = nil, completion: @escaping (Bool) -> Void) {
         guard let url = URL(string: "\(baseURL)/review/edit/\(reviewID)") else { return }
-        
+
         var request = URLRequest(url: url)
         request.httpMethod = "PUT"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
+
         do {
-            
             let jsonData = try JSONEncoder().encode(updatedReview)
             request.httpBody = jsonData
         } catch {
             print("Error encoding review update: \(error)")
             return
         }
-        
+
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
                 DispatchQueue.main.async {
@@ -155,13 +156,69 @@ class CreateReviewViewModel: ObservableObject {
                     }
                     var ratingModel = BusinessDetailViewModel()
                     ratingModel.updateAverageRating(businessId: updatedReview.businessId)
-                    completion(true)
+
+                    // If new image is selected, update the image
+                    if let newImage = newImage {
+                        self.updateReviewImage(reviewId: reviewID, image: newImage) { imageUpdated in
+                            print("Image update success: \(imageUpdated)")
+                            completion(true)
+                        }
+                    } else {
+                        completion(true)
+                    }
                 }
             } else {
                 completion(false)
             }
         }.resume()
     }
+    
+    func updateReviewImage(reviewId: String, image: UIImage, completion: @escaping (Bool) -> Void) {
+        guard let url = URL(string: "\(baseURL)/review/updateimage") else {
+            print("Invalid update image URL")
+            completion(false)
+            return
+        }
+
+        guard let imageBase64 = convertImageToBase64(image: image) else {
+            print("Failed to convert image to base64")
+            completion(false)
+            return
+        }
+
+        let imageData: [String: Any] = [
+            "review_id": reviewId,
+            "review_image": imageBase64
+        ]
+
+        guard let httpBody = try? JSONSerialization.data(withJSONObject: imageData) else {
+            print("Failed to encode image data")
+            completion(false)
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = httpBody
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Update image request failed: \(error.localizedDescription)")
+                completion(false)
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                completion(true)
+            } else {
+               
+                completion(false)
+            }
+        }.resume()
+    }
+
+
     
     
 }
