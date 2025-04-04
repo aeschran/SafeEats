@@ -168,6 +168,7 @@ struct OwnerBusinessDetailView: View {
                         }
                         ownerViewModel.enabled[restriction.preference] = 1
                     }
+                    viewModel.updateAverageRating(businessId: business.id)
                 }
                 .task {
                     await viewModel.fetchBusinessData(businessID: business.id)
