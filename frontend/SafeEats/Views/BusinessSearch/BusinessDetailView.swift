@@ -34,6 +34,7 @@ struct BusinessDetailView: View {
             }
         }
         return collections.filter { collection in
+            collection.name != "Bookmarks" &&
             !collection.businesses.contains(where: { $0.businessId == business.id })
         }
     }
