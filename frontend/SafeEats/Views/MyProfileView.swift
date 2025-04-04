@@ -9,7 +9,7 @@ import SwiftUI
 
 struct MyProfileView: View {
     @StateObject private var viewModel = MyProfileViewModel()
-    @State private var selectedTab: String = "Reviews"
+    @State private var selectedTab: String = "Collections"
     @State var showNewCollectionPopup = false
     @State var newCollectionName = ""
     @State var displayError: Bool = false
