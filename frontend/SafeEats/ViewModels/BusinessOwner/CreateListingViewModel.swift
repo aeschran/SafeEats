@@ -26,6 +26,13 @@ class CreateListingViewModel: ObservableObject {
         var modifiedListingData = listingData  // Create a mutable copy
         modifiedListingData["owner_id"] = id
         modifiedListingData["avg_rating"] = 0.0
+        modifiedListingData["social_media"] = [
+            "facebook_id": nil,
+            "instagram": nil,
+            "twitter": nil
+        ]
+
+
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"

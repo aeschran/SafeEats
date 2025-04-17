@@ -156,7 +156,7 @@ struct BusinessDetailView: View {
                                     .font(.system(size: 20, weight: .medium))
                             }
                         }
-                        .padding(.vertical, 15)
+                        .padding(.vertical, 30)
                         
                     }
                     
@@ -165,6 +165,7 @@ struct BusinessDetailView: View {
                         descriptionSection
                         menuSection
                         addressSection
+                        socialMediaSection
                     }
                     .padding([.bottom, .horizontal], 30)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -476,6 +477,41 @@ struct BusinessDetailView: View {
                 }
             }
         }
+    
+        var socialMediaSection: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Social Media")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                if let social = business.social_media,
+                   social.instagram != nil || social.twitter != nil || social.facebook_id != nil {
+                    if let ig = social.instagram, let url = URL(string: "https://instagram.com/\(ig)") {
+                        HStack {
+                            Image("Instagram")
+                                .resizable()
+                                .frame(width: 25, height: 25)
+                            Link(destination: url) {
+                                Text("@\(ig)")
+                                    .foregroundColor(.mainGreen.darker())
+                            }
+                        }
+                    }
+                    if let tw = social.twitter, let url = URL(string: "https://twitter.com/\(tw)") {
+                        HStack {
+                            Image("Twitter")
+                                .resizable()
+                                .frame(width: 25, height: 25)
+                            Link(destination: url) {
+                                Text("@\(tw)")
+                                    .foregroundColor(.mainGreen.darker())
+                            }
+                        }
+                    }
+                } else {
+                    Text("No social media available.")
+                }
+            }
+        }
         
         func openInAppleMaps(address: String) {
             let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
@@ -520,6 +556,24 @@ struct BusinessDetailView: View {
     //}
     
     
-//#Preview {
-//    BusinessDetailView(business: Business(id: "1", name: "Test Business", website: "Hello.com", description: "Hey!", cuisines: [], menu: nil, address: "Yo mom's house", dietary_restrictions: []))
-//}
+#Preview {
+    BusinessDetailView(
+        business: Business(
+            id: "67efeeecadf19975370af524",
+            name: "Test Business",
+            website: "https://example.com",
+            description: "Test description",
+            cuisines: [],
+            menu: nil,
+            address: "123 Test Street",
+            dietary_restrictions: [],
+            tel: "1234567890",
+            avg_rating: 4.5,
+            social_media: SocialMedia(
+                facebook_id: "test_fb",
+                instagram: "test_ig",
+                twitter: "test_tw"
+            )
+        )
+    )
+}
