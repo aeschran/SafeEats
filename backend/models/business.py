@@ -1,11 +1,12 @@
 from bson import ObjectId
 from typing import Optional, List, Dict
+from schemas.business import SocialMedia
 from models.preference import Preference
 from models.cuisine import Cuisine
 from models.location import Location
 
 class Business:
-    def __init__(self, name, location: Location, owner_id: Optional[ObjectId] = None, website: Optional[str] = None, tel: Optional[str] = None, description: Optional[str] = None, cuisines: List[int] = [], menu: Optional[str] = None, address: Optional[str] = None, dietary_restrictions: List[str] = [], avg_rating: Optional[float] = 0.0):
+    def __init__(self, name, location: Location, owner_id: Optional[ObjectId] = None, website: Optional[str] = None, tel: Optional[str] = None, description: Optional[str] = None, cuisines: List[int] = [], menu: Optional[str] = None, address: Optional[str] = None, dietary_restrictions: List[str] = [], avg_rating: Optional[float] = 0.0, social_media: Optional[SocialMedia] = None):
         self.name = name
         self.owner_id = owner_id
         self.website = website
@@ -17,6 +18,7 @@ class Business:
         self.location = location
         self.dietary_restrictions = []
         self.avg_rating = avg_rating
+        self.social_media = social_media
         
     def to_dict(self):
         return {
@@ -29,7 +31,9 @@ class Business:
             "menu": self.menu,
             "address": self.address,
             "location": self.location.to_dict(),
-            "dietary_restrictions": self.dietary_restrictions
+            "dietary_restrictions": self.dietary_restrictions,
+            "avg_rating": self.avg_rating,
+            "social_media": self.social_media.model_dump()
         }
     
 class BusinessCollectionEntry:
