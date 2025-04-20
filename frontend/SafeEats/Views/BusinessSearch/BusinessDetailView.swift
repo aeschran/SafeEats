@@ -361,22 +361,34 @@ struct BusinessDetailView: View {
     var ratingsSection: some View {
         return HStack(alignment: .center, spacing: 5) {
             if let avg_rating = viewModel.avg_rating {
-                Text("\(String(format: "%.1f", avg_rating))")
-                    .bold()
-                    .font(.title)
+                if avg_rating == 0.0 {
+                    Text("No reviews")
+                        .bold()
+                        .font(.title2)
+                } else {
+                    Text("\(String(format: "%.1f", avg_rating))")
+                        .bold()
+                        .font(.title)
+                    Image(systemName: "star.fill")
+                        .foregroundColor(.yellow)
+                        .font(.system(size: 24))
+                    if let totalReviews = viewModel.total_reviews {
+                        Text("(\(totalReviews))")
+                            .font(.system(size: 24))
+                            .foregroundColor(.gray)
+                    } else {
+                        ProgressView()
+                            .font(.system(size: 24))
+                    }
+                }
             } else {
                 ProgressView()
                     .font(.title)
             }
-             Image(systemName: "star.fill")
-                 .foregroundColor(.yellow)
-                 .font(.system(size: 24))
-            if let totalReviews = viewModel.total_reviews {
-                Text("(\(totalReviews))")
-                    .font(.system(size: 24))
-                    .foregroundColor(.gray)
-            } else {
-                ProgressView()
+            let business_price = priceToDollarSigns(business.price)
+            if business_price != "No price" {
+                Text("•")
+                Text(business_price)
                     .font(.system(size: 24))
             }
             Spacer()
@@ -573,7 +585,8 @@ struct BusinessDetailView: View {
                 facebook_id: "test_fb",
                 instagram: "test_ig",
                 twitter: "test_tw"
-            )
+            ),
+            price: 0
         )
     )
 }

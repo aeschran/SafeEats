@@ -43,7 +43,7 @@ class BusinessSearchService(BaseService):
             "near": near,
             "query": query,
             "limit": self.limit,
-            "fields": "name,website,tel,description,categories,menu,geocodes,location,social_media"
+            "fields": "name,website,tel,description,categories,menu,geocodes,location,social_media,price"
         }
 
         response = requests.get(self.url, params=params, headers=self.headers)
@@ -56,7 +56,7 @@ class BusinessSearchService(BaseService):
             "ll": f"{business_search.lat},{business_search.lon}",
             "query": business_search.query,
             "limit": self.limit,
-            "fields": "name,website,tel,description,categories,menu,geocodes,location,social_media"
+            "fields": "name,website,tel,description,categories,menu,geocodes,location,social_media,price"
         }
 
         response = requests.get(self.url, params=params, headers=self.headers)
@@ -90,7 +90,8 @@ class BusinessSearchService(BaseService):
                     "facebook_id": result["social_media"].get("facebook_id") if "social_media" in result else None,
                     "instagram": result["social_media"].get("instagram") if "social_media" in result else None,
                     "twitter": result["social_media"].get("twitter") if "social_media" in result else None,
-                }
+                },
+                "price": result['price'] if 'price' in result else None,
             })
         businesses_to_create = [BusinessCreate(**result) for result in results_dict]
         db_businesses = []
@@ -255,7 +256,8 @@ class BusinessSearchService(BaseService):
                 "dietary_restrictions": business["dietary_restrictions"],
                 "avg_rating": business["avg_rating"] if "avg_rating" in business else 0.0,
                 "tel": business["tel"] if "tel" in business else None,
-                "social_media": business["social_media"] if "social_media" in business else None
+                "social_media": business["social_media"] if "social_media" in business else None,
+                "price": business['price'] if 'price' in business else None
             })
         db_businesses = []
         if self.cuisine_ranges != []:

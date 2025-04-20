@@ -6,7 +6,7 @@ from models.cuisine import Cuisine
 from models.location import Location
 
 class Business:
-    def __init__(self, name, location: Location, owner_id: Optional[ObjectId] = None, website: Optional[str] = None, tel: Optional[str] = None, description: Optional[str] = None, cuisines: List[int] = [], menu: Optional[str] = None, address: Optional[str] = None, dietary_restrictions: List[str] = [], avg_rating: Optional[float] = 0.0, social_media: Optional[SocialMedia] = None):
+    def __init__(self, name, location: Location, owner_id: Optional[ObjectId] = None, website: Optional[str] = None, tel: Optional[str] = None, description: Optional[str] = None, cuisines: List[int] = [], menu: Optional[str] = None, address: Optional[str] = None, dietary_restrictions: List[str] = [], avg_rating: Optional[float] = 0.0, social_media: Optional[SocialMedia] = None, price: Optional[int] = None):
         self.name = name
         self.owner_id = owner_id
         self.website = website
@@ -19,6 +19,7 @@ class Business:
         self.dietary_restrictions = []
         self.avg_rating = avg_rating
         self.social_media = social_media
+        self.price = price
         
     def to_dict(self):
         return {
@@ -33,7 +34,8 @@ class Business:
             "location": self.location.to_dict(),
             "dietary_restrictions": self.dietary_restrictions,
             "avg_rating": self.avg_rating,
-            "social_media": self.social_media.model_dump()
+            "social_media": self.social_media.model_dump(),
+            "price": self.price
         }
     
 class BusinessCollectionEntry:

@@ -23,6 +23,7 @@ class BusinessCreate(BaseModel):
     dietary_restrictions: List[PreferenceResponse] = []
     avg_rating: Optional[float] = 0.0
     social_media: Optional[SocialMedia] = None
+    price: Optional[int] = None
 
 class BusinessResponse(BaseModel):
     id: PyObjectId = Field(..., alias="_id")
@@ -36,6 +37,7 @@ class BusinessResponse(BaseModel):
     dietary_restrictions: List[PreferenceResponse] = []
     avg_rating: Optional[float] = 0.0
     social_media: Optional[SocialMedia] = None
+    price: Optional[int] = None
 
 class BusinessSearch(BaseModel):
     lat: float
@@ -63,6 +65,8 @@ class BusinessAndLocationResponse(BaseModel):
     location: LatLon
     avg_rating: Optional[float] = 0.0
     tel: Optional[str] = None
+    social_media: Optional[SocialMedia] = None
+    price: Optional[int] = None
 
 class BusinessCollectionEntry(BaseModel):
     business_id: str

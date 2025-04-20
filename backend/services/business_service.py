@@ -25,7 +25,8 @@ class BusinessService(BaseService):
             location=updated_location,
             dietary_restrictions=business.dietary_restrictions,
             avg_rating=business.avg_rating,
-            social_media=business.social_media
+            social_media=business.social_media,
+            price=business.price
         )
         existing_doc = await self.db.businesses.find_one({
             "name": business.name,
@@ -76,7 +77,8 @@ class BusinessService(BaseService):
             location=updated_location,
             dietary_restrictions=business.dietary_restrictions,
             avg_rating=business.avg_rating,
-            social_media=business.social_media
+            social_media=business.social_media,
+            price=business.price
         )
         update_data = {k: v for k, v in updated_business.to_dict().items() if v is not None}
 
