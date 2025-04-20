@@ -42,6 +42,7 @@ class Business: Decodable, Identifiable {
     let dietary_restrictions: [PreferenceResponse]?
     var avg_rating: Double = 0.0
     let social_media: SocialMedia?
+    let price: Int?
     
     enum CodingKeys: String, CodingKey {
         case id = "_id"
@@ -55,9 +56,10 @@ class Business: Decodable, Identifiable {
         case dietary_restrictions
         case avg_rating
         case social_media
+        case price
     }
 
-    init(id: String, name: String?, website: String?, description: String?, cuisines: [Int]?, menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?, tel: String?, avg_rating: Double, social_media: SocialMedia?) {
+    init(id: String, name: String?, website: String?, description: String?, cuisines: [Int]?, menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?, tel: String?, avg_rating: Double, social_media: SocialMedia?, price: Int?) {
         self.id = id
         self.name = name
         self.website = website
@@ -69,6 +71,7 @@ class Business: Decodable, Identifiable {
         self.tel = tel
         self.avg_rating = avg_rating
         self.social_media = social_media
+        self.price = price
     }
 }
 

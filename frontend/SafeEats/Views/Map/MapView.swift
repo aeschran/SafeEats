@@ -22,7 +22,7 @@ struct MapView: View {
     ]
     
     private func getBusiness(businessMap: BusinessMapLocation) -> Business {
-        return Business(id: businessMap.id, name: businessMap.name, website: businessMap.website, description: businessMap.description, cuisines: businessMap.cuisines, menu: businessMap.menu, address: businessMap.address, dietary_restrictions: businessMap.dietary_restrictions, tel: businessMap.tel, avg_rating: businessMap.avg_rating, social_media: businessMap.social_media)
+        return Business(id: businessMap.id, name: businessMap.name, website: businessMap.website, description: businessMap.description, cuisines: businessMap.cuisines, menu: businessMap.menu, address: businessMap.address, dietary_restrictions: businessMap.dietary_restrictions, tel: businessMap.tel, avg_rating: businessMap.avg_rating, social_media: businessMap.social_media, price: businessMap.price)
     }
     
     func getCuisineIcon(for business: BusinessMapLocation) -> String {

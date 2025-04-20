@@ -47,22 +47,34 @@ struct BusinessCard: View {
                 // Rating
                 HStack(spacing: 3) {
                     if let avg_rating = viewModel.avg_rating {
-                        Text("\(String(format: "%.1f", avg_rating))")
-                            .font(.headline)
-                            .bold()
+                        if avg_rating == 0.0 {
+                            Text("No reviews")
+                                .font(.headline)
+                                .bold()
+                        } else {
+                            Text("\(String(format: "%.1f", avg_rating))")
+                                .font(.headline)
+                                .bold()
+                            Image(systemName: "star.fill")
+                                .foregroundColor(.yellow)
+                            if let totalReviews = viewModel.total_reviews {
+                                Text("(\(totalReviews))")
+                                    .foregroundColor(.gray)
+                            } else {
+                                ProgressView()
+                                    .font(.system(size: 24))
+                            }
+                        }
                     } else {
                         ProgressView()
                             .font(.title)
                     }
-                    Image(systemName: "star.fill")
-                        .foregroundColor(.yellow)
-                    if let totalReviews = viewModel.total_reviews {
-                        Text("(\(totalReviews))")
-                            .foregroundColor(.gray)
-                    } else {
-                        ProgressView()
-                            .font(.system(size: 24))
+                    let business_price = priceToDollarSigns(business.price)
+                    if business_price != "No price" {
+                        Text("•")
+                        Text(business_price)
                     }
+                    
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -74,5 +86,7 @@ struct BusinessCard: View {
             await viewModel.fetchBusinessData(businessID: business.id)
         }
     }
+    
+    
 }
 
