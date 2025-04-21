@@ -1,14 +1,20 @@
 from pydantic import BaseModel, EmailStr
 from schemas.preference import PreferenceCreate
-from typing import List
+from typing import List, Optional
 
 class ProfileCreate(BaseModel):
-
+    name: Optional[str]
     bio: str
     friend_count: int
     review_count: int
     image : str
     preferences: List[PreferenceCreate] = []
+
+class ProfileUpdate(BaseModel):
+    name: Optional[str]
+    bio: Optional[str]
+    image: Optional[str] 
+
 
 class ProfileResponse(BaseModel):
     name: str

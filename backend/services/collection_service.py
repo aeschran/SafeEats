@@ -119,7 +119,7 @@ class CollectionService(BaseService):
         )
         
         if result.modified_count == 1:
-            updated_collection = await self.db.collections.find_one({"_id": collection.collection_id})
+            updated_collection = await self.db.collections.find_one({"_id": ObjectId(collection.collection_id)})
             if updated_collection:
                 updated_collection["_id"] = str(updated_collection["_id"])
                 return CollectionResponse(**updated_collection)

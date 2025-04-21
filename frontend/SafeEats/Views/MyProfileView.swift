@@ -16,6 +16,9 @@ struct MyProfileView: View {
     @State var newCollectionName = ""
     @State var displayError: Bool = false
     
+    @State private var showEditProfileSheet = false
+
+    
     func saveCollectionsToUserDefaults(_ collections: [Collection]) {
         if let data = try? JSONEncoder().encode(collections) {
             UserDefaults.standard.set(data, forKey: "collections")
@@ -116,7 +119,7 @@ struct MyProfileView: View {
                     
                     HStack{
                         Button(action: {
-                            
+                            showEditProfileSheet = true
                         }) {
                             Text("Edit Profile")
                                 .foregroundColor(.black)
@@ -173,7 +176,8 @@ struct MyProfileView: View {
                 .navigationBarTitleDisplayMode(.inline) // Ensures it's in the center
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        NavigationLink(destination: SettingsView().environmentObject(SettingsViewModel())) {
+                        NavigationLink(destination: SettingsView().environmentObject(SettingsViewModel())
+                            .environmentObject(viewModel)) {
                             Image(systemName: "line.3.horizontal") // Settings icon
                                 .font(.title2)
                                 .foregroundColor(.black)
@@ -184,6 +188,13 @@ struct MyProfileView: View {
 //                    viewModel.collections = loadCollectionsFromUserDefaults()
                     await loadProfileData()
                     feedViewModel.fetchMyReviews()
+                }
+                
+                NavigationLink(
+                    destination: EditProfileView(existingProfileViewModel: viewModel),
+                    isActive: $showEditProfileSheet
+                ) {
+                    EmptyView()
                 }
                 
                 

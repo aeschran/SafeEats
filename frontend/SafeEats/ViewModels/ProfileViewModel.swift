@@ -143,6 +143,9 @@ class ProfileViewModel: ObservableObject {
         }
     }
     
+    
+
+    
     func sendFriendRequest() async {
         guard let id = id_ else {
             print("Error: User data is not available")
