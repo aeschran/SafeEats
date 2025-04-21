@@ -9,10 +9,11 @@ import SwiftUI
 
 struct SettingsView: View {
     @EnvironmentObject var settingsViewModel: SettingsViewModel
+    @EnvironmentObject var myProfileViewModel: MyProfileViewModel
     @State private var showChangePassword = false
     @State private var showDeleteAccountAlert = false
     @State private var showLogoutConfirmation = false
-    @State private var showSheet = false
+    @State private var showEditPrefSheet = false
     @AppStorage("userType") private var userType: String?
     @AppStorage("showDeleteConfirmation") private var showDeleteConfirmation = false
     @State private var tags : [Tag] = []
@@ -29,7 +30,7 @@ struct SettingsView: View {
                     Section(header: Text("Account Settings")){
                         if (userType == "User") {
                             Button(action: {
-                                showSheet = true
+                                showEditPrefSheet = true
                             }) {
                                 HStack {
                                     Image(systemName: "heart.text.square.fill")
@@ -44,9 +45,10 @@ struct SettingsView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(Color(UIColor.systemGray6))
                                 .cornerRadius(10)
+                                
                             }
-                            .sheet(isPresented: $showSheet) {
-                                EditDietaryPreferencesView(showSheet: $showSheet)
+                            .sheet(isPresented: $showEditPrefSheet) {
+                                EditDietaryPreferencesView(showSheet: $showEditPrefSheet)
                             }
                             HStack {
                                 Button(action: {
@@ -148,6 +150,7 @@ struct SettingsView: View {
         ) {
             EmptyView()
         }
+        
         
     }
 }

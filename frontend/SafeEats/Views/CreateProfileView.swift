@@ -216,6 +216,15 @@ struct CreateProfileView: View {
                                 .background(Color.mainGray)
                                 .cornerRadius(10)
                                 .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.mainGreen))
+                                .onChange(of: bio) { newValue in
+                                    if newValue.count > 150 {
+                                        bio = String(newValue.prefix(150))
+                                    }
+                                }
+                            Text("\(bio.count)/150 characters")
+                                .font(.caption2)
+                                .foregroundColor(.gray)
+                                .frame(maxWidth: .infinity, alignment: .trailing)
                         }.padding(.horizontal)
                         
                     }
