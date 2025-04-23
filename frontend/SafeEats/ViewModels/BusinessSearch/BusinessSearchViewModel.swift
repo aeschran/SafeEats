@@ -40,7 +40,6 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
     @Published var preferencesLoaded: Bool = false
     @Published var radius: Double = 5
     @Published var businessesMap: [BusinessMapLocation] = []
-    @Published var cuisineOrRestrictionSelected: Bool = false
     
     private var cancellables = Set<AnyCancellable>()
     private var locationManager = CLLocationManager()

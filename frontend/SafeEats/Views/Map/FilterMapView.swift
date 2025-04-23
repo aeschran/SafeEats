@@ -12,7 +12,6 @@ struct FilterMapView: View {
     @Binding var selectedAllergies: Set<String>
     @Binding var selectedDietaryRestrictions: Set<String>
     @Binding var radius: Double  // New binding for search radius
-    @Binding var cuisineOrRestrictionSelected: Bool
 
     @Environment(\.dismiss) var dismiss
 
@@ -52,21 +51,6 @@ struct FilterMapView: View {
                     .background(Color.white)
                     .cornerRadius(15)
                     .shadow(radius: 2)
-                    
-                    // Switch for dietary restriction or cuisine icons
-                    Button(action: {
-                        cuisineOrRestrictionSelected.toggle()
-                    }) {
-                        Label(cuisineOrRestrictionSelected ? "Display Restrictions" : "Display Cuisines", systemImage: "arrow.up")
-                            .font(.headline)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.white)
-                            .foregroundColor(.black)
-                            .cornerRadius(15)
-                            .shadow(radius: 2)
-                            .padding(.horizontal)
-                    }
 
                     // Preference Sections
                     preferenceDisclosureGroup(title: "Cuisines", isExpanded: $showCuisines, options: cuisines, selectedOptions: $selectedCuisines)
