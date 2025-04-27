@@ -117,11 +117,14 @@ class CollectionService(BaseService):
             {"_id": ObjectId(collection.collection_id)},
             {"$set": {"name": collection.name}}
         )
+
+        print(result.modified_count)
         
         if result.modified_count == 1:
-            updated_collection = await self.db.collections.find_one({"_id": collection.collection_id})
+            updated_collection = await self.db.collections.find_one({"_id": ObjectId(collection.collection_id)})
             if updated_collection:
                 updated_collection["_id"] = str(updated_collection["_id"])
+                print("success!")
                 return CollectionResponse(**updated_collection)
         else:
             # If no documents were modified, return None
@@ -154,7 +157,6 @@ class CollectionService(BaseService):
             updated_collection = await self.db.collections.find_one({"_id": collection_id})
             if updated_collection:
                 updated_collection["_id"] = str(updated_collection["_id"])
-                
                 return CollectionResponse(**updated_collection)
         else:
             # If no documents were modified, return None
