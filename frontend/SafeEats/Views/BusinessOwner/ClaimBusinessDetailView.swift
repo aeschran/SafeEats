@@ -1,13 +1,14 @@
 //
-//  BusinessDetailView.swift
+//  ClaimBusinessDetailView.swift
 //  SafeEats
 //
-//  Created by Aditi Patel on 3/9/25.
+//  Created by harshini on 4/4/25.
 //
 
+import Foundation
 import SwiftUI
 
-struct BusinessDetailView: View {
+struct ClaimBusinessDetailView: View {
     let business: Business
     @State private var showMapAlert = false
     @State private var showingCallConfirmation = false
@@ -15,9 +16,9 @@ struct BusinessDetailView: View {
     //    let phonenumber: String? = "8124552066"
     let rating: Double = 4.5
     
-    @State private var upvoteCount: Int = 10  // Replace with actual count
-    @State private var downvoteCount: Int = 3  // Replace with actual count
-    @State private var userVote: Int? = nil
+//    @State private var upvoteCount: Int = 10  // Replace with actual count
+//    @State private var downvoteCount: Int = 3  // Replace with actual count
+//    @State private var userVote: Int? = nil
     @State private var showCollectionPicker = false
     @StateObject private var viewModel = BusinessDetailViewModel()
     
@@ -34,7 +35,6 @@ struct BusinessDetailView: View {
             }
         }
         return collections.filter { collection in
-            collection.name != "Bookmarks" &&
             !collection.businesses.contains(where: { $0.businessId == business.id })
         }
     }
@@ -156,7 +156,7 @@ struct BusinessDetailView: View {
                                     .font(.system(size: 20, weight: .medium))
                             }
                         }
-                        .padding(.vertical, 30)
+                        .padding(.vertical, 15)
                         
                     }
                     
@@ -165,7 +165,6 @@ struct BusinessDetailView: View {
                         descriptionSection
                         menuSection
                         addressSection
-                        socialMediaSection
                     }
                     .padding([.bottom, .horizontal], 30)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -288,21 +287,21 @@ struct BusinessDetailView: View {
                         .lineLimit(2)
                     
                     // Upvote / Downvote
-                    HStack {
-                        Button(action: { viewModel.upvoteReview(review.id) }) {
-                            Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
-                                .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
-                                .font(.headline)
-                        }
+                    HStack(spacing: 0) {
+//                        Button(action: { viewModel.upvoteReview(review.id) }) {
+//                            Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
+//                                .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
+//                                .font(.headline)
+//                        }
                         
-                        Text("\(review.upvotes - review.downvotes)")
+                        Text("votes: \(review.upvotes - review.downvotes)")
                             .font(.subheadline)
                         
-                        Button(action: { viewModel.downvoteReview(review.id) }) {
-                            Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
-                                .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
-                                .font(.headline)
-                        }
+//                        Button(action: { viewModel.downvoteReview(review.id) }) {
+//                            Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
+//                                .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
+//                                .font(.headline)
+//                        }
                     }
                     .padding(.top, 3)
                     .padding(.bottom, 5)
@@ -361,34 +360,22 @@ struct BusinessDetailView: View {
     var ratingsSection: some View {
         return HStack(alignment: .center, spacing: 5) {
             if let avg_rating = viewModel.avg_rating {
-                if avg_rating == 0.0 {
-                    Text("No reviews")
-                        .bold()
-                        .font(.title2)
-                } else {
-                    Text("\(String(format: "%.1f", avg_rating))")
-                        .bold()
-                        .font(.title)
-                    Image(systemName: "star.fill")
-                        .foregroundColor(.yellow)
-                        .font(.system(size: 24))
-                    if let totalReviews = viewModel.total_reviews {
-                        Text("(\(totalReviews))")
-                            .font(.system(size: 24))
-                            .foregroundColor(.gray)
-                    } else {
-                        ProgressView()
-                            .font(.system(size: 24))
-                    }
-                }
+                Text("\(String(format: "%.1f", avg_rating))")
+                    .bold()
+                    .font(.title)
             } else {
                 ProgressView()
                     .font(.title)
             }
-            let business_price = priceToDollarSigns(business.price)
-            if business_price != "No price" {
-                Text("•")
-                Text(business_price)
+             Image(systemName: "star.fill")
+                 .foregroundColor(.yellow)
+                 .font(.system(size: 24))
+            if let totalReviews = viewModel.total_reviews {
+                Text("(\(totalReviews))")
+                    .font(.system(size: 24))
+                    .foregroundColor(.gray)
+            } else {
+                ProgressView()
                     .font(.system(size: 24))
             }
             Spacer()
@@ -489,41 +476,6 @@ struct BusinessDetailView: View {
                 }
             }
         }
-    
-        var socialMediaSection: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Social Media")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                if let social = business.social_media,
-                   social.instagram != nil || social.twitter != nil || social.facebook_id != nil {
-                    if let ig = social.instagram, let url = URL(string: "https://instagram.com/\(ig)") {
-                        HStack {
-                            Image("Instagram")
-                                .resizable()
-                                .frame(width: 25, height: 25)
-                            Link(destination: url) {
-                                Text("@\(ig)")
-                                    .foregroundColor(.mainGreen.darker())
-                            }
-                        }
-                    }
-                    if let tw = social.twitter, let url = URL(string: "https://twitter.com/\(tw)") {
-                        HStack {
-                            Image("Twitter")
-                                .resizable()
-                                .frame(width: 25, height: 25)
-                            Link(destination: url) {
-                                Text("@\(tw)")
-                                    .foregroundColor(.mainGreen.darker())
-                            }
-                        }
-                    }
-                } else {
-                    Text("No social media available.")
-                }
-            }
-        }
         
         func openInAppleMaps(address: String) {
             let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
@@ -568,25 +520,6 @@ struct BusinessDetailView: View {
     //}
     
     
-#Preview {
-    BusinessDetailView(
-        business: Business(
-            id: "67efeeecadf19975370af524",
-            name: "Test Business",
-            website: "https://example.com",
-            description: "Test description",
-            cuisines: [],
-            menu: nil,
-            address: "123 Test Street",
-            dietary_restrictions: [],
-            tel: "1234567890",
-            avg_rating: 4.5,
-            social_media: SocialMedia(
-                facebook_id: "test_fb",
-                instagram: "test_ig",
-                twitter: "test_tw"
-            ),
-            price: 0
-        )
-    )
-}
+//#Preview {
+//    BusinessDetailView(business: Business(id: "1", name: "Test Business", website: "Hello.com", description: "Hey!", cuisines: [], menu: nil, address: "Yo mom's house", dietary_restrictions: []))
+//}

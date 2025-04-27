@@ -56,6 +56,37 @@ class MyProfileViewModel: ObservableObject {
         }
     }
     
+    func sendProfileEdits(_ profileData: [String: Any]) {
+        guard let id = id_ else {
+            print("ID is nil")
+            return
+        }
+        guard let url = URL(string: "\(baseURL)/profile/update/\(id)") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: profileData, options: [])
+            request.httpBody = jsonData
+        } catch {
+            print("Error encoding JSON: \(error)")
+            return
+        }
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error sending data: \(error)")
+                return
+            }
+
+            if let httpResponse = response as? HTTPURLResponse {
+                print("Server Response: \(httpResponse.statusCode)")
+            }
+        }.resume()
+    }
+    
     func createNewCollection() async {
         guard let id = id_ else {
             print("ID is nil")

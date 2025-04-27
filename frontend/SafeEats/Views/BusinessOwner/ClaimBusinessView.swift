@@ -49,7 +49,7 @@ struct ClaimBusinessView: View {
                     List(viewModel.businesses, id: \.name) { business in
                         VStack(spacing: 10) {
                             HStack {
-                                NavigationLink(destination: BusinessDetailView(business: business)) {
+                                NavigationLink(destination: ClaimBusinessDetailView(business: business)) {
                                     BusinessCard(
                                         business: business,
                                         rating: 4.5,

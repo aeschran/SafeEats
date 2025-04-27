@@ -45,10 +45,37 @@ class ReviewService(BaseService):
             if result.inserted_id:
                 return str(result.inserted_id) # Success
             return None
-
+    
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
+
+    async def update_image(self, image: ReviewImage):
+        try:
+            review_id = ObjectId(image.review_id)
+
+            existing = await self.db.review_images.find_one({"review_id": review_id})
+
+            if existing:
+                result = await self.db.review_images.update_one(
+                    {"review_id": review_id},
+                    {"$set": {"review_image": image.review_image}}
+                )
+                return result.modified_count > 0  # True if image was updated
+
+            else:
+                review_image = ReviewAddImage(
+                    review_id=review_id,
+                    review_image=image.review_image,
+                )
+                result = await self.db.review_images.insert_one(review_image.to_dict())
+                return result.inserted_id is not None
+
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to update image: {str(e)}")
+
+
+       
     async def get_friends_reviews(self, user_id: str):
         try:
             user_object_id = ObjectId(user_id)
@@ -130,23 +157,25 @@ class ReviewService(BaseService):
             if not reviews:
                 return []  # Return empty list if the user has no reviews
 
-            # Step 2: Get Business Names
             business_ids = {ObjectId(review["business_id"]) for review in reviews if review.get("business_id")}
             print("Business IDs being queried:", business_ids)  # Debugging step
 
-            # Query MongoDB for business names
             businesses_cursor = self.db.businesses.find({"_id": {"$in": list(business_ids)}})
             businesses = {str(business["_id"]): business["name"] for business in await businesses_cursor.to_list(None)}
             print("Fetched Businesses:", businesses)  # Debugging step
 
-            # Step 3: Get User's Name
             user_cursor = await self.db.users.find_one({"_id": user_object_id})
             user_name = user_cursor["name"] if user_cursor else "Unknown"
             print("User Name:", user_name)  # Debugging step
 
-            # Step 4: Format the Response
             result = []
             for review in reviews:
+                review_image_cursor = await self.db.review_images.find_one({"review_id": ObjectId(review["_id"])})
+                if review_image_cursor:
+                    review["review_image"] = review_image_cursor["review_image"]
+                else:
+                    review["review_image"] = ""
+                
                 result.append({
                     "review_id": str(review["_id"]),
                     "user_id": str(review["user_id"]),
@@ -155,14 +184,14 @@ class ReviewService(BaseService):
                     "business_name": businesses.get(str(review["business_id"]), "Unknown"),
                     "review_content": review["review_content"],
                     "rating": review["rating"],
-                    "review_image": review.get("review_image", None),  
+                    "review_image": review["review_image"],  
                     "review_timestamp": review["review_timestamp"],
                 })
 
             return result if result else []
 
         except Exception as e:
-            print("Error:", str(e))  # Print any error that occurs
+            print("Error:", str(e))  
             return []
 
 
@@ -292,7 +321,6 @@ class ReviewService(BaseService):
 
     async def edit_review(self, review_id: str, review_update: ReviewCreate):
         try:
-            print("HERE" + review_id)
             update_fields = {
                     k: (ObjectId(v) if k in ["user_id", "business_id"] and v is not None else v)
                     for k, v in review_update.dict().items() if v is not None

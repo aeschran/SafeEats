@@ -1,7 +1,7 @@
 # app/services/user_service.py
 import bcrypt
 from models.profile import Profile
-from schemas.profile import ProfileResponse, ProfileCreate, OtherProfileResponse, ProfileSearchResponse
+from schemas.profile import ProfileResponse, ProfileCreate, ProfileUpdate, OtherProfileResponse, ProfileSearchResponse
 from services.base_service import BaseService
 import logging
 from bson import ObjectId
@@ -33,6 +33,25 @@ class UserProfileService(BaseService):
 
         
         return {**profile.to_dict(), "id": str(_id)}
+    
+    async def update_user_profile(self, user_id: str, update: ProfileUpdate):
+        update_data = {k: v for k, v in update.dict().items() if v is not None}
+
+        result = await self.db.users.update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {k: v for k, v in update_data.items() if k != "image"}}
+        )
+        if "image" in update_data:
+            await self.db.user_profile_images.update_one(
+                {"user_id": user_id},
+                {"$set": {"image": update_data["image"]}},
+                upsert=True
+            )
+
+
+        if result.modified_count == 0:
+            raise HTTPException(status_code=404, detail="Profile not updated or not found")
+        return {"message": "Profile updated successfully"}
 
 
     async def get_user_profile(self, _id: str):
@@ -150,6 +169,7 @@ class UserProfileService(BaseService):
                 return {"message": "No changes were made to the preferences."}
         
         return None
+
     
 
 

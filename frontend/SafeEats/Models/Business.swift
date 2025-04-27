@@ -24,6 +24,12 @@ class PreferenceResponse: Codable, Hashable {
     }
 }
 
+struct SocialMedia: Codable {
+    var facebook_id: String?
+    var instagram: String?
+    var twitter: String?
+}
+
 class Business: Decodable, Identifiable {
     let id: String
     let name: String?
@@ -35,6 +41,8 @@ class Business: Decodable, Identifiable {
     let address: String?
     let dietary_restrictions: [PreferenceResponse]?
     var avg_rating: Double = 0.0
+    let social_media: SocialMedia?
+    let price: Int?
     
     enum CodingKeys: String, CodingKey {
         case id = "_id"
@@ -47,9 +55,11 @@ class Business: Decodable, Identifiable {
         case address
         case dietary_restrictions
         case avg_rating
+        case social_media
+        case price
     }
 
-    init(id: String, name: String?, website: String?, description: String?, cuisines: [Int]?, menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?, tel: String?, avg_rating: Double) {
+    init(id: String, name: String?, website: String?, description: String?, cuisines: [Int]?, menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?, tel: String?, avg_rating: Double, social_media: SocialMedia?, price: Int?) {
         self.id = id
         self.name = name
         self.website = website
@@ -60,6 +70,8 @@ class Business: Decodable, Identifiable {
         self.dietary_restrictions = dietary_restrictions
         self.tel = tel
         self.avg_rating = avg_rating
+        self.social_media = social_media
+        self.price = price
     }
 }
 

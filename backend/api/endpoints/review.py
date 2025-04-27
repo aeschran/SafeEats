@@ -21,6 +21,14 @@ async def add_image(image: ReviewImage):
     
     return review
 
+@router.put("/updateimage")
+async def update_image(image: ReviewImage):
+    updated = await review_service.update_image(image)
+    if not updated:
+        raise HTTPException(status_code=500, detail="Failed to update review image")
+    return {"message": "Review image updated successfully"}
+
+
 @router.post("/create")
 async def create_review(review_create: ReviewCreate):
     review = await review_service.create_review(review_create)

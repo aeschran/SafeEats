@@ -19,6 +19,7 @@ struct OwnerBusinessDetailView: View {
     @State private var selectedFilter: String = "Most Recent"
     @State private var showDropdown: Bool = false
     @State private var showPreferencePicker: Bool = false
+    @State private var showEditListingSheet = false
 
     let filterOptions: [String] = ["Most Recent", "Least Recent", "Highest Rating", "Lowest Rating", "Most Popular", "Least Popular"]
     let dietaryPreferences: [String] = ["Halal", "Kosher", "Vegetarian", "Vegan"]
@@ -144,14 +145,16 @@ struct OwnerBusinessDetailView: View {
                                     .font(.system(size: 20, weight: .medium))
                             }
                         }
-                        .padding(.vertical, 15)
+                        .padding(.vertical, 30)
                     }
 
                     VStack(alignment: .leading, spacing: 25) {
+                        buttonSection
                         ratingsSection
                         descriptionSection
                         menuSection
                         addressSection
+                        socialMediaSection
                     }
                     .padding([.bottom, .horizontal], 30)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -168,6 +171,7 @@ struct OwnerBusinessDetailView: View {
                         }
                         ownerViewModel.enabled[restriction.preference] = 1
                     }
+                    viewModel.updateAverageRating(businessId: business.id)
                 }
                 .task {
                     await viewModel.fetchBusinessData(businessID: business.id)
@@ -264,50 +268,25 @@ struct OwnerBusinessDetailView: View {
             return formatter.string(from: date)
         }
     }
-
-    var ratingsSection: some View {
-        HStack(alignment: .center, spacing: 5) {
-            if let avg_rating = viewModel.avg_rating {
-                Text("\(String(format: "%.1f", avg_rating))")
-                    .bold()
-                    .font(.title)
-            } else {
-                ProgressView()
-                    .font(.title)
-            }
-
-            Image(systemName: "star.fill")
-                .foregroundColor(.yellow)
-                .font(.system(size: 24))
-
-            if let totalReviews = viewModel.total_reviews {
-                Text("(\(totalReviews))")
-                    .font(.system(size: 24))
-                    .foregroundColor(.gray)
-            } else {
-                ProgressView()
-                    .font(.system(size: 24))
-            }
-
-            Spacer()
-
+    
+    var buttonSection: some View {
+        HStack(spacing: 10) {
             Button(action: {
                 showPreferencePicker = true
             }) {
-                Text("Edit Preferences Supported")
+                Text("Edit Preferences")
             }
             .font(.headline)
-            .foregroundColor(.white)
+            .foregroundColor(.black)
             .padding()
-            .background(Color.mainGreen)
+            .background(Color.mainGray)
             .cornerRadius(10)
-            .frame(width: 160, height: 100)
             .sheet(isPresented: $showPreferencePicker) {
                 VStack {
                     Text("Select Preferences")
                         .font(.title2)
                         .padding()
-
+                    
                     Text("Dietary Preferences")
                         .font(.body)
                     Divider()
@@ -359,7 +338,7 @@ struct OwnerBusinessDetailView: View {
                     }) {
                         Text("Save")
                     }
-
+                    
                     Button("Cancel") {
                         submitDietPref.removeAll()
                         submitAllergy.removeAll()
@@ -371,6 +350,60 @@ struct OwnerBusinessDetailView: View {
                     .padding()
                 }
             }
+            
+            // edit business details
+            Button(action: {
+                showEditListingSheet = true
+            }) {
+                Text("Edit Business")
+                    .font(.headline)
+                    .foregroundColor(.black)
+                    .lineLimit(1)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.mainGray)
+                    .cornerRadius(10)
+            }
+            .sheet(isPresented: $showEditListingSheet) {
+                EditListingView(businessId: business.id, viewModel: ownerViewModel)
+            }
+        }
+    }
+
+    var ratingsSection: some View {
+        HStack(alignment: .center, spacing: 5) {
+            if let avg_rating = viewModel.avg_rating {
+                if avg_rating == 0.0 {
+                    Text("No reviews")
+                        .bold()
+                        .font(.title2)
+                } else {
+                    Text("\(String(format: "%.1f", avg_rating))")
+                        .bold()
+                        .font(.title)
+                    Image(systemName: "star.fill")
+                        .foregroundColor(.yellow)
+                        .font(.system(size: 24))
+                    if let totalReviews = viewModel.total_reviews {
+                        Text("(\(totalReviews))")
+                            .font(.system(size: 24))
+                            .foregroundColor(.gray)
+                    } else {
+                        ProgressView()
+                            .font(.system(size: 24))
+                    }
+                }
+            } else {
+                ProgressView()
+                    .font(.title)
+            }
+            let business_price = priceToDollarSigns(business.price)
+            if business_price != "No price" {
+                Text("•")
+                Text(business_price)
+                    .font(.system(size: 24))
+            }
+            Spacer()
         }
     }
 
@@ -421,6 +454,41 @@ struct OwnerBusinessDetailView: View {
             }
         }
     }
+    
+    var socialMediaSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Social Media")
+                .font(.title2)
+                .fontWeight(.semibold)
+            if let social = business.social_media,
+               social.instagram != nil || social.twitter != nil || social.facebook_id != nil {
+                if let ig = social.instagram, let url = URL(string: "https://instagram.com/\(ig)") {
+                    HStack {
+                        Image("Instagram")
+                            .resizable()
+                            .frame(width: 25, height: 25)
+                        Link(destination: url) {
+                            Text("@\(ig)")
+                                .foregroundColor(.mainGreen.darker())
+                        }
+                    }
+                }
+                if let tw = social.twitter, let url = URL(string: "https://twitter.com/\(tw)") {
+                    HStack {
+                        Image("Twitter")
+                            .resizable()
+                            .frame(width: 25, height: 25)
+                        Link(destination: url) {
+                            Text("@\(tw)")
+                                .foregroundColor(.mainGreen.darker())
+                        }
+                    }
+                }
+            } else {
+                Text("No social media available.")
+            }
+        }
+    }
 
     func openInAppleMaps(address: String) {
         let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
@@ -442,17 +510,25 @@ struct OwnerBusinessDetailView: View {
     }
 }
 
-//#Preview {
-//    OwnerBusinessDetailView(
-//        business: Business(
-//            id: "1",
-//            name: "Test Business",
-//            website: "https://example.com",
-//            description: "Test description",
-//            cuisines: [],
-//            menu: nil,
-//            address: "123 Test Street",
-//            dietary_restrictions: []
-//        )
-//    )
-//}
+#Preview {
+    OwnerBusinessDetailView(
+        business: Business(
+            id: "67efeeecadf19975370af524",
+            name: "Test Business",
+            website: "https://example.com",
+            description: "Test description",
+            cuisines: [],
+            menu: nil,
+            address: "123 Test Street",
+            dietary_restrictions: [],
+            tel: "1234567890",
+            avg_rating: 4.5,
+            social_media: SocialMedia(
+                facebook_id: "test_fb",
+                instagram: "test_ig",
+                twitter: "test_tw"
+            ),
+            price: 1
+        )
+    )
+}

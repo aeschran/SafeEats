@@ -5,6 +5,11 @@ from utils.pyobjectid import PyObjectId
 from schemas.preference import PreferenceResponse
 from schemas.cuisine import CuisineResponse, CuisineCreate
 
+class SocialMedia(BaseModel):
+    facebook_id: Optional[str] = None
+    instagram: Optional[str] = None
+    twitter: Optional[str] = None
+
 class BusinessCreate(BaseModel):
     name: str
     owner_id: Optional[PyObjectId] = None
@@ -17,6 +22,8 @@ class BusinessCreate(BaseModel):
     location: Optional[LocationCreate] = None
     dietary_restrictions: List[PreferenceResponse] = []
     avg_rating: Optional[float] = 0.0
+    social_media: Optional[SocialMedia] = None
+    price: Optional[int] = None
 
 class BusinessResponse(BaseModel):
     id: PyObjectId = Field(..., alias="_id")
@@ -29,7 +36,8 @@ class BusinessResponse(BaseModel):
     address: Optional[str] = None
     dietary_restrictions: List[PreferenceResponse] = []
     avg_rating: Optional[float] = 0.0
-
+    social_media: Optional[SocialMedia] = None
+    price: Optional[int] = None
 
 class BusinessSearch(BaseModel):
     lat: float
@@ -57,6 +65,8 @@ class BusinessAndLocationResponse(BaseModel):
     location: LatLon
     avg_rating: Optional[float] = 0.0
     tel: Optional[str] = None
+    social_media: Optional[SocialMedia] = None
+    price: Optional[int] = None
 
 class BusinessCollectionEntry(BaseModel):
     business_id: str
@@ -67,3 +77,10 @@ class BusinessCollectionEntry(BaseModel):
 class BusinessAddPreferences(BaseModel):
     dietPref: List[str]
     allergy: List[str]
+
+class EditBusiness(BaseModel):
+    website: Optional[str] = None
+    tel: Optional[str] = None
+    facebook_id: Optional[str] = None
+    instagram: Optional[str] = None
+    twitter: Optional[str] = None

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Query
 from motor.motor_asyncio import AsyncIOMotorDatabase, AsyncIOMotorClient
-from schemas.profile import ProfileCreate, ProfileSearchResponse
+from schemas.profile import ProfileCreate, ProfileUpdate, ProfileSearchResponse
 from services.user_profile_service import UserProfileService
 from typing import List
 
@@ -38,6 +38,10 @@ async def get_user_preferences_endpoint(_id: str):
 @router.put("/preferences/{_id}")
 async def update_user_preferences_endpoint(_id: str, new_preferences: dict):
     return await user_profile_service.update_user_preferences(_id, new_preferences)
+
+@router.put("/update/{_id}")
+async def update_user_profile_endpoint(_id: str, update: ProfileUpdate):
+    return await user_profile_service.update_user_profile(_id, update)
 
 
 

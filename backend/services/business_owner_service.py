@@ -305,7 +305,8 @@ class BusinessOwnerService(BaseService):
                 address=business_create.address,
                 location=Location([float(lon), float(lat)]),
                 dietary_restrictions=business_create.dietary_restrictions,
-                avg_rating=business_create.avg_rating
+                avg_rating=business_create.avg_rating,
+                social_media=business_create.social_media
             )
             
             result = await self.db.businesses.insert_one(new_business.to_dict())

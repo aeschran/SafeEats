@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from services.business_service import BusinessService
+from services.business_service import BusinessService, EditBusiness
 from schemas.business import BusinessAddPreferences
 
 router = APIRouter(tags=["Businesses"])
@@ -48,3 +48,11 @@ async def add_preferences_endpoint(business_id: str, preferences: BusinessAddPre
     
     return {"message": "Preferences added successfully", "result": result}
 
+@router.put("/{business_id}/edit-business")
+async def edit_business_endpoint(business_id: str, business_update: EditBusiness):
+    result = await business_service.edit_business(business_id, business_update)
+    
+    if result is None:
+        raise HTTPException(status_code=400, detail=str("Business not found or failed to update"))
+    
+    return {"message": "Business updated successfully", "result": result}

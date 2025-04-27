@@ -47,4 +47,35 @@ class OwnerBusinessDetailViewModel: ObservableObject {
             print("whoops")
         }
     }
+    
+    func sendEditedBusinessData(_ data: [String: Any], businessId: String) {
+        
+        guard let url = URL(string: "\(baseURL)/businesses/\(businessId)/edit-business") else { return }
+        let modifiedListingData = data
+    
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        print(modifiedListingData)
+        do {
+            let jsonData = try JSONSerialization.data(withJSONObject: modifiedListingData, options: [])
+            request.httpBody = jsonData
+            print(jsonData)
+        } catch {
+            print("Error encoding JSON: \(error)")
+            return
+        }
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Error sending data: \(error)")
+                return
+            }
+            
+            if let httpResponse = response as? HTTPURLResponse {
+                print("Server Response: \(httpResponse.statusCode)")
+            }
+        }.resume()
+    }
 }

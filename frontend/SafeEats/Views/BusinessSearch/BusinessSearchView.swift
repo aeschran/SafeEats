@@ -7,11 +7,19 @@
 
 import SwiftUI
 
+enum SortOption {
+    case priceLowToHigh
+    case priceHighToLow
+    // Add more if needed
+}
+
 struct BusinessSearchView: View {
     @ObservedObject var viewModel: BusinessSearchViewModel
     @State private var showFilters = false
-    
     let cuisines = ["Italian", "Indian", "Mexican", "Asian"]
+
+
+    @State private var sortOption: SortOption?
     
     var body: some View {
         NavigationStack {
@@ -53,6 +61,26 @@ struct BusinessSearchView: View {
                             .padding(10)
                             .background(Color.mainGreen.opacity(0.2)) // Light green background
                             .clipShape(Circle()) // Makes it circular
+                    }
+                }
+                ToolbarItem(placement: .topBarLeading) {
+                    /* TODO: add functionality to sorting */
+                    Menu {
+                        Button("Price: Low to High") {
+                            sortOption = .priceLowToHigh
+                        }
+                        Button("Price: High to Low") {
+                            sortOption = .priceHighToLow
+                        }
+                        // Add more filters if needed
+                    } label: {
+                        Image(systemName: "arrow.up.arrow.down.square.fill")
+                            .resizable()
+                            .frame(width: 22, height: 22)
+                            .foregroundColor(.mainGreen)
+                            .padding(10)
+                            .background(Color.mainGreen.opacity(0.2))
+                            .clipShape(Circle())
                     }
                 }
             }

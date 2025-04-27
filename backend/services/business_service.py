@@ -1,5 +1,5 @@
 from models.business import Business
-from schemas.business import BusinessCreate, BusinessResponse, BusinessAddPreferences
+from schemas.business import BusinessCreate, BusinessResponse, BusinessAddPreferences, EditBusiness
 from services.base_service import BaseService
 from typing import List
 from bson import ObjectId
@@ -24,7 +24,9 @@ class BusinessService(BaseService):
             address=business.address,
             location=updated_location,
             dietary_restrictions=business.dietary_restrictions,
-            avg_rating=business.avg_rating
+            avg_rating=business.avg_rating,
+            social_media=business.social_media,
+            price=business.price
         )
         existing_doc = await self.db.businesses.find_one({
             "name": business.name,
@@ -74,7 +76,9 @@ class BusinessService(BaseService):
             address=business.address,
             location=updated_location,
             dietary_restrictions=business.dietary_restrictions,
-            avg_rating=business.avg_rating
+            avg_rating=business.avg_rating,
+            social_media=business.social_media,
+            price=business.price
         )
         update_data = {k: v for k, v in updated_business.to_dict().items() if v is not None}
 
@@ -159,6 +163,48 @@ class BusinessService(BaseService):
             {"_id": business_object_id},
             {"$set": {"dietary_restrictions": updatedList}}
         )
+        return result.modified_count > 0
+    
+    async def edit_business(self, business_id: str, update_data: EditBusiness):
+        business_object_id = ObjectId(business_id)
+
+        # Extract top-level fields (excluding social media)
+        update_dict = {}
+
+        if update_data.website is not None:
+            update_dict["website"] = update_data.website
+        if update_data.tel is not None:
+            update_dict["tel"] = update_data.tel
+
+        # Fetch current social media data
+        current_business = await self.db.businesses.find_one({"_id": business_object_id})
+        if not current_business:
+            raise ValueError("Business not found")
+
+        current_social = current_business.get("social_media", {})
+        updated_social = current_social.copy()
+
+        if update_data.instagram and update_data.instagram.strip():
+            updated_social["instagram"] = update_data.instagram.strip()
+        if update_data.twitter and update_data.twitter.strip():
+            updated_social["twitter"] = update_data.twitter.strip()
+        if update_data.facebook_id and update_data.facebook_id.strip():
+            updated_social["facebook_id"] = update_data.facebook_id.strip()
+
+        if updated_social != current_social:
+            update_dict["social_media"] = updated_social
+
+        if not update_dict:
+            raise ValueError("No fields provided for update")
+
+        result = await self.db.businesses.update_one(
+            {"_id": business_object_id},
+            {"$set": update_dict}
+        )
+
+        if result.matched_count == 0:
+            raise ValueError("Business not found")
+
         return result.modified_count > 0
 
     
