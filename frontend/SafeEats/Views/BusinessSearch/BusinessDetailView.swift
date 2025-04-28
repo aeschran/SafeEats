@@ -166,6 +166,20 @@ struct BusinessDetailView: View {
                         menuSection
                         addressSection
                         socialMediaSection
+            
+                    NavigationLink(
+                                destination: BusinessSuggestionView(business: business))
+                    {
+                            Text("Make a Suggestion")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.mainGreen)
+                                .cornerRadius(10)
+                                .padding(.top, 10)
+                        }
+                        
                     }
                     .padding([.bottom, .horizontal], 30)
                     .frame(maxWidth: .infinity, alignment: .leading)

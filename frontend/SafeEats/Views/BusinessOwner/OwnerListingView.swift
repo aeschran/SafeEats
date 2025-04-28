@@ -9,6 +9,7 @@ import SwiftUI
 
 struct OwnerListingsView: View {
     @StateObject private var viewModel = OwnerListingsViewModel()
+    @StateObject private var notifViewModel = NotificationsViewModel()
 //    let business: Business
     
     var body: some View {
@@ -35,10 +36,32 @@ struct OwnerListingsView: View {
                 }
             }
             .onAppear {
-                viewModel.fetchOwnerListings()
+                viewModel.fetchOwnerListings{
+                    notifViewModel.fetchNotificationsForBusinesses(viewModel.businessIdsAndNames)
+                }
+            
             }
+            
+            
             .navigationBarTitle("My Listings", displayMode: .inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    ZStack(alignment: .bottomTrailing) {
+                        NavigationLink(destination: AllBusinessNotificationsView(businesses: viewModel.businessIdsAndNames)) {
+                            Image(systemName: "bell.fill")
+                                .font(.title2)
+                                .foregroundColor(Color.mainGreen)
+                        }
+
+                        if notifViewModel.showBellDot {
+                            Circle()
+                                .fill(Color.red)
+                                .frame(width: 12, height: 12)
+                                .offset(x:-10, y: -8)
+                            
+                        }
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NavigationLink(destination: SettingsView().environmentObject(SettingsViewModel())) {
                         Image(systemName: "line.3.horizontal") // Settings icon
@@ -46,8 +69,11 @@ struct OwnerListingsView: View {
                             .foregroundColor(.black)
                     }
                 }
+                
             }
         }
+        
+
     }
 }
 
