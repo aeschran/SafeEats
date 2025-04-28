@@ -168,6 +168,49 @@ class UserService(BaseService):
         await self.db.password_resets.delete_one({"email": email})
 
         return {"message": "Password reset successful"}
+    
+    async def apply_for_trusted_reviewer(self, _id: str):
+        # the algorithm to determine if the user is a trusted reviewer is
+        # 1. The user must have at least 15 reviews
+        # 2. The user must have reviewed at least 10 restaurants
+        # 3. The user must have an average upvote rating of at least 70%.
+
+        user = await self.db.users.find_one({"_id": ObjectId(_id)})
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        reviews = await self.db.user_reviews.find({"user_id": ObjectId(_id)}).to_list(100)
+        if len(reviews) < 15:
+            raise HTTPException(status_code=400, detail="You do not have enough reviews to apply for trusted reviewer.")
+        
+        restaurant_ids = set()
+        total_upvotes = 0
+        total_votes = 0
+        for review in reviews:
+            restaurant_ids.add(review["business_id"])
+            total_upvotes += review["upvotes"]
+            total_votes += review["upvotes"] + review["downvotes"]
+
+        if len(restaurant_ids) < 10:
+            raise HTTPException(status_code=400, detail="You have not reviewed enough unique restaurants to apply for trusted reviewer.")
+        
+        if total_votes < 20:
+            raise HTTPException(status_code=400, detail="You do not have enough votes to apply for trusted reviewer.")
+        
+        if total_upvotes / total_votes < 0.7:
+            raise HTTPException(status_code=400, detail="Your average upvote rating is too low to apply for trusted reviewer.")
+        
+        # TODO: maybe go back and update all reviews to be trusted reviewer reviews
+        
+        # Update user to be a trusted reviewer
+        result = await self.db.users.update_one(
+            {"_id": ObjectId(_id)},
+            {"$set": {"trusted_reviewer": True}}
+        )
+        if result.modified_count == 0:
+            raise HTTPException(status_code=400, detail="Failed to apply for trusted reviewer.")
+        return {"message": "You are now a trusted reviewer! Thank you for your contributions!"}
+
 
      
 

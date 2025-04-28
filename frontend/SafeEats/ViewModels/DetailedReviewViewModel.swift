@@ -15,6 +15,7 @@ struct DetailedReview: Identifiable, Codable {
     let userID: String
     let businessID: String
     let userName: String
+    let trustedReview: Bool
     let businessName: String
     let reviewContent: String
     let rating: Int
@@ -35,6 +36,7 @@ struct DetailedReview: Identifiable, Codable {
         case upvotes
         case downvotes
         case reviewImage = "review_image"
+        case trustedReview = "trusted_review"
     }
     func decodedImage() -> UIImage? {
             guard let imageData = Data(base64Encoded: reviewImage ?? "", options: .ignoreUnknownCharacters) else {

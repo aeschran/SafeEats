@@ -38,6 +38,7 @@ async def login(request:OAuth2PasswordRequestForm = Depends()):
             "phone": user["phone"],
             "username": user["username"],
             "id": str(user["_id"]),
+            "trusted_reviewer": user.get("trusted_reviewer", False),
             "access_token": access_token,
             "token_type": "bearer"
         }

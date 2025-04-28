@@ -30,6 +30,14 @@ struct DetailedReviewView: View {
                             .foregroundColor(.gray)
                     }
                     
+                    if (review.trustedReview) {
+                        Text("Trusted Reviewer")
+                            .font(.footnote)
+                            .fontWeight(.semibold)
+                            .italic(true)
+                            .foregroundColor(.mainGreen)
+                    }
+                    
                     // Star Rating
                     HStack(spacing: 2) {
                         ForEach(0..<5, id: \.self) { index in

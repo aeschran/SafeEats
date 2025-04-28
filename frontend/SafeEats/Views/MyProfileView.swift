@@ -17,6 +17,8 @@ struct MyProfileView: View {
     @State var displayError: Bool = false
     
     @State private var showEditProfileSheet = false
+    
+    @AppStorage("trustedReviewer") var trustedReviewer: Bool = false
 
     
     func saveCollectionsToUserDefaults(_ collections: [Collection]) {
@@ -107,9 +109,20 @@ struct MyProfileView: View {
                     }.padding(5)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(viewModel.name)
-                            .font(.footnote)
-                            .fontWeight(.semibold)
+                        HStack {
+                            Text(viewModel.name)
+                                .font(.footnote)
+                                .fontWeight(.semibold)
+                            
+                            if (trustedReviewer) {
+                                Text("Trusted Reviewer")
+                                    .font(.footnote)
+                                    .fontWeight(.semibold)
+                                    .italic(true)
+                                    .foregroundColor(.mainGreen)
+                            }
+                        }
+                        
                         Text(viewModel.bio)
                             .font(.caption)
                         

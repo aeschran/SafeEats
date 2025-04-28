@@ -16,6 +16,7 @@ struct User : Codable, Identifiable {
     let isVerified: Bool?
     let preferences: [Preference] = []
     var createdProfile: Bool?
+    let trustedReviewer: Bool = false
     
     
     enum CodingKeys : String, CodingKey {

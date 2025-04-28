@@ -43,6 +43,10 @@ async def get_user_endpoint(username: str):
 async def delete_user_endpoint(_id: str):
     return await user_service.delete_user(_id)
 
+@router.post("/apply/{_id}")
+async def apply_for_trusted_reviewer(_id: str):
+    return await user_service.apply_for_trusted_reviewer(_id)
+
 
 
 @router.post("/change_password")
