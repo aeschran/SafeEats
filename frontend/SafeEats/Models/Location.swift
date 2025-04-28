@@ -27,8 +27,9 @@ class BusinessMapLocation: Decodable, Identifiable {
     let tel: String?
     let social_media: SocialMedia?
     let price: Int?
+    let hours: BusinessHours?
 
-    init(id: String, location: Location, name: String?, website: String?, description: String?, cuisines: [Int], menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?, avg_rating: Double, tel: String?, social_media: SocialMedia?, price: Int?) {
+    init(id: String, location: Location, name: String?, website: String?, description: String?, cuisines: [Int], menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?, avg_rating: Double, tel: String?, social_media: SocialMedia?, price: Int?, hours: BusinessHours?) {
         self.id = id
         self.location = location
         self.name = name
@@ -42,6 +43,7 @@ class BusinessMapLocation: Decodable, Identifiable {
         self.tel = tel
         self.social_media = social_media
         self.price = price
+        self.hours = hours
     }
     
     enum CodingKeys: String, CodingKey {
@@ -58,6 +60,7 @@ class BusinessMapLocation: Decodable, Identifiable {
         case tel
         case social_media
         case price
+        case hours
     }
 }
 
