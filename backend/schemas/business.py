@@ -10,6 +10,22 @@ class SocialMedia(BaseModel):
     instagram: Optional[str] = None
     twitter: Optional[str] = None
 
+class Day(BaseModel):
+    close: Optional[str] = None
+    day: Optional[int] = None
+    open: Optional[str] = None
+    #1 = Monday, 2 = T, 3 = W, 4 = R, 5 = F, 6 = Sat, 7 = Sun
+    #24 hour time
+
+class Hours(BaseModel):
+    display: Optional[str] = None
+    is_local_holiday: Optional[bool] = None
+    open_now: Optional[bool] = None
+    # regular: List[Day] = []
+    # facebook_id: Optional[str] = None
+    # instagram: Optional[str] = None
+    # twitter: Optional[str] = None
+
 class BusinessCreate(BaseModel):
     name: str
     owner_id: Optional[PyObjectId] = None
@@ -24,6 +40,7 @@ class BusinessCreate(BaseModel):
     avg_rating: Optional[float] = 0.0
     social_media: Optional[SocialMedia] = None
     price: Optional[int] = None
+    hours: Optional[Hours] = None
 
 class BusinessResponse(BaseModel):
     id: PyObjectId = Field(..., alias="_id")
@@ -38,6 +55,7 @@ class BusinessResponse(BaseModel):
     avg_rating: Optional[float] = 0.0
     social_media: Optional[SocialMedia] = None
     price: Optional[int] = None
+    hours: Optional[Hours] = None
 
 class BusinessSearch(BaseModel):
     lat: float
@@ -67,6 +85,7 @@ class BusinessAndLocationResponse(BaseModel):
     tel: Optional[str] = None
     social_media: Optional[SocialMedia] = None
     price: Optional[int] = None
+    hours: Optional[Hours] = None
 
 class BusinessCollectionEntry(BaseModel):
     business_id: str

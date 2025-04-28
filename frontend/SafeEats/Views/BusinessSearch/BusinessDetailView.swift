@@ -164,8 +164,10 @@ struct BusinessDetailView: View {
                         ratingsSection
                         descriptionSection
                         menuSection
+                        businessHoursSection
                         addressSection
                         socialMediaSection
+                        
             
                     NavigationLink(
                                 destination: BusinessSuggestionView(business: business))
@@ -564,6 +566,49 @@ struct BusinessDetailView: View {
             }
         }
     
+    var businessHoursSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Business Hours")
+                .font(.title2)
+                .fontWeight(.semibold)
+            
+            if let hours = business.hours {
+                HStack(alignment: .top) { // <- align top because now it might be multiple lines
+                    if let display = hours.display {
+                        let lines = display.components(separatedBy: ";").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            ForEach(lines, id: \.self) { line in
+                                Text(line)
+                                    .font(.body)
+                                    .foregroundColor(.mainGreen)
+                            }
+                        }
+                    } else {
+                        Text("No business hours available.")
+                            .font(.subheadline)
+                            .foregroundColor(.mainGreen)
+                    }
+                    
+                    Spacer()
+                    
+                    if let isOpen = hours.open_now {
+                        Text(isOpen ? "Open now" : "Closed")
+                            .font(.subheadline)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+//                            .background(isOpen ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
+                            .foregroundColor(isOpen ? .green : .red)
+                            .cornerRadius(8)
+                    }
+                }
+
+                   } else {
+                       Text("No business hours available")
+                           .foregroundColor(.mainGreen)
+                   }
+        }
+    }
         var socialMediaSection: some View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Social Media")
@@ -660,7 +705,14 @@ struct BusinessDetailView: View {
                 instagram: "test_ig",
                 twitter: "test_tw"
             ),
-            price: 0
+            price: 0,
+            hours: BusinessHours(  // << Add this
+                            display: "Mon-Sun 10AM–9PM",
+                            is_local_holiday: false,
+                            open_now: true,
+                            regular: []  // optional to fill out for now
+                        )
+
         )
     )
 }
