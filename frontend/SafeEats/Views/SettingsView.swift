@@ -114,10 +114,13 @@ struct SettingsView: View {
                         
                     }
                     
-                    GroupBox(label: Label("Suggest New Preferences", systemImage: "fork.knife.circle.fill")) {
-                        TagField().environmentObject(settingsViewModel)
+                    if (userType == "User") {
+                        
+                        GroupBox(label: Label("Suggest New Preferences", systemImage: "fork.knife.circle.fill")) {
+                            TagField().environmentObject(settingsViewModel)
+                        }
+                        .fontWeight(.semibold)
                     }
-                    .fontWeight(.semibold)
                     
                     
                     
