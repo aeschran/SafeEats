@@ -101,6 +101,8 @@ class CreateReviewViewModel: ObservableObject {
                         }
                     }.resume()
                 }
+                
+                self.sendReviewNotification(businessId: businessId, rating: rating)
             } catch {
                 print("Error decoding review creation response: \(error)")
             }
@@ -217,6 +219,43 @@ class CreateReviewViewModel: ObservableObject {
             }
         }.resume()
     }
+    
+    
+    private func sendReviewNotification(businessId: String, rating: Int) {
+        guard let id = id_ else {
+            print("User ID missing, cannot send notification")
+            return
+        }
+        
+        let notificationURL = URL(string: "\(baseURL)/notifications/create")!
+        
+        let notificationData: [String: Any] = [
+            "sender_id": id,
+            "recipient_id": businessId,  // Assuming backend knows that businesses use their _id
+            "type": 3,                   // Review notification type
+            "content": "Your business has received a new review!\n\n\tRating: \(rating)",
+            "timestamp": Date().timeIntervalSince1970
+        ]
+        
+        guard let httpBody = try? JSONSerialization.data(withJSONObject: notificationData) else {
+            print("Failed to encode notification data")
+            return
+        }
+        
+        var request = URLRequest(url: notificationURL)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = httpBody
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Failed to send review notification: \(error.localizedDescription)")
+            } else {
+                print("Review notification sent successfully!")
+            }
+        }.resume()
+    }
+
 
 
     

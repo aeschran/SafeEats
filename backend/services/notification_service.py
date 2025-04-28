@@ -1,6 +1,7 @@
 from http.client import HTTPException
 from models.notification import Notification
 from schemas.notification import NotificationCreate, NotificationResponse, CreateNotificationResponse
+from utils.enums import NotificationEnum
 from services.base_service import BaseService
 import logging
 from bson import ObjectId
@@ -13,18 +14,39 @@ class NotificationService(BaseService):
         
     async def create_new_notification(self, notification_create: NotificationCreate):
         try: 
-            notification = Notification(sender_id=ObjectId(notification_create.sender_id), recipient_id=ObjectId(notification_create.recipient_id), type=notification_create.type, content=notification_create.content, timestamp=notification_create.timestamp)
-            result = await self.db.notifications.find_one({"sender_id": ObjectId(notification_create.sender_id), "recipient_id": ObjectId(notification_create.recipient_id), "type": notification_create.type.value})
-            if result:
-                return None
+            sender_id = ObjectId(notification_create.sender_id)
+            recipient_id = ObjectId(notification_create.recipient_id)
+
+            # No assumptions about recipient being a user.
+            notification = Notification(
+                sender_id=sender_id,
+                recipient_id=recipient_id,
+                type=notification_create.type,
+                content=notification_create.content,
+                timestamp=notification_create.timestamp
+            )
+
             result = await self.db.notifications.insert_one(notification.to_dict())
             if result.inserted_id:
-                return CreateNotificationResponse(**notification.to_dict())
+                # Only try to fetch sender username IF type == friend request
+                sender_username = None
+                if notification_create.type == NotificationEnum.FRIEND_REQUEST:
+                    sender_user = await self.db.users.find_one({"_id": sender_id})
+                    sender_username = sender_user.get("name") if sender_user else None
+
+                return CreateNotificationResponse(
+                    sender_id=str(sender_id),
+                    recipient_id=str(recipient_id),
+                    type=notification.type.value,
+                    content=notification.content,
+                    timestamp=notification.timestamp,
+                    sender_username=sender_username
+                )
             return None
         except Exception as e:
-            # Log the error (You can replace this with a logging framework)
-            print(f"Error in create_new_notification: {e}")
+            print(f"Error creating notification: {e}")
             raise HTTPException(status_code=500, detail="Internal Server Error")
+
     
     async def create_new_friend_request(self, notification_create: NotificationCreate):
         notification_create = NotificationCreate(sender_id=ObjectId(notification_create.sender_id), recipient_id=ObjectId(notification_create.recipient_id), type=notification_create.type, content=notification_create.content, timestamp=notification_create.timestamp)

@@ -11,6 +11,7 @@ import SwiftUI
 
 struct CreateReviewView: View {
     @ObservedObject var viewModel = CreateReviewViewModel()
+    @ObservedObject var notifViewModel = NotificationsViewModel()
     @Environment(\.presentationMode) var presentationMode
     
     @State private var rating: Int = 0
@@ -85,6 +86,7 @@ struct CreateReviewView: View {
             Button(action: {
                 viewModel.submitReview(businessId: businessId, reviewContent: reviewText, rating: rating, image: selectedImage)
                 onReviewSubmitted()
+                
                 presentationMode.wrappedValue.dismiss()
             }) {
                 Text("Create Review")
