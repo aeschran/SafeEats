@@ -193,6 +193,56 @@ class ReviewService(BaseService):
         except Exception as e:
             print("Error:", str(e))  
             return []
+        
+    async def get_user_reviews(self, user_id: str):
+    
+        try:
+            user_object_id = ObjectId(user_id)
+
+            # Step 1: Find Reviews by the User
+            reviews_cursor = self.db.user_reviews.find({"user_id": user_object_id})
+            reviews = await reviews_cursor.to_list(None)
+            print("User Reviews:", reviews)  # Debugging step
+
+            if not reviews:
+                return []  # Return empty list if the user has no reviews
+
+            business_ids = {ObjectId(review["business_id"]) for review in reviews if review.get("business_id")}
+            print("Business IDs being queried:", business_ids)  # Debugging step
+
+            businesses_cursor = self.db.businesses.find({"_id": {"$in": list(business_ids)}})
+            businesses = {str(business["_id"]): business["name"] for business in await businesses_cursor.to_list(None)}
+            print("Fetched Businesses:", businesses)  # Debugging step
+
+            user_cursor = await self.db.users.find_one({"_id": user_object_id})
+            user_name = user_cursor["name"] if user_cursor else "Unknown"
+            print("User Name:", user_name)  # Debugging step
+
+            result = []
+            for review in reviews:
+                review_image_cursor = await self.db.review_images.find_one({"review_id": ObjectId(review["_id"])})
+                if review_image_cursor:
+                    review["review_image"] = review_image_cursor["review_image"]
+                else:
+                    review["review_image"] = ""
+                
+                result.append({
+                    "review_id": str(review["_id"]),
+                    "user_id": str(review["user_id"]),
+                    "business_id": str(review["business_id"]),
+                    "user_name": user_name,  
+                    "business_name": businesses.get(str(review["business_id"]), "Unknown"),
+                    "review_content": review["review_content"],
+                    "rating": review["rating"],
+                    "review_image": review["review_image"],  
+                    "review_timestamp": review["review_timestamp"],
+                })
+
+            return result if result else []
+
+        except Exception as e:
+            print("Error:", str(e))  
+            return []
 
 
        

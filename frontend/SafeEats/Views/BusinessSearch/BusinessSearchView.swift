@@ -42,6 +42,7 @@ struct BusinessSearchView: View {
                                 rating: 4.5,
                                 imageName: "self.crop.circle.fill"
                             )
+                            
                         }
                     }
                     .listStyle(.inset)

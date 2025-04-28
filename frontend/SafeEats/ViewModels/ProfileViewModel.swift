@@ -18,20 +18,11 @@ class ProfileViewModel: ObservableObject {
     @Published var isFollowing: Bool = false
     @Published var isRequested: Bool = false
     @Published var didTap: Bool = false
+    @Published var reviews: [FriendReview] = []
     private var friendId: String
     @AppStorage("id") var id_: String?
     
-    //    @Published var friend: Friend
-    //
-    //    init(friendId: String) async {
-    //            // Initially, set the friend to a default empty friend
-    //        self.friend = Friend(id: "", name: "", username: "", friendSince: "")
-    //        Task {
-    //            // Fetch the actual friend data using the friendId
-    //            await fetchUserProfile(friendId: friendId)
-    //        }
-    //    }
-    //
+
     @Published var friend: Friend
     
     init(friendId: String) {
@@ -143,6 +134,35 @@ class ProfileViewModel: ObservableObject {
         }
     }
     
+    func fetchUserReviews(friendId: String) {
+        guard let id = id_ else {
+            print("Error: User ID not found")
+            return
+        }
+        
+        print("current ID \(id)")
+        guard let url = URL(string: "\(baseURL)/review/profile/\(friendId)") else {
+            print("Invalid URL")
+            return
+        }
+
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                let decodedReviews = try JSONDecoder().decode([FriendReview].self, from: data)
+
+                DispatchQueue.main.async {
+                    self.reviews = decodedReviews
+                    for review in self.reviews {
+                        print(review.userName)
+                        print(review.userId)
+                    }
+                }
+            } catch {
+                print("Error fetching your reviews:", error)
+            }
+        }
+    }
     
 
     

@@ -30,6 +30,19 @@ struct SocialMedia: Codable {
     var twitter: String?
 }
 
+struct BusinessHours: Codable {
+    var display: String?          // e.g., "Mon-Sun 10:00AM-9:00PM"
+    var is_local_holiday: Bool?
+    var open_now: Bool?
+    var regular: [BusinessRegularHours]?
+}
+
+struct BusinessRegularHours: Codable {
+    var close: String?  // e.g., "21:00"
+    var day: Int?       // 0 = Sunday, 1 = Monday, etc.
+    var open: String?   // e.g., "10:00"
+}
+
 class Business: Decodable, Identifiable {
     let id: String
     let name: String?
@@ -43,12 +56,13 @@ class Business: Decodable, Identifiable {
     var avg_rating: Double = 0.0
     let social_media: SocialMedia?
     let price: Int?
+    let hours: BusinessHours?
     
     enum CodingKeys: String, CodingKey {
         case id = "_id"
         case name
         case website
-        case tel 
+        case tel
         case description
         case cuisines
         case menu
@@ -57,9 +71,10 @@ class Business: Decodable, Identifiable {
         case avg_rating
         case social_media
         case price
+        case hours
     }
-
-    init(id: String, name: String?, website: String?, description: String?, cuisines: [Int]?, menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?, tel: String?, avg_rating: Double, social_media: SocialMedia?, price: Int?) {
+    
+    init(id: String, name: String?, website: String?, description: String?, cuisines: [Int]?, menu: String?, address: String?, dietary_restrictions: [PreferenceResponse]?, tel: String?, avg_rating: Double, social_media: SocialMedia?, price: Int?, hours: BusinessHours?) {
         self.id = id
         self.name = name
         self.website = website
@@ -72,45 +87,47 @@ class Business: Decodable, Identifiable {
         self.avg_rating = avg_rating
         self.social_media = social_media
         self.price = price
+        self.hours = hours
     }
 }
-
-enum PreferenceCategories: String, CaseIterable {
-    case dairy = "Dairy"
-    case halal = "Halal"
-    case kosher = "Kosher"
-    case vegan = "Vegan"
-    case vegetarian = "Vegetarian"
-    case peanut = "Peanuts"
-    case gluten = "Gluten"
-    case shellfish = "Shellfish"
-
-    /// Get the corresponding asset name from the enum
-    var assetName: String {
-        switch self {
-        case .dairy:
-            return "Dairy"
-        case .halal:
-            return "Halal"
-        case .kosher:
-            return "Kosher"
-        case .vegan:
-            return "Vegan"
-        case .vegetarian:
-            return "Vegetarian"
-        case .peanut:
-            return "Peanuts"
-        case .gluten:
-            return "Gluten"
-        case .shellfish:
-            return "Shellfish"
+    
+    enum PreferenceCategories: String, CaseIterable {
+        case dairy = "Dairy"
+        case halal = "Halal"
+        case kosher = "Kosher"
+        case vegan = "Vegan"
+        case vegetarian = "Vegetarian"
+        case peanut = "Peanuts"
+        case gluten = "Gluten"
+        case shellfish = "Shellfish"
+        
+        /// Get the corresponding asset name from the enum
+        var assetName: String {
+            switch self {
+            case .dairy:
+                return "Dairy"
+            case .halal:
+                return "Halal"
+            case .kosher:
+                return "Kosher"
+            case .vegan:
+                return "Vegan"
+            case .vegetarian:
+                return "Vegetarian"
+            case .peanut:
+                return "Peanuts"
+            case .gluten:
+                return "Gluten"
+            case .shellfish:
+                return "Shellfish"
+            }
         }
     }
-}
-
-extension PreferenceCategories {
-    /// Initialize from a string (handles invalid values gracefully)
-    init?(from rawValue: String) {
-        self.init(rawValue: rawValue)
+    
+    extension PreferenceCategories {
+        /// Initialize from a string (handles invalid values gracefully)
+        init?(from rawValue: String) {
+            self.init(rawValue: rawValue)
+        }
     }
-}
+

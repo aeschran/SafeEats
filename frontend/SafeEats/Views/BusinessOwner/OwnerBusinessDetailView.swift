@@ -528,7 +528,13 @@ struct OwnerBusinessDetailView: View {
                 instagram: "test_ig",
                 twitter: "test_tw"
             ),
-            price: 1
+            price: 1,
+            hours: BusinessHours(  // << Add this
+                display: "Mon-Sun 10AM–9PM",
+                is_local_holiday: false,
+                open_now: true,
+                regular: []  // optional to fill out for now
+            )
         )
     )
 }

@@ -329,7 +329,7 @@ struct ProfileReviewView: View {
     
 }
 
-import SwiftUI
+
 
 struct ProfileReviewCard: View {
     let review: FriendReview
