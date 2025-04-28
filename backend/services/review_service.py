@@ -1,10 +1,13 @@
 from models.review import Review, ReviewVote, ReviewAddImage
-from schemas.review import ReviewCreate, ReviewResponse, ReviewAddVote, ReviewImage
+from schemas.review import ReviewCreate, ReviewResponse, ReviewAddVote, ReviewImage, ReportReview
 from services.base_service import BaseService
 import logging
 from bson import ObjectId
 from fastapi import HTTPException
 import time
+import sendgrid
+from sendgrid.helpers.mail import Mail, Email, To, Content
+from core.config import settings
 
 class ReviewService(BaseService):
     def __init__(self):
@@ -341,6 +344,24 @@ class ReviewService(BaseService):
             return result  
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+        
+    async def report_review(self, report_review: ReportReview):
+        sg = sendgrid.SendGridAPIClient(api_key=settings.SENDGRID_KEY)
+        to_email = To("safeeats.dev@gmail.com")
+        from_email = Email("safeeats.noreply@gmail.com")
+        review = await self.db.user_reviews.find_one({"_id": ObjectId(report_review.review_id)})
+        # Check if the review exists
+        if not review:
+            raise HTTPException(status_code=404, detail="Review not found")
+        subject = f"{report_review.user_name} has reported a review"
+        content = Content("text/plain", f"Review ID: {str(review['_id'])} \n\nReview Content: {review['review_content']}\n\nReporter: {report_review.user_name}\n\nReason for Reporting: {report_review.message}")
+        mail = Mail(from_email, to_email, subject, content)
+        try:
+            response = sg.send(mail)
+        except:
+            return None
+        
+        return(response.status_code, response.body, response.headers)
 
 
 
