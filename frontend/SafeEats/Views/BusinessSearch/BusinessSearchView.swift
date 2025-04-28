@@ -10,6 +10,8 @@ import SwiftUI
 enum SortOption {
     case priceLowToHigh
     case priceHighToLow
+    case ratingsLowToHigh
+    case ratingsHighToLow
     // Add more if needed
 }
 
@@ -68,9 +70,27 @@ struct BusinessSearchView: View {
                     Menu {
                         Button("Price: Low to High") {
                             sortOption = .priceLowToHigh
+                            viewModel.businesses = viewModel.businesses.sorted {
+                                $0.price ?? 0 <= $1.price ?? 0
+                            }
                         }
                         Button("Price: High to Low") {
                             sortOption = .priceHighToLow
+                            viewModel.businesses = viewModel.businesses.sorted {
+                                $0.price ?? 0 >= $1.price ?? 0
+                            }
+                        }
+                        Button("Ratings: Low to High") {
+                            sortOption = .ratingsLowToHigh
+                            viewModel.businesses = viewModel.businesses.sorted {
+                                $0.avg_rating ?? 0 <= $1.avg_rating ?? 0
+                            }
+                        }
+                        Button("Ratings: High to Low") {
+                            sortOption = .ratingsHighToLow
+                            viewModel.businesses = viewModel.businesses.sorted {
+                                $0.avg_rating ?? 0 >= $1.avg_rating ?? 0
+                            }
                         }
                         // Add more filters if needed
                     } label: {
