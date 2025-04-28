@@ -270,11 +270,16 @@ struct ProfileReviewView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 12) {
-                ForEach(viewModel.reviews, id: \.reviewId) { review in
-                    ProfileReviewCard(review: review, onEdit: { editReview(review) },
-                                      onDelete: { deleteReview(review) })
-                    .padding(.horizontal)
+            if (viewModel.reviews.isEmpty) {
+                Spacer()
+                Text("You have left no reviews.")
+            } else {
+                VStack(spacing: 12) {
+                    ForEach(viewModel.reviews, id: \.reviewId) { review in
+                        ProfileReviewCard(review: review, onEdit: { editReview(review) },
+                                          onDelete: { deleteReview(review) })
+                        .padding(.horizontal)
+                    }
                 }
             }
         }
@@ -337,60 +342,64 @@ struct ProfileReviewCard: View {
     var onDelete: () -> Void
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            HStack {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(review.businessName)
-                        .font(.headline)
-                        .foregroundColor(.black)
-                        .lineLimit(1)
-                        .truncationMode(.tail) // Ensure it doesn't wrap too soon
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    Text(review.reviewContent)
-                        .font(.body)
-                    
-                    HStack {
-                        ForEach(0..<review.rating, id: \.self) { _ in
-                            Image(systemName: "star.fill")
-                                .foregroundColor(.yellow)
+        NavigationLink(destination: DetailedReviewView(reviewId: review.reviewId)) {
+            ZStack(alignment: .topTrailing) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(review.businessName)
+                            .font(.headline)
+                            .foregroundColor(.black)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        
+                        Text(review.reviewContent)
+                            .font(.body)
+                        
+                        HStack {
+                            ForEach(0..<review.rating, id: \.self) { _ in
+                                Image(systemName: "star.fill")
+                                    .foregroundColor(.yellow)
+                            }
                         }
+                        
+                        Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
+                            .font(.caption)
+                            .foregroundColor(.gray)
                     }
-                    
-                    Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
-                        .font(.caption)
-                        .foregroundColor(.gray)
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }.padding()
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
-            .frame(maxWidth: .infinity)
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+                .frame(maxWidth: .infinity)
 
-            // Overlay with edit and delete buttons
-            HStack(spacing: 10) {
-                Button(action: onEdit) {
-                    Image(systemName: "pencil")
-                        .foregroundColor(.mainGreen)
-                        .padding(8)
-                        .background(Color.white)
-                        .clipShape(Circle())
-                        .shadow(radius: 1)
-                }
+                // Overlay with edit and delete buttons
+                HStack(spacing: 10) {
+                    Button(action: onEdit) {
+                        Image(systemName: "pencil")
+                            .foregroundColor(.mainGreen)
+                            .padding(8)
+                            .background(Color.white)
+                            .clipShape(Circle())
+                            .shadow(radius: 1)
+                    }
 
-                Button(action: onDelete) {
-                    Image(systemName: "trash")
-                        .foregroundColor(.red)
-                        .padding(8)
-                        .background(Color.white)
-                        .clipShape(Circle())
-                        .shadow(radius: 1)
+                    Button(action: onDelete) {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                            .padding(8)
+                            .background(Color.white)
+                            .clipShape(Circle())
+                            .shadow(radius: 1)
+                    }
                 }
+                .padding()
             }
-            .padding()
         }
+        .buttonStyle(PlainButtonStyle()) // <- to prevent NavigationLink from applying weird blue highlight styling
     }
-
+    
     private func formattedDate(from timestamp: Double) -> String {
         let date = Date(timeIntervalSince1970: timestamp)
         let formatter = DateFormatter()
