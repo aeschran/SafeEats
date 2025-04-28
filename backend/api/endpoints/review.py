@@ -4,7 +4,7 @@ from services.notification_service import NotificationService
 from services.friend_service import FriendService
 from schemas.notification import NotificationCreate, NotificationResponse
 from schemas.friend import FriendCreate, FriendResponse
-from schemas.review import ReviewCreate, ReviewAddVote, ReviewImage
+from schemas.review import ReviewCreate, ReviewAddVote, ReviewImage, ReportReview
 
 
 router = APIRouter(tags=["Review"])
@@ -91,3 +91,10 @@ async def get_detailed_review(review_id: str):
     reviews = await review_service.get_detailed_review(review_id)
 
     return reviews
+
+@router.post("/report")
+async def report_review(report_review: ReportReview):
+    reported = await review_service.report_review(report_review)
+    if not reported:
+        raise HTTPException(status_code=404, detail="Review not found or could not be reported")
+    return {"message": "Review reported successfully"}

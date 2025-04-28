@@ -31,3 +31,11 @@ class ReviewAddVote(BaseModel):
 
     class Config:
         arbitrary_types_allowed = True
+
+class ReportReview(BaseModel):
+    review_id: str
+    user_name: str
+    message: str
+
+    class Config:
+        arbitrary_types_allowed = True

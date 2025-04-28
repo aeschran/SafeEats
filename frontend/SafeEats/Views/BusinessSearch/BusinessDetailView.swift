@@ -273,10 +273,14 @@ struct BusinessDetailView: View {
         let review: Review
         @ObservedObject var viewModel: BusinessDetailViewModel
         @State private var userVote: Int? = nil
+        // --- Report Sheet State ---
+        @State private var showReportSheet = false
+        @State private var selectedReasons: Set<String> = []
+        @State private var otherReason: String = ""
+        @AppStorage("username") private var currentUsername: String = ""
         
-        
-            var body: some View {
-                NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
+        var body: some View {
+            NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
                 VStack(alignment: .leading, spacing: 8) {
                     // Username + Date
                     HStack {
@@ -294,6 +298,62 @@ struct BusinessDetailView: View {
                         ForEach(0..<5, id: \.self) { index in
                             Image(systemName: index < review.rating ? "star.fill" : "star")
                                 .foregroundColor(index < review.rating ? .yellow : .gray)
+                        }
+                        
+                        if (currentUsername != review.userName) {
+                            Button(action: { showReportSheet = true }) {
+                                Image(systemName: "exclamationmark.bubble.fill")
+                                    .foregroundColor(Color.customLightRed)
+                                    .font(.headline)
+                            }
+                            .sheet(isPresented: $showReportSheet) {
+                                VStack(alignment: .leading, spacing: 16) {
+                                    Text("Report Review")
+                                        .font(.title2)
+                                        .bold()
+                                    Text("Select reasons for reporting:")
+                                    
+                                    ForEach(["Inappropriate", "Spam", "Off-topic", "Harassment"], id: \.self) { reason in
+                                        Button(action: {
+                                            if selectedReasons.contains(reason) {
+                                                selectedReasons.remove(reason)
+                                            } else {
+                                                selectedReasons.insert(reason)
+                                            }
+                                        }) {
+                                            HStack {
+                                                Image(systemName: selectedReasons.contains(reason) ? "checkmark.square.fill" : "square")
+                                                Text(reason)
+                                            }
+                                        }
+                                        .foregroundColor(.primary)
+                                    }
+                                    
+                                    TextField("Other (optional)", text: $otherReason)
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    
+                                    HStack {
+                                        Button("Cancel") {
+                                            showReportSheet = false
+                                        }
+                                        Spacer()
+                                        Button("Submit") {
+                                            var message = selectedReasons.joined(separator: ", ")
+                                            if !otherReason.isEmpty {
+                                                message += (message.isEmpty ? "" : ", ") + otherReason
+                                            }
+                                            
+                                            Task {
+                                                let userName = UserDefaults.standard.string(forKey: "username") ?? "Anonymous"
+                                                await viewModel.reportReview(userName: userName, reviewId: review.id, message: message)
+                                            }
+                                            showReportSheet = false
+                                        }
+                                    }
+                                    .padding(.top, 10)
+                                }
+                                .padding()
+                            }
                         }
                     }
                     
