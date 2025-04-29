@@ -19,6 +19,8 @@ struct Review: Identifiable, Codable {
     var upvotes: Int
     var downvotes: Int
     var userVote: Int?
+    let meal: String?
+    let accommodations: [Accommodation]?
     
     enum CodingKeys: String, CodingKey {
         case id = "review_id"  // Maps JSON "review_id" to Swift "id"
@@ -31,6 +33,8 @@ struct Review: Identifiable, Codable {
         case upvotes
         case downvotes
         case userVote = "user_vote"
+        case meal
+        case accommodations
     }
 }
 

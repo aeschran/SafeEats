@@ -25,7 +25,10 @@ class ReviewService(BaseService):
                 rating=review_create.rating,
                 # review_image=review_image,
                 upvotes=0,
-                downvotes=0
+                downvotes=0,
+                meal=review_create.meal,
+                accommodations=review_create.accommodations
+
             )
             result = await self.db.user_reviews.insert_one(review.to_dict())
 
@@ -189,6 +192,8 @@ class ReviewService(BaseService):
                     "rating": review["rating"],
                     "review_image": review["review_image"],  
                     "review_timestamp": review["review_timestamp"],
+                    "meal": review["meal"],
+                    "accommodations": review["accommodations"]
                 })
 
             return result if result else []
@@ -265,9 +270,7 @@ class ReviewService(BaseService):
             for review in reviews:
                 user_doc = await self.db.users.find_one({"_id": review["user_id"]})
                 user_name = user_doc["name"] if user_doc else "Unknown"
-                print(user_name)
-                print(review["_id"])
-                print(user_id)
+
                 user_vote_cursor = await self.db.review_votes.find_one({"review_id": review["_id"], "user_id": ObjectId(user_id)})
                 if user_vote_cursor:
                     if user_vote_cursor["vote"] == 0:
@@ -281,7 +284,9 @@ class ReviewService(BaseService):
                             "review_timestamp": review["review_timestamp"],
                             "upvotes": review["upvotes"],
                             "downvotes": review["downvotes"],
-                            "user_vote": -1
+                            "user_vote": -1,
+                            "meal": review["meal"],
+                            "accommodations": review["accommodations"]
                         })
                     #downvote
                     elif user_vote_cursor["vote"] == 1:
@@ -295,7 +300,10 @@ class ReviewService(BaseService):
                             "review_timestamp": review["review_timestamp"],
                             "upvotes": review["upvotes"],
                             "downvotes": review["downvotes"],
-                            "user_vote": 1
+                            "user_vote": 1,
+                            "meal": review["meal"],
+                            "accommodations": review["accommodations"]
+                            
                         })
                 else:
                     #upvote
@@ -309,6 +317,8 @@ class ReviewService(BaseService):
                         "review_timestamp": review["review_timestamp"],
                         "upvotes": review["upvotes"],
                         "downvotes": review["downvotes"],
+                        "meal": review["meal"],
+                        "accommodations": review["accommodations"]
                     })
             return result
 

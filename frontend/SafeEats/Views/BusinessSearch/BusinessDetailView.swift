@@ -356,6 +356,42 @@ struct BusinessDetailView: View {
                             }
                         }
                     }
+                    if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !review.accommodations!.isEmpty) {
+                        if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !(review.accommodations ?? []).isEmpty) {
+                            Text(formattedMealAndAccommodations(meal: review.meal, accommodations: review.accommodations))
+                                .font(.footnote)
+                                .foregroundColor(.black)
+                                .fixedSize(horizontal: false, vertical: true) // Allow wrapping
+                                .fontWeight(.light)
+                        }
+
+//                        HStack(spacing: 6) {
+//                                if let meal = review.meal, !meal.isEmpty {
+//                                    Text("\(meal)")
+//                                        .font(.body)
+//                                        .foregroundColor(.black)
+//                                        .fontWeight(.light)
+//                                }
+//                                
+//                                if (review.meal != nil && !(review.meal ?? "").isEmpty) && (review.accommodations != nil && !(review.accommodations ?? []).isEmpty) {
+//                                    Text("|")
+//                                        .font(.body)
+//                                        .foregroundColor(.gray)
+//                                }
+//                                
+//                                if let accommodations = review.accommodations, !accommodations.isEmpty {
+//                                    let formattedAccommodations = accommodations.map { accom in
+//                                        accom.preferenceType == "Allergy" ? "\(accom.preference) Free" : accom.preference
+//                                    }.joined(separator: ", ")
+//                                    
+//                                    Text("\(formattedAccommodations)")
+//                                        .font(.body)
+//                                        .foregroundColor(.black)
+//                                        .fontWeight(.light)
+//                                }
+//                            }
+                    }
+                    
                     
                     // Review Content
                     Text(review.reviewContent)
@@ -398,6 +434,23 @@ struct BusinessDetailView: View {
             formatter.timeStyle = .short
             return formatter.string(from: date)
         }
+        private func formattedMealAndAccommodations(meal: String?, accommodations: [Accommodation]?) -> String {
+            var parts: [String] = []
+
+            if let meal = meal, !meal.isEmpty {
+                parts.append(meal)
+            }
+            
+            if let accommodations = accommodations, !accommodations.isEmpty {
+                let formattedAccommodations = accommodations.map { accom in
+                    accom.preferenceType == "Allergy" ? "\(accom.preference) Free" : accom.preference
+                }.joined(separator: ", ")
+                parts.append(formattedAccommodations)
+            }
+            
+            return parts.joined(separator: " | ")
+        }
+
     }
     
     //        private func handleUpvote() {
