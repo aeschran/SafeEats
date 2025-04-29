@@ -154,7 +154,6 @@ class CollectionService(BaseService):
             updated_collection = await self.db.collections.find_one({"_id": collection_id})
             if updated_collection:
                 updated_collection["_id"] = str(updated_collection["_id"])
-                
                 return CollectionResponse(**updated_collection)
         else:
             # If no documents were modified, return None

@@ -1,12 +1,12 @@
 from bson import ObjectId
 from typing import Optional, List, Dict
-from schemas.business import SocialMedia
+from schemas.business import SocialMedia, Hours, Day
 from models.preference import Preference
 from models.cuisine import Cuisine
 from models.location import Location
 
 class Business:
-    def __init__(self, name, location: Location, owner_id: Optional[ObjectId] = None, website: Optional[str] = None, tel: Optional[str] = None, description: Optional[str] = None, cuisines: List[int] = [], menu: Optional[str] = None, address: Optional[str] = None, dietary_restrictions: List[str] = [], avg_rating: Optional[float] = 0.0, social_media: Optional[SocialMedia] = None, price: Optional[int] = None):
+    def __init__(self, name, location: Location, owner_id: Optional[ObjectId] = None, website: Optional[str] = None, tel: Optional[str] = None, description: Optional[str] = None, cuisines: List[int] = [], menu: Optional[str] = None, address: Optional[str] = None, dietary_restrictions: List[str] = [], avg_rating: Optional[float] = 0.0, social_media: Optional[SocialMedia] = None, price: Optional[int] = None, hours: Optional[Hours] = None):
         self.name = name
         self.owner_id = owner_id
         self.website = website
@@ -20,6 +20,8 @@ class Business:
         self.avg_rating = avg_rating
         self.social_media = social_media
         self.price = price
+        self.hours = hours
+        
         
     def to_dict(self):
         return {
@@ -35,7 +37,9 @@ class Business:
             "dietary_restrictions": self.dietary_restrictions,
             "avg_rating": self.avg_rating,
             "social_media": self.social_media.model_dump(),
-            "price": self.price
+            "price": self.price,
+            "hours": self.hours.model_dump() if self.hours else None
+            # "hours": self.hours
         }
     
 class BusinessCollectionEntry:

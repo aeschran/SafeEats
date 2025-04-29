@@ -42,8 +42,7 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
     @Published var businessesMap: [BusinessMapLocation] = []
     @Published var randomBusiness: Business? = nil
     @Published var didFetchRandomBusiness = false
-
-
+    @Published var cuisineOrRestrictionSelected: Bool = false
     
     private var cancellables = Set<AnyCancellable>()
     private var locationManager = CLLocationManager()

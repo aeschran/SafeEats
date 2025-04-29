@@ -9,11 +9,12 @@ import SwiftUI
 
 class OwnerListingsViewModel: ObservableObject {
     @Published var businesses: [Business] = []
+    @Published var businessIdsAndNames: [(id: String, name: String)] = []
     @Published var isLoading = false
     @AppStorage("userType") private var userType: String?
     @AppStorage("id") var id_: String?
 
-    func fetchOwnerListings() {
+    func fetchOwnerListings(completion: @escaping () -> Void = {}) {
         guard let id = id_ else {return}
 
         
@@ -42,6 +43,8 @@ class OwnerListingsViewModel: ObservableObject {
                 let decodedResponse = try JSONDecoder().decode([Business].self, from: data)
                 DispatchQueue.main.async {
                     self.businesses = decodedResponse
+                    self.businessIdsAndNames = decodedResponse.map { ($0.id, $0.name ?? "") }
+                    completion()
                 }
             } catch {
                 print("Error decoding response: \(error)")

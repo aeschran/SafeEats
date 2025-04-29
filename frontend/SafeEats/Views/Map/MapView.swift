@@ -21,8 +21,19 @@ struct MapView: View {
         (13198...13224, "Indian") // Indian
     ]
     
+    let restrictionMap: [String: String] = [
+        "Gluten": "Gluten",
+        "Vegan": "Vegan",
+        "Dairy": "Dairy",
+        "Vegetarian": "Vegetarian",
+        "Kosher": "Kosher",
+        "Halal": "Halal",
+        "Peanuts": "Peanuts",
+        "Shellfish": "Shellfish"
+    ]
+    
     private func getBusiness(businessMap: BusinessMapLocation) -> Business {
-        return Business(id: businessMap.id, name: businessMap.name, website: businessMap.website, description: businessMap.description, cuisines: businessMap.cuisines, menu: businessMap.menu, address: businessMap.address, dietary_restrictions: businessMap.dietary_restrictions, tel: businessMap.tel, avg_rating: businessMap.avg_rating, social_media: businessMap.social_media, price: businessMap.price)
+        return Business(id: businessMap.id, name: businessMap.name, website: businessMap.website, description: businessMap.description, cuisines: businessMap.cuisines, menu: businessMap.menu, address: businessMap.address, dietary_restrictions: businessMap.dietary_restrictions, tel: businessMap.tel, avg_rating: businessMap.avg_rating, social_media: businessMap.social_media, price: businessMap.price, hours: businessMap.hours)
     }
     
     func getCuisineIcon(for business: BusinessMapLocation) -> String {
@@ -33,6 +44,20 @@ struct MapView: View {
         }
         
         return "Food" // Fallback icon
+    }
+    
+    func getRestrictionIcon(for business: BusinessMapLocation) -> String? {
+        guard let restrictions = business.dietary_restrictions else {
+            return "Food"
+        }
+
+        for restriction in restrictions {
+            if let matchedRestriction = restrictionMap[restriction.preference] {
+                return matchedRestriction
+            }
+        }
+
+        return "Food"
     }
     
     var body: some View {
@@ -63,8 +88,8 @@ struct MapView: View {
                                     .onTapGesture {
                                         selectedBusinessId = business.id
                                     }
-                                Image(getCuisineIcon(for: businessMapLocation))
-                                    .foregroundColor(Color.black)
+                                Image(viewModel.cuisineOrRestrictionSelected ? getCuisineIcon(for: businessMapLocation)
+                                     : getRestrictionIcon(for: businessMapLocation) ?? "Food").foregroundColor(Color.black)
                                 
                                 if selectedBusinessId == business.id {
                                     ZStack(alignment: .topTrailing) { // Aligns button to the top-right
@@ -118,7 +143,12 @@ struct MapView: View {
                     }
                 }
                 .sheet(isPresented: $showFilters) {
-                    FilterMapView(selectedCuisines: $viewModel.selectedCuisines, selectedAllergies: $viewModel.selectedAllergies, selectedDietaryRestrictions: $viewModel.selectedDietaryRestrictions, radius: $viewModel.radius)
+                    FilterMapView(
+                        selectedCuisines: $viewModel.selectedCuisines,
+                        selectedAllergies: $viewModel.selectedAllergies,
+                        selectedDietaryRestrictions: $viewModel.selectedDietaryRestrictions,
+                        radius: $viewModel.radius,
+                        cuisineOrRestrictionSelected: $viewModel.cuisineOrRestrictionSelected)
                         .presentationDetents([.medium, .large])
                         .padding(.top, 40)
                 }

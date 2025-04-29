@@ -164,8 +164,24 @@ struct BusinessDetailView: View {
                         ratingsSection
                         descriptionSection
                         menuSection
+                        businessHoursSection
                         addressSection
                         socialMediaSection
+                        
+            
+                    NavigationLink(
+                                destination: BusinessSuggestionView(business: business))
+                    {
+                            Text("Make a Suggestion")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.mainGreen)
+                                .cornerRadius(10)
+                                .padding(.top, 10)
+                        }
+                        
                     }
                     .padding([.bottom, .horizontal], 30)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -257,10 +273,14 @@ struct BusinessDetailView: View {
         let review: Review
         @ObservedObject var viewModel: BusinessDetailViewModel
         @State private var userVote: Int? = nil
+        // --- Report Sheet State ---
+        @State private var showReportSheet = false
+        @State private var selectedReasons: Set<String> = []
+        @State private var otherReason: String = ""
+        @AppStorage("username") private var currentUsername: String = ""
         
-        
-            var body: some View {
-                NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
+        var body: some View {
+            NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
                 VStack(alignment: .leading, spacing: 8) {
                     // Username + Date
                     HStack {
@@ -278,6 +298,62 @@ struct BusinessDetailView: View {
                         ForEach(0..<5, id: \.self) { index in
                             Image(systemName: index < review.rating ? "star.fill" : "star")
                                 .foregroundColor(index < review.rating ? .yellow : .gray)
+                        }
+                        
+                        if (currentUsername != review.userName) {
+                            Button(action: { showReportSheet = true }) {
+                                Image(systemName: "exclamationmark.bubble.fill")
+                                    .foregroundColor(Color.customLightRed)
+                                    .font(.headline)
+                            }
+                            .sheet(isPresented: $showReportSheet) {
+                                VStack(alignment: .leading, spacing: 16) {
+                                    Text("Report Review")
+                                        .font(.title2)
+                                        .bold()
+                                    Text("Select reasons for reporting:")
+                                    
+                                    ForEach(["Inappropriate", "Spam", "Off-topic", "Harassment"], id: \.self) { reason in
+                                        Button(action: {
+                                            if selectedReasons.contains(reason) {
+                                                selectedReasons.remove(reason)
+                                            } else {
+                                                selectedReasons.insert(reason)
+                                            }
+                                        }) {
+                                            HStack {
+                                                Image(systemName: selectedReasons.contains(reason) ? "checkmark.square.fill" : "square")
+                                                Text(reason)
+                                            }
+                                        }
+                                        .foregroundColor(.primary)
+                                    }
+                                    
+                                    TextField("Other (optional)", text: $otherReason)
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    
+                                    HStack {
+                                        Button("Cancel") {
+                                            showReportSheet = false
+                                        }
+                                        Spacer()
+                                        Button("Submit") {
+                                            var message = selectedReasons.joined(separator: ", ")
+                                            if !otherReason.isEmpty {
+                                                message += (message.isEmpty ? "" : ", ") + otherReason
+                                            }
+                                            
+                                            Task {
+                                                let userName = UserDefaults.standard.string(forKey: "username") ?? "Anonymous"
+                                                await viewModel.reportReview(userName: userName, reviewId: review.id, message: message)
+                                            }
+                                            showReportSheet = false
+                                        }
+                                    }
+                                    .padding(.top, 10)
+                                }
+                                .padding()
+                            }
                         }
                     }
                     
@@ -490,6 +566,49 @@ struct BusinessDetailView: View {
             }
         }
     
+    var businessHoursSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Business Hours")
+                .font(.title2)
+                .fontWeight(.semibold)
+            
+            if let hours = business.hours {
+                HStack(alignment: .top) { // <- align top because now it might be multiple lines
+                    if let display = hours.display {
+                        let lines = display.components(separatedBy: ";").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            ForEach(lines, id: \.self) { line in
+                                Text(line)
+                                    .font(.body)
+                                    .foregroundColor(.mainGreen)
+                            }
+                        }
+                    } else {
+                        Text("No business hours available.")
+                            .font(.subheadline)
+                            .foregroundColor(.mainGreen)
+                    }
+                    
+                    Spacer()
+                    
+                    if let isOpen = hours.open_now {
+                        Text(isOpen ? "Open now" : "Closed")
+                            .font(.subheadline)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+//                            .background(isOpen ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
+                            .foregroundColor(isOpen ? .green : .red)
+                            .cornerRadius(8)
+                    }
+                }
+
+                   } else {
+                       Text("No business hours available")
+                           .foregroundColor(.mainGreen)
+                   }
+        }
+    }
         var socialMediaSection: some View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Social Media")
@@ -586,7 +705,14 @@ struct BusinessDetailView: View {
                 instagram: "test_ig",
                 twitter: "test_tw"
             ),
-            price: 0
+            price: 0,
+            hours: BusinessHours(  // << Add this
+                            display: "Mon-Sun 10AM–9PM",
+                            is_local_holiday: false,
+                            open_now: true,
+                            regular: []  // optional to fill out for now
+                        )
+
         )
     )
 }

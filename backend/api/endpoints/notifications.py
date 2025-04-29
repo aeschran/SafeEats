@@ -24,3 +24,10 @@ async def create_friend_request_notification(notification_create: NotificationCr
 async def get_notifications(recipient_id: str):
     notifications = await notification_service.get_notifications(recipient_id)
     return notifications
+
+@router.delete("/delete/{notification_id}")
+async def delete_notification(notification_id: str):
+    success = await notification_service.delete_notification(notification_id)
+    if success:
+        return {"message": "Notification deleted successfully"}
+    raise HTTPException(status_code=404, detail="Notification not found")
