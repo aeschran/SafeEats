@@ -273,11 +273,15 @@ struct BusinessDetailView: View {
         let review: Review
         @ObservedObject var viewModel: BusinessDetailViewModel
         @State private var userVote: Int? = nil
+
         // --- Report Sheet State ---
         @State private var showReportSheet = false
         @State private var selectedReasons: Set<String> = []
         @State private var otherReason: String = ""
         @AppStorage("username") private var currentUsername: String = ""
+
+        @State private var commentContent: String = ""
+
         
         var body: some View {
             NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
@@ -418,10 +422,57 @@ struct BusinessDetailView: View {
                     }
                     .padding(.top, 3)
                     .padding(.bottom, 5)
+                    
+                    Divider()
+                                
+                                // Comment list
+                                if let reviewComments = viewModel.comments[review.id] {
+                                    ForEach(reviewComments) { comment in
+                                        VStack(alignment: .leading, spacing: 4) {
+                                            Text(comment.commenterUsername)
+                                                .font(.caption)
+                                                .foregroundColor(.gray)
+                                            
+                                            Text(comment.commentContent)
+                                                .font(.body)
+                                                .foregroundColor(.black)
+                                        }
+                                        .padding(8)
+                                        .background(Color.gray.opacity(0.15))
+                                        .cornerRadius(8)
+                                    }
+                                } else {
+                                    Text("No comments yet.")
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                        .padding(.top, 5)
+                                }
+                                
+                                // TextField to add a new comment
+                                HStack {
+                                    TextField("Add a comment...", text: $commentContent)
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    
+                                    Button(action: {
+                                        if !commentContent.isEmpty {
+                                            viewModel.postComment(for: review.id, commentContent: commentContent, isBusiness: false)
+                                            commentContent = "" // Clear field after posting
+                                        }
+                                    }) {
+                                        Image(systemName: "paperplane.fill")
+                                            .foregroundColor(.mainGreen)
+                                    }
+                                }
+                                .padding(.top, 5)
+                            
+                            
                 }
                 .padding()
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(10)
+                .onAppear {
+                    viewModel.fetchComments(for: review.id)
+                }
             }
             .buttonStyle(PlainButtonStyle())
         }

@@ -50,6 +50,9 @@ struct DetailedReview: Identifiable, Codable {
 
 class DetailedReviewViewModel: ObservableObject {
     @Published var review: DetailedReview?
+    @Published var comments: [Comment] = []
+    
+    private let baseURL = "http://127.0.0.1:8000"
     
     func fetchDetailedReview(reviewID: String) {
         guard let url = URL(string: "http://127.0.0.1:8000/review/\(reviewID)") else {
@@ -99,4 +102,43 @@ class DetailedReviewViewModel: ObservableObject {
             }
         }.resume()
     }
+    
+    func fetchComments(for reviewID: String) async {
+            guard let url = URL(string: "\(baseURL)/comment/\(reviewID)") else { return }
+            
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                let decodedComments = try JSONDecoder().decode([Comment].self, from: data)
+                DispatchQueue.main.async {
+                    self.comments = decodedComments.sorted { $0.commentTimestamp > $1.commentTimestamp }
+                }
+            } catch {
+                print("Error fetching comments:", error)
+            }
+        }
+        
+    func postComment(reviewID: String, commentContent: String, isBusiness: Bool) async {
+        guard let id = UserDefaults.standard.string(forKey: "id") else { return }
+        guard let url = URL(string: "\(baseURL)/comment/create") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "review_id": reviewID,
+            "commenter_id": id,
+            "is_business": isBusiness,
+            "comment_content": commentContent
+        ]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+            let (_, _) = try await URLSession.shared.data(for: request)
+            await fetchComments(for: reviewID) // Refresh comments
+        } catch {
+            print("Error posting comment:", error)
+        }
+    }
+
 }
