@@ -2,7 +2,8 @@ from bson import ObjectId
 from pydantic import BaseModel, Field
 from utils.pyobjectid import PyObjectId
 from schemas.user import UserCreate, UserResponse
-from typing import Optional
+from schemas.preference import PreferenceCreate
+from typing import Optional, List
 
 class ReviewCreate(BaseModel):
     business_id: str
@@ -13,6 +14,9 @@ class ReviewCreate(BaseModel):
     # review_timestamp: float
     review_content: str
     # review_image: Optional[str] = None 
+    meal: str
+    accommodations: List[PreferenceCreate]
+
 class ReviewImage(BaseModel):
     review_id: str
     review_image: str
@@ -23,6 +27,8 @@ class ReviewResponse(BaseModel):
     friend_since: float
     username: str
     name: str
+    meal: str
+    accomodations: List[PreferenceCreate]
 
 class ReviewAddVote(BaseModel):
     review_id: PyObjectId

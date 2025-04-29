@@ -22,6 +22,8 @@ struct DetailedReview: Identifiable, Codable {
     var upvotes: Int
     var downvotes: Int
     var reviewImage: String?
+    let meal: String?
+    let accommodations: [Accommodation]?
     
     enum CodingKeys: String, CodingKey {
         case id = "_id"  // Maps JSON "review_id" to Swift "id"
@@ -35,6 +37,8 @@ struct DetailedReview: Identifiable, Codable {
         case upvotes
         case downvotes
         case reviewImage = "review_image"
+        case meal
+        case accommodations
     }
     func decodedImage() -> UIImage? {
             guard let imageData = Data(base64Encoded: reviewImage ?? "", options: .ignoreUnknownCharacters) else {
