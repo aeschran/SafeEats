@@ -71,7 +71,7 @@ class BusinessService(BaseService):
         if not existing_business:
             return None
 
-        owner_id = business_service.get_owner_id_by_business_id(business_id)
+        owner_id = self.get_owner_id_by_business_id(business_id)
 
         updated_business = Business(
             name=business.name,

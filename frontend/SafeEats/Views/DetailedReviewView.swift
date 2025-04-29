@@ -87,29 +87,41 @@ struct DetailedReviewView: View {
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                         
                         Button(action: {
-                            // Handle comment submission
-                            print("Submitting comment: \(commentText)")
-                            commentText = "" // Clear text field after submitting
+                            Task {
+                                await viewModel.postComment(reviewID: reviewId, commentContent: commentText, isBusiness: false)
+                                commentText = ""
+                                await viewModel.fetchComments(for: reviewId)
+                            }
                         }) {
                             Image(systemName: "paperplane.fill")
                                 .foregroundColor(.mainGreen)
                         }
+
                     }
                     .padding(.bottom, 10)
                     
                     // Placeholder for Comments List (Replace with real data)
                     VStack(alignment: .leading, spacing: 8) {
-                        ForEach(0..<3, id: \.self) { _ in
-                            HStack {
-                                Text("User123:")
-                                    .font(.subheadline)
-                                    .bold()
-                                Text("This is a great review!")
-                                    .font(.subheadline)
+                        if viewModel.comments.isEmpty {
+                            Text("No comments yet.")
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                                .padding(.vertical, 8)
+                        } else {
+                            ForEach(viewModel.comments) { comment in
+                                HStack(alignment: .top) {
+                                    Text(comment.commenterUsername)
+                                        .font(.subheadline)
+                                        .bold()
+                                    Text(comment.commentContent)
+                                        .font(.subheadline)
+                                }
+                                .padding(.vertical, 4)
                             }
-                            .padding(.vertical, 4)
                         }
                     }
+
+
                     
                     Spacer()
                 } else {
@@ -124,6 +136,7 @@ struct DetailedReviewView: View {
         .onAppear {
             Task {
                 await viewModel.fetchDetailedReview(reviewID: reviewId)
+                await viewModel.fetchComments(for: reviewId)
             }
         }
     }
