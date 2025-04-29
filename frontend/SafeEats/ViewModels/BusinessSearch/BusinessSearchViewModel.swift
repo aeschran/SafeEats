@@ -313,7 +313,6 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
                 DispatchQueue.main.async {
                     self.randomBusiness = decoded
                     self.didFetchRandomBusiness.toggle()
-                    print("Random restaurant: \(self.randomBusiness?.name ?? "Unknown")")
                 }
             } catch {
                 DispatchQueue.main.async {

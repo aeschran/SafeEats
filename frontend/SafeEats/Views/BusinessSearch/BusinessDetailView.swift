@@ -609,32 +609,40 @@ struct BusinessDetailView: View {
                    }
         }
     }
-        var socialMediaSection: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Social Media")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+    
+    var socialMediaSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Social Media")
+                .font(.title2)
+                .fontWeight(.semibold)
+            HStack(spacing: 20) {
                 if let social = business.social_media,
                    social.instagram != nil || social.twitter != nil || social.facebook_id != nil {
                     if let ig = social.instagram, let url = URL(string: "https://instagram.com/\(ig)") {
                         HStack {
-                            Image("Instagram")
-                                .resizable()
-                                .frame(width: 25, height: 25)
                             Link(destination: url) {
-                                Text("@\(ig)")
-                                    .foregroundColor(.mainGreen.darker())
+                                Image("Instagram")
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
                             }
                         }
                     }
                     if let tw = social.twitter, let url = URL(string: "https://twitter.com/\(tw)") {
                         HStack {
-                            Image("Twitter")
-                                .resizable()
-                                .frame(width: 25, height: 25)
                             Link(destination: url) {
-                                Text("@\(tw)")
-                                    .foregroundColor(.mainGreen.darker())
+                                Image("Twitter")
+                                    .resizable()
+                                    .frame(width: 25, height: 25)
+                            }
+                        }
+                    }
+                    if let fb = social.facebook_id, let url = URL(string: "https://facebook.com/\(fb)") {
+                        HStack {
+                            
+                            Link(destination: url) {
+                                Image("Facebook")
+                                    .resizable()
+                                    .frame(width: 25, height: 25)
                             }
                         }
                     }
@@ -643,6 +651,7 @@ struct BusinessDetailView: View {
                 }
             }
         }
+    }
         
         func openInAppleMaps(address: String) {
             let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
