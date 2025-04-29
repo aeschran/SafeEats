@@ -3,6 +3,7 @@ from models.notification import Notification
 from schemas.notification import NotificationCreate, NotificationResponse, CreateNotificationResponse
 from utils.enums import NotificationEnum
 from services.base_service import BaseService
+from services.user_service import UserService
 import logging
 from bson import ObjectId
 
@@ -56,6 +57,18 @@ class NotificationService(BaseService):
         result = await self.db.friends.find_one({"user_id": ObjectId(notification_create.recipient_id), "friend_id": ObjectId(notification_create.sender_id)})
         if result:
             return None
+        return await self.create_new_notification(notification_create)
+    
+    async def create_new_report(self, notification_create: NotificationCreate):
+        reported_user_cursor = await self.db.users.find_one({"_id": ObjectId(notification_create.sender_id)})
+        if reported_user_cursor:
+            reported_user = reported_user_cursor["name"]
+        else:
+            return None
+        report_content = "You reported " + str(reported_user) + " for: " + notification_create.content
+        notification_create_report = NotificationCreate(sender_id=str(notification_create.sender_id), recipient_id=str(notification_create.recipient_id), type=notification_create.type, content=notification_create.content, timestamp=notification_create.timestamp)
+        user_service = UserService()
+        await user_service.report_user(str(notification_create.recipient_id), str(notification_create.sender_id), notification_create.content, notification_create.timestamp)
         return await self.create_new_notification(notification_create)
     
     async def get_notifications(self, recipient_id: str):
