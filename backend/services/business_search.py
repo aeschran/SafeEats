@@ -1,3 +1,4 @@
+import random
 from bson import ObjectId
 import requests
 from core.config import settings
@@ -276,3 +277,11 @@ class BusinessSearchService(BaseService):
             db_businesses = response
         final_businesses = [BusinessAndLocationResponse(**business) for business in db_businesses]
         return final_businesses
+    
+    async def get_random_business(self, business_search: BusinessSearch):
+        businesses = await self.search_operator(business_search)
+
+        if not businesses:
+            return None
+
+        return random.choice(businesses)
