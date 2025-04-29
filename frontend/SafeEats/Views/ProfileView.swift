@@ -26,6 +26,7 @@ struct ProfileView: View {
     @State private var showUnfollowAlert: Bool = false
     //    print(viewModel.isFollowing)
     //    print(viewModel.isRequested)
+    @State private var navigateToReport = false
     
     var body: some View {
         NavigationStack{
@@ -169,6 +170,26 @@ struct ProfileView: View {
             }
             .navigationTitle(viewModel.username) // Centered title
             .navigationBarTitleDisplayMode(.inline) // Ensures it's in the center
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    HStack(spacing: 8) {
+                        Button(action: {
+                            navigateToReport = true
+                        }) {
+                            Image(systemName: "exclamationmark.bubble")
+                                .font(.system(size: 17))
+                                .foregroundColor(.black)
+                        }
+                        NavigationLink(
+                            destination: ReportUserView(friendId: friendId, username: viewModel.username),
+                            isActive: $navigateToReport
+                        ) {
+                            EmptyView()
+                        }
+                        .hidden()
+                    }
+                }
+            }
         }
     }
 }
