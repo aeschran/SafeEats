@@ -19,21 +19,48 @@ struct BusinessSearchView: View {
     @ObservedObject var viewModel: BusinessSearchViewModel
     @State private var showFilters = false
     let cuisines = ["Italian", "Indian", "Mexican", "Asian"]
+    @State private var showRandomRestaurant = false
+    @State private var selectedBusiness: Business? = nil
+    @State private var isTryingAgain = false
+    @State private var isFetchingRandomBusiness = false
 
 
+    
+    
     @State private var sortOption: SortOption?
     
     var body: some View {
         NavigationStack {
             VStack {
                 SearchBar(viewModel: viewModel)
-                
                 if viewModel.isLoading {
                     ProgressView("Loading...")
                 } else if let errorMessage = viewModel.errorMessage {
                     Text(errorMessage)
                         .foregroundColor(.red)
                 } else {
+                    HStack {
+                        Text("Can't choose? Let us choose for you!")
+                            .font(.headline)
+                            .padding()
+                        
+                        
+                        Button("Pick for me") {
+                            isFetchingRandomBusiness = true
+                            viewModel.fetchRandomRestaurant()
+                        }
+                        .onChange(of: viewModel.didFetchRandomBusiness) { _, _ in
+                            showRandomRestaurant = true
+                            isTryingAgain = false
+                            isFetchingRandomBusiness = false
+                        }
+                        .padding()
+                        .background(Color.mainGray)
+                        .cornerRadius(17)
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                    }
+                    Divider().background(Color.gray)
                     List(viewModel.businesses, id: \.id) { business in
                         NavigationLink(destination: BusinessDetailView(business: business)) {
                             
@@ -113,6 +140,92 @@ struct BusinessSearchView: View {
             .onChange(of: showFilters) { oldValue, newValue in
                 viewModel.searchBusinesses()
             }
+            .sheet(isPresented: $showRandomRestaurant) {
+                if let randomBusiness = viewModel.randomBusiness {
+                    NavigationStack {
+                        ScrollView {
+                            VStack(alignment: .center, spacing: 24) {
+                                
+                                Text("🎉 We chose this place for you!")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .padding(.top, 30)
+                                
+                                Text(randomBusiness.name ?? "No business name")
+                                    .font(.largeTitle)
+                                    .fontWeight(.semibold)
+                                    .padding(.horizontal)
+                                
+                                if let description = randomBusiness.description {
+                                    Text(description)
+                                        .font(.body)
+                                        .foregroundColor(.secondary)
+                                        .multilineTextAlignment(.center)
+                                        .padding(.horizontal)
+                                }
+                                
+                                Divider()
+                                    .padding(.vertical)
+                                
+                                Text("Check out more information below!")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .multilineTextAlignment(.center)
+                                
+                                NavigationLink(destination: BusinessDetailView(business: randomBusiness)) {
+                                    Text("View Full Business Page")
+                                        .font(.headline)
+                                        .foregroundColor(.white)
+                                        .frame(maxWidth: .infinity)
+                                        .padding()
+                                        .background(Color.mainGreen)
+                                        .cornerRadius(12)
+                                        .padding(.horizontal, 40)
+                                }
+                                .padding(.top, 20)
+                                
+                                Button(action: {
+                                    isTryingAgain = true
+                                    isFetchingRandomBusiness = true
+                                    viewModel.fetchRandomRestaurant()
+                                }) {
+                                    if isTryingAgain {
+                                        ProgressView()
+                                            .progressViewStyle(CircularProgressViewStyle())
+                                            .frame(maxWidth: .infinity)
+                                            .padding()
+                                            .background(Color.mainGray)
+                                            .cornerRadius(12)
+                                            .padding(.horizontal, 40)
+                                    } else {
+                                        Text("Try Again")
+                                            .font(.headline)
+                                            .foregroundColor(Color.black)
+                                            .frame(maxWidth: .infinity)
+                                            .padding()
+                                            .background(Color.mainGray)
+                                            .cornerRadius(12)
+                                            .padding(.horizontal, 40)
+                                    }
+                                }
+                                .padding(.bottom, 30)
+
+                            }
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                        }
+                    }
+                } else {
+                    VStack {
+                        Text("No restaurant meets your criteria.")
+                            .font(.title2)
+                            .padding()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(.systemBackground))
+                }
+            }
+
         }
     }
 }

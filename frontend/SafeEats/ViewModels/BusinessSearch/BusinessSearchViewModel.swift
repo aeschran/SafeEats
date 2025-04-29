@@ -40,6 +40,8 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
     @Published var preferencesLoaded: Bool = false
     @Published var radius: Double = 5
     @Published var businessesMap: [BusinessMapLocation] = []
+    @Published var randomBusiness: Business? = nil
+    @Published var didFetchRandomBusiness = false
     @Published var cuisineOrRestrictionSelected: Bool = false
     
     private var cancellables = Set<AnyCancellable>()
@@ -249,6 +251,77 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
                 }
             }
         }
+        task.resume()
+    }
+    
+    func fetchRandomRestaurant() {
+        guard latitude != 0, longitude != 0, preferencesLoaded else { return }
+        
+        isLoading = true
+        errorMessage = nil
+        
+        guard let url = URL(string: "http://localhost:8000/business_search/random-business") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        var all_preferences: [PreferenceStruct] = []
+        
+        for allergy in selectedAllergies {
+            let preference = PreferenceStruct(preference: allergy, preference_type: "Allergy")
+            all_preferences.append(preference)
+        }
+        
+        for restriction in selectedDietaryRestrictions {
+            let preference = PreferenceStruct(preference: restriction, preference_type: "Dietary Restriction")
+            all_preferences.append(preference)
+        }
+        
+        let requestBody = BusinessSearchRequest(lat: latitude, lon: longitude, query: query, cuisines: Array(selectedCuisines), dietary_restrictions: all_preferences)
+        
+        
+        
+        do {
+            request.httpBody = try JSONEncoder().encode(requestBody)
+        } catch {
+            print("Error encoding JSON: \(error)")
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                self.isLoading = false
+            }
+            
+            if let error = error {
+                DispatchQueue.main.async {
+                    self.errorMessage = "Request failed: \(error.localizedDescription)"
+                }
+                return
+            }
+            
+            guard let data = data else {
+                DispatchQueue.main.async {
+                    self.errorMessage = "No data received."
+                }
+                return
+            }
+            
+            do {
+                let decoded = try JSONDecoder().decode(Business.self, from: data)
+                DispatchQueue.main.async {
+                    self.randomBusiness = decoded
+                    self.didFetchRandomBusiness.toggle()
+                    print("Random restaurant: \(self.randomBusiness?.name ?? "Unknown")")
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self.errorMessage = "Failed to parse response: \(error.localizedDescription)"
+                }
+            }
+        }
+        
         task.resume()
     }
 }
