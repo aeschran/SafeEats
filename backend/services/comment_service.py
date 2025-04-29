@@ -48,21 +48,28 @@ class CommentService(BaseService):
         try:
             print(f"review ID: {review_id}")
             comments_cursor = self.db.comments.find({"review_id": ObjectId(review_id)}).sort("comment_timestamp", 1)
+            business_comments = []
             comments = []
             async for comment in comments_cursor:
                 if comment["is_business"]:
                     business_owner = await self.db.business_owners.find_one({"_id": ObjectId(comment["commenter_id"])})
                     name = business_owner["name"]
+                    comment["_id"] = str(comment["_id"])  
+                    comment["review_id"] = str(comment["review_id"])
+                    comment["commenter_id"] = str(comment["commenter_id"])
+                    comment["commenter_username"] = name
+                    print(comment)
+                    business_comments.append(comment)
                 else:
                     user = await self.db.users.find_one({"_id": ObjectId(comment["commenter_id"])})
                     name = user["username"]
-                comment["_id"] = str(comment["_id"])  
-                comment["review_id"] = str(comment["review_id"])
-                comment["commenter_id"] = str(comment["commenter_id"])
-                comment["commenter_username"] = name
-                print(comment)
-                comments.append(comment)
-            return comments
+                    comment["_id"] = str(comment["_id"])  
+                    comment["review_id"] = str(comment["review_id"])
+                    comment["commenter_id"] = str(comment["commenter_id"])
+                    comment["commenter_username"] = name
+                    print(comment)
+                    comments.append(comment)
+            return business_comments + comments
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to get comments: {str(e)}")
 

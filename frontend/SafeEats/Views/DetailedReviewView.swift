@@ -106,43 +106,78 @@ struct DetailedReviewView: View {
                     
                     // Comment Input
                     HStack {
-                        TextField("Add a comment...", text: $commentText)
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                        
-                        Button(action: {
-                            Task {
-                                await viewModel.postComment(reviewID: reviewId, commentContent: commentText, isBusiness: false)
-                                commentText = ""
-                                await viewModel.fetchComments(for: reviewId)
-                            }
-                        }) {
-                            Image(systemName: "paperplane.fill")
-                                .foregroundColor(.mainGreen)
-                        }
+                            TextField("Add a comment...", text: $commentText)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
 
-                    }
-                    .padding(.bottom, 10)
-                    
-                    // Placeholder for Comments List (Replace with real data)
-                    VStack(alignment: .leading, spacing: 8) {
+                            Button(action: {
+                                Task {
+                                    await viewModel.postComment(reviewID: reviewId, commentContent: commentText, isBusiness: false)
+                                    commentText = ""
+                                    await viewModel.fetchComments(for: reviewId)
+                                }
+                            }) {
+                                Image(systemName: "paperplane.fill")
+                                    .foregroundColor(.mainGreen)
+                            }
+                        }
+                        .padding(.bottom, 10)
+
+                        // --- Comments Display ---
                         if viewModel.comments.isEmpty {
                             Text("No comments yet.")
                                 .font(.subheadline)
                                 .foregroundColor(.gray)
                                 .padding(.vertical, 8)
                         } else {
-                            ForEach(viewModel.comments) { comment in
-                                HStack(alignment: .top) {
-                                    Text(comment.commenterUsername)
-                                        .font(.subheadline)
-                                        .bold()
+                            // Separate business and user comments
+                            let businessComment = viewModel.comments.first(where: { $0.isBusiness })
+                            let userComments = viewModel.comments
+                                .filter { !$0.isBusiness }
+                                .sorted(by: { $0.commentTimestamp > $1.commentTimestamp }) // Newest first
+
+                            // Display business comment first if it exists
+                            if let comment = businessComment {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack {
+                                        Text("Business Owner")
+                                            .font(.caption)
+                                            .foregroundColor(.mainGreen)
+                                            .bold()
+                                        Spacer()
+                                        Text(formattedDate(from: comment.commentTimestamp))
+                                            .font(.caption2)
+                                            .foregroundColor(.gray)
+                                    }
+
+                                    Text(comment.commentContent)
+                                        .font(.body)
+                                        .foregroundColor(.black)
+                                }
+                                .padding(10)
+                                .background(Color.mainGreen.opacity(0.15))
+                                .cornerRadius(10)
+                            }
+
+                            // Display user comments below
+                            ForEach(userComments) { comment in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    HStack {
+                                        Text(comment.commenterUsername)
+                                            .font(.subheadline)
+                                            .bold()
+                                        Spacer()
+                                        Text(formattedDate(from: comment.commentTimestamp))
+                                            .font(.caption2)
+                                            .foregroundColor(.gray)
+                                    }
+
                                     Text(comment.commentContent)
                                         .font(.subheadline)
+                                        .foregroundColor(.black)
                                 }
-                                .padding(.vertical, 4)
+                                .padding(.vertical, 6)
                             }
                         }
-                    }
 
 
                     

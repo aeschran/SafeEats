@@ -93,10 +93,14 @@ class DetailedReviewViewModel: ObservableObject {
                 }
                 // Update the main thread with the fetched review data
                 
-            DispatchQueue.main.async {
-                self!.review = decodedReview
-                print("Successfully fetched review:", decodedReview)
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else {
+                    print("DetailedReviewViewModel deallocated before update.")
+                    return
                 }
+                self.review = decodedReview
+                print("Successfully fetched review:", decodedReview)
+            }
             } catch {
                 print("Error decoding review:", error.localizedDescription)
             }

@@ -172,6 +172,7 @@ class BusinessDetailViewModel: ObservableObject {
                 DispatchQueue.main.async {
                     self.comments[reviewId] = decodedComments
                 }
+                print(decodedComments)
             } catch {
                 print("Error decoding comments:", error)
             }
