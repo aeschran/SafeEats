@@ -38,6 +38,29 @@ struct DetailedReviewView: View {
                         }
                     }
                     
+                    if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !review.accommodations!.isEmpty) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                if let meal = review.meal, !meal.isEmpty {
+                                    Text("Meal: \(meal)")
+                                        .font(.footnote)
+                                        .foregroundColor(.black)
+                                        .fontWeight(.light)
+                                }
+                                
+                                if let accommodations = review.accommodations, !accommodations.isEmpty {
+                                    let formattedAccommodations = accommodations.map { accom in
+                                        accom.preferenceType == "Allergy" ? "\(accom.preference) Free" : accom.preference
+                                    }.joined(separator: ", ")
+                                    
+                                    Text("Accommodations: \(formattedAccommodations)")
+                                        .font(.footnote)
+                                        .foregroundColor(.black)
+                                        .fontWeight(.light)
+                                }
+                            }
+                        }
+
+                    
                     // Review Content
                     Text(review.reviewContent)
                         .font(.body)

@@ -329,7 +329,7 @@ struct ProfileReviewView: View {
     
 }
 
-import SwiftUI
+
 
 struct ProfileReviewCard: View {
     let review: FriendReview
@@ -410,8 +410,16 @@ struct EditReviewView: View {
     @State private var reviewText: String = ""
     @State private var selectedImage: UIImage? = nil
     @State private var showImagePicker = false
+    @State private var showAccommodationsPicker = false // ✅ NEW for accommodations
     @State private var showSuccessMessage = false
     @State private var showAlert = false
+    @State private var mealName: String = ""
+    @State private var selectedAccommodations: [String] = []
+
+    private let accommodationOptions = [
+        "Vegetarian", "Halal", "Vegan", "Kosher",
+        "Peanut Free", "Dairy Free", "Gluten Free", "Shellfish Free"
+    ]
     
     // Use @State to hold the updated review
     @State private var updatedReview: FriendReview
@@ -429,6 +437,15 @@ struct EditReviewView: View {
         // You could also initialize other properties if needed:
         _reviewContent = State(initialValue: review.reviewContent)
         _rating = State(initialValue: review.rating)
+        
+        _mealName = State(initialValue: review.meal ?? "")
+        _selectedAccommodations = State(initialValue: review.accommodations?.map { accom in
+            if accom.preferenceType == "Allergy" {
+                return accom.preference + " Free"
+            } else {
+                return accom.preference
+            }
+        } ?? [])
     }
     var body: some View {
         VStack {
@@ -456,6 +473,88 @@ struct EditReviewView: View {
                 }
             }
             
+            // Meal Name
+            Text("Meal Name")
+                .font(.title3)
+                .fontWeight(.semibold)
+
+            TextField("Enter the meal you ate", text: $mealName)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding(.bottom)
+
+            // Accommodations
+            Text("Accommodations")
+                .font(.title3)
+                .fontWeight(.semibold)
+
+            Button(action: {
+                showAccommodationsPicker = true
+            }) {
+                HStack {
+                    Text(selectedAccommodations.isEmpty ? "Select Accommodations" : selectedAccommodations.joined(separator: ", "))
+                        .foregroundColor(selectedAccommodations.isEmpty ? .gray : .black)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                    Spacer()
+                    Image(systemName: "chevron.down")
+                        .foregroundColor(.gray)
+                }
+                .padding()
+                .background(Color.white)
+                .cornerRadius(8)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray, lineWidth: 1)
+                )
+            }
+            .sheet(isPresented: $showAccommodationsPicker) {
+                VStack {
+                    Text("Select Accommodations")
+                        .font(.title2)
+                        .fontWeight(.semibold)
+                        .padding()
+
+                    ScrollView {
+                        VStack(alignment: .leading) {
+                            ForEach(accommodationOptions, id: \.self) { option in
+                                Button(action: {
+                                    if selectedAccommodations.contains(option) {
+                                        selectedAccommodations.removeAll { $0 == option }
+                                    } else {
+                                        selectedAccommodations.append(option)
+                                    }
+                                }) {
+                                    HStack {
+                                        Text(option)
+                                            .foregroundColor(.black)
+                                        Spacer()
+                                        if selectedAccommodations.contains(option) {
+                                            Image(systemName: "checkmark")
+                                                .foregroundColor(.mainGreen)
+                                        }
+                                    }
+                                    .padding()
+                                }
+                            }
+                        }
+                        .padding(.horizontal)
+                    }
+
+                    Button(action: {
+                        showAccommodationsPicker = false
+                    }) {
+                        Text("Done")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.mainGreen)
+                            .cornerRadius(10)
+                            .padding()
+                    }
+                }
+            }
+
             
             
             TextEditor(text: $reviewContent)
@@ -509,8 +608,17 @@ struct EditReviewView: View {
                         reviewContent: reviewContent,
                         rating: rating,
                         reviewImage: newImageBase64,
-                        reviewTimestamp: updatedReview.reviewTimestamp
+                        reviewTimestamp: updatedReview.reviewTimestamp,
+                        meal: mealName,
+                        accommodations: selectedAccommodations.map { pref in
+                            if pref.lowercased().contains("free") {
+                                return Accommodation(preferenceType: "Allergy", preference: pref.replacingOccurrences(of: " Free", with: ""))
+                            } else {
+                                return Accommodation(preferenceType: "Dietary Restriction", preference: pref)
+                            }
+                        }
                     )
+
                     
                     reviewModel.editReview(reviewID: updatedReview.reviewId, updatedReview: newReview, newImage: selectedImage) { success in
                         if success {

@@ -26,3 +26,10 @@ async def get_business_by_id_endpoint(business_id: str):
     if response is None:
         return {"error": "Business not found"}
     return response
+
+@router.post("/random-business")
+async def get_random_business_endpoint(business_search: BusinessSearch):
+    response = await business_search_service.get_random_business(business_search)
+    if response is None:
+        return {"error": "Business not found"}
+    return response

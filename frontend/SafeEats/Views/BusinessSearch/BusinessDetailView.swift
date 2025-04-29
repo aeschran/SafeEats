@@ -164,8 +164,10 @@ struct BusinessDetailView: View {
                         ratingsSection
                         descriptionSection
                         menuSection
+                        businessHoursSection
                         addressSection
                         socialMediaSection
+                        
             
                     NavigationLink(
                                 destination: BusinessSuggestionView(business: business))
@@ -271,11 +273,18 @@ struct BusinessDetailView: View {
         let review: Review
         @ObservedObject var viewModel: BusinessDetailViewModel
         @State private var userVote: Int? = nil
+
+        // --- Report Sheet State ---
+        @State private var showReportSheet = false
+        @State private var selectedReasons: Set<String> = []
+        @State private var otherReason: String = ""
+        @AppStorage("username") private var currentUsername: String = ""
+
         @State private var commentContent: String = ""
+
         
-        
-            var body: some View {
-                NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
+        var body: some View {
+            NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
                 VStack(alignment: .leading, spacing: 8) {
                     // Username + Date
                     HStack {
@@ -294,7 +303,99 @@ struct BusinessDetailView: View {
                             Image(systemName: index < review.rating ? "star.fill" : "star")
                                 .foregroundColor(index < review.rating ? .yellow : .gray)
                         }
+                        
+                        if (currentUsername != review.userName) {
+                            Button(action: { showReportSheet = true }) {
+                                Image(systemName: "exclamationmark.bubble.fill")
+                                    .foregroundColor(Color.customLightRed)
+                                    .font(.headline)
+                            }
+                            .sheet(isPresented: $showReportSheet) {
+                                VStack(alignment: .leading, spacing: 16) {
+                                    Text("Report Review")
+                                        .font(.title2)
+                                        .bold()
+                                    Text("Select reasons for reporting:")
+                                    
+                                    ForEach(["Inappropriate", "Spam", "Off-topic", "Harassment"], id: \.self) { reason in
+                                        Button(action: {
+                                            if selectedReasons.contains(reason) {
+                                                selectedReasons.remove(reason)
+                                            } else {
+                                                selectedReasons.insert(reason)
+                                            }
+                                        }) {
+                                            HStack {
+                                                Image(systemName: selectedReasons.contains(reason) ? "checkmark.square.fill" : "square")
+                                                Text(reason)
+                                            }
+                                        }
+                                        .foregroundColor(.primary)
+                                    }
+                                    
+                                    TextField("Other (optional)", text: $otherReason)
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    
+                                    HStack {
+                                        Button("Cancel") {
+                                            showReportSheet = false
+                                        }
+                                        Spacer()
+                                        Button("Submit") {
+                                            var message = selectedReasons.joined(separator: ", ")
+                                            if !otherReason.isEmpty {
+                                                message += (message.isEmpty ? "" : ", ") + otherReason
+                                            }
+                                            
+                                            Task {
+                                                let userName = UserDefaults.standard.string(forKey: "username") ?? "Anonymous"
+                                                await viewModel.reportReview(userName: userName, reviewId: review.id, message: message)
+                                            }
+                                            showReportSheet = false
+                                        }
+                                    }
+                                    .padding(.top, 10)
+                                }
+                                .padding()
+                            }
+                        }
                     }
+                    if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !review.accommodations!.isEmpty) {
+                        if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !(review.accommodations ?? []).isEmpty) {
+                            Text(formattedMealAndAccommodations(meal: review.meal, accommodations: review.accommodations))
+                                .font(.footnote)
+                                .foregroundColor(.black)
+                                .fixedSize(horizontal: false, vertical: true) // Allow wrapping
+                                .fontWeight(.light)
+                        }
+
+//                        HStack(spacing: 6) {
+//                                if let meal = review.meal, !meal.isEmpty {
+//                                    Text("\(meal)")
+//                                        .font(.body)
+//                                        .foregroundColor(.black)
+//                                        .fontWeight(.light)
+//                                }
+//                                
+//                                if (review.meal != nil && !(review.meal ?? "").isEmpty) && (review.accommodations != nil && !(review.accommodations ?? []).isEmpty) {
+//                                    Text("|")
+//                                        .font(.body)
+//                                        .foregroundColor(.gray)
+//                                }
+//                                
+//                                if let accommodations = review.accommodations, !accommodations.isEmpty {
+//                                    let formattedAccommodations = accommodations.map { accom in
+//                                        accom.preferenceType == "Allergy" ? "\(accom.preference) Free" : accom.preference
+//                                    }.joined(separator: ", ")
+//                                    
+//                                    Text("\(formattedAccommodations)")
+//                                        .font(.body)
+//                                        .foregroundColor(.black)
+//                                        .fontWeight(.light)
+//                                }
+//                            }
+                    }
+                    
                     
                     // Review Content
                     Text(review.reviewContent)
@@ -384,6 +485,23 @@ struct BusinessDetailView: View {
             formatter.timeStyle = .short
             return formatter.string(from: date)
         }
+        private func formattedMealAndAccommodations(meal: String?, accommodations: [Accommodation]?) -> String {
+            var parts: [String] = []
+
+            if let meal = meal, !meal.isEmpty {
+                parts.append(meal)
+            }
+            
+            if let accommodations = accommodations, !accommodations.isEmpty {
+                let formattedAccommodations = accommodations.map { accom in
+                    accom.preferenceType == "Allergy" ? "\(accom.preference) Free" : accom.preference
+                }.joined(separator: ", ")
+                parts.append(formattedAccommodations)
+            }
+            
+            return parts.joined(separator: " | ")
+        }
+
     }
     
     //        private func handleUpvote() {
@@ -552,32 +670,83 @@ struct BusinessDetailView: View {
             }
         }
     
-        var socialMediaSection: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Social Media")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+    var businessHoursSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Business Hours")
+                .font(.title2)
+                .fontWeight(.semibold)
+            
+            if let hours = business.hours {
+                HStack(alignment: .top) { // <- align top because now it might be multiple lines
+                    if let display = hours.display {
+                        let lines = display.components(separatedBy: ";").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            ForEach(lines, id: \.self) { line in
+                                Text(line)
+                                    .font(.body)
+                                    .foregroundColor(.mainGreen)
+                            }
+                        }
+                    } else {
+                        Text("No business hours available.")
+                            .font(.subheadline)
+                            .foregroundColor(.mainGreen)
+                    }
+                    
+                    Spacer()
+                    
+                    if let isOpen = hours.open_now {
+                        Text(isOpen ? "Open now" : "Closed")
+                            .font(.subheadline)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+//                            .background(isOpen ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
+                            .foregroundColor(isOpen ? .green : .red)
+                            .cornerRadius(8)
+                    }
+                }
+
+                   } else {
+                       Text("No business hours available")
+                           .foregroundColor(.mainGreen)
+                   }
+        }
+    }
+    
+    var socialMediaSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Social Media")
+                .font(.title2)
+                .fontWeight(.semibold)
+            HStack(spacing: 20) {
                 if let social = business.social_media,
                    social.instagram != nil || social.twitter != nil || social.facebook_id != nil {
                     if let ig = social.instagram, let url = URL(string: "https://instagram.com/\(ig)") {
                         HStack {
-                            Image("Instagram")
-                                .resizable()
-                                .frame(width: 25, height: 25)
                             Link(destination: url) {
-                                Text("@\(ig)")
-                                    .foregroundColor(.mainGreen.darker())
+                                Image("Instagram")
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
                             }
                         }
                     }
                     if let tw = social.twitter, let url = URL(string: "https://twitter.com/\(tw)") {
                         HStack {
-                            Image("Twitter")
-                                .resizable()
-                                .frame(width: 25, height: 25)
                             Link(destination: url) {
-                                Text("@\(tw)")
-                                    .foregroundColor(.mainGreen.darker())
+                                Image("Twitter")
+                                    .resizable()
+                                    .frame(width: 25, height: 25)
+                            }
+                        }
+                    }
+                    if let fb = social.facebook_id, let url = URL(string: "https://facebook.com/\(fb)") {
+                        HStack {
+                            
+                            Link(destination: url) {
+                                Image("Facebook")
+                                    .resizable()
+                                    .frame(width: 25, height: 25)
                             }
                         }
                     }
@@ -586,6 +755,7 @@ struct BusinessDetailView: View {
                 }
             }
         }
+    }
         
         func openInAppleMaps(address: String) {
             let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
@@ -648,7 +818,14 @@ struct BusinessDetailView: View {
                 instagram: "test_ig",
                 twitter: "test_tw"
             ),
-            price: 0
+            price: 0,
+            hours: BusinessHours(  // << Add this
+                            display: "Mon-Sun 10AM–9PM",
+                            is_local_holiday: false,
+                            open_now: true,
+                            regular: []  // optional to fill out for now
+                        )
+
         )
     )
 }

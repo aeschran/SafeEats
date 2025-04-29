@@ -19,6 +19,8 @@ struct Review: Identifiable, Codable {
     var upvotes: Int
     var downvotes: Int
     var userVote: Int?
+    let meal: String?
+    let accommodations: [Accommodation]?
     
     enum CodingKeys: String, CodingKey {
         case id = "review_id"  // Maps JSON "review_id" to Swift "id"
@@ -31,6 +33,8 @@ struct Review: Identifiable, Codable {
         case upvotes
         case downvotes
         case userVote = "user_vote"
+        case meal
+        case accommodations
     }
 }
 
@@ -409,4 +413,42 @@ class BusinessDetailViewModel: ObservableObject {
             break
         }
     }
+    
+    func reportReview(userName: String, reviewId: String, message: String) async {
+    guard let url = URL(string: "\(baseURL)/review/report") else { return }
+    
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    
+    let body: [String: Any] = [
+        "user_name": userName,
+        "review_id": reviewId,
+        "message": message
+    ]
+    
+    do {
+        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+    } catch {
+        DispatchQueue.main.async {
+            self.errorMessage = "Failed to encode report data"
+        }
+        return
+    }
+    
+    URLSession.shared.dataTask(with: request) { data, response, error in
+        DispatchQueue.main.async {
+            if let data = data {
+                do {
+                    let responseMessage = try JSONDecoder().decode(String.self, from: data)
+                    self.errorMessage = responseMessage
+                } catch {
+                    self.errorMessage = "Failed to report review"
+                }
+            } else {
+                self.errorMessage = "Failed to report review"
+            }
+        }
+    }.resume()
+}
 }

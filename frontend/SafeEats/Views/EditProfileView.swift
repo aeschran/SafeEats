@@ -14,6 +14,9 @@ struct EditProfileView: View {
     private let fieldWidth: CGFloat = 265
     @AppStorage("id") var id: String?
     @State private var showSuccessMessage = false
+    
+    @Environment(\.dismiss) private var dismiss
+
 
     func convertImageToBase64(image: UIImage?) -> String? {
         guard let imageData = image?.jpegData(compressionQuality: 0.8) else { return nil }
@@ -114,7 +117,7 @@ struct EditProfileView: View {
                         .cornerRadius(10)
 
                         Button("Cancel") {
-                            navigateToLandingPage = true
+                            dismiss()
                         }
                         .frame(width: 100, height: 35)
                         .foregroundColor(Color.mainGreen)

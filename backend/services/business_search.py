@@ -1,3 +1,4 @@
+import random
 from bson import ObjectId
 import requests
 from core.config import settings
@@ -43,7 +44,7 @@ class BusinessSearchService(BaseService):
             "near": near,
             "query": query,
             "limit": self.limit,
-            "fields": "name,website,tel,description,categories,menu,geocodes,location,social_media,price"
+            "fields": "name,website,tel,description,categories,menu,geocodes,location,social_media,price,hours"
         }
 
         response = requests.get(self.url, params=params, headers=self.headers)
@@ -56,7 +57,7 @@ class BusinessSearchService(BaseService):
             "ll": f"{business_search.lat},{business_search.lon}",
             "query": business_search.query,
             "limit": self.limit,
-            "fields": "name,website,tel,description,categories,menu,geocodes,location,social_media,price"
+            "fields": "name,website,tel,description,categories,menu,geocodes,location,social_media,price,hours"
         }
 
         response = requests.get(self.url, params=params, headers=self.headers)
@@ -92,7 +93,14 @@ class BusinessSearchService(BaseService):
                     "twitter": result["social_media"].get("twitter") if "social_media" in result else None,
                 },
                 "price": result['price'] if 'price' in result else None,
+                "hours": {
+                    "display": result['hours'].get("display") if "hours" in result else None,
+                    "is_local_holiday": result['hours'].get("is_local_holiday") if "hours" in result else None,
+                    "open_now": result['hours'].get("open_now") if "hours" in result else None,
+                    "regular": result['hours'].get("regular") if "hours" in result else None,
+                },
             })
+            
         businesses_to_create = [BusinessCreate(**result) for result in results_dict]
         db_businesses = []
         for business in businesses_to_create:
@@ -257,8 +265,10 @@ class BusinessSearchService(BaseService):
                 "avg_rating": business["avg_rating"] if "avg_rating" in business else 0.0,
                 "tel": business["tel"] if "tel" in business else None,
                 "social_media": business["social_media"] if "social_media" in business else None,
-                "price": business['price'] if 'price' in business else None
+                "price": business['price'] if 'price' in business else None,
+                "hours": business['hours'] if 'hours' in business else None,
             })
+
         db_businesses = []
         if self.cuisine_ranges != []:
             for business in response:
@@ -276,3 +286,11 @@ class BusinessSearchService(BaseService):
             db_businesses = response
         final_businesses = [BusinessAndLocationResponse(**business) for business in db_businesses]
         return final_businesses
+    
+    async def get_random_business(self, business_search: BusinessSearch):
+        businesses = await self.search_operator(business_search)
+
+        if not businesses:
+            return None
+
+        return random.choice(businesses)
