@@ -10,6 +10,7 @@ import random
 import string
 import sendgrid
 from sendgrid.helpers.mail import Mail, Email, To, Content
+import pytz
 
 
 from fastapi import Depends, HTTPException, status
@@ -44,6 +45,27 @@ def send_verification_email(email: str, code: str):
     response = sg.send(mail)
     print(response.status_code, response.body, response.headers)
 
+def send_user_report_email(email: str, user: str, reported_user: str, report_content: str, report_time: str):
+    sg = sendgrid.SendGridAPIClient(api_key=settings.SENDGRID_KEY)
+    from_email = Email("safeeats.noreply@gmail.com")
+    to_email = To(email)
+    subject = f"SafeEats Reported User: {reported_user}"
+    content = Content("text/plain", f"Hi {user},\n\nYour Report Has Been Submitted!\nYou reported user {reported_user} on {report_time} for: {report_content}.\nYou can expect to hear a response in a week. Thank you for doing your part to keep our community safe.\n\n - The SafeEats Team")
+    mail = Mail(from_email, to_email, subject, content)
+    
+    response = sg.send(mail)
+    print(response.status_code, response.body, response.headers)
+
+def send_developer_report_email(user: str, user_id: str, reported_user_name: str, reported_user_id: str, report_content: str, report_time: str):
+    sg = sendgrid.SendGridAPIClient(api_key=settings.SENDGRID_KEY)
+    from_email = Email("safeeats.noreply@gmail.com")
+    to_email = To("safeeats.dev@gmail.com")
+    subject = f"Report User: {reported_user_name}"
+    content = Content("text/plain", f" User {user} reported {reported_user_name} on {report_time}:\n\n Reporter ID: {user_id} \n Reported User ID: {reported_user_id} \n Reason: {report_content}")
+    mail = Mail(from_email, to_email, subject, content)
+    response = sg.send(mail)
+    print(response.status_code, response.body, response.headers)
+    return response.status_code == 202
 
 class UserService(BaseService):
     def __init__(self):
@@ -171,5 +193,15 @@ class UserService(BaseService):
 
      
 
-
-    
+    async def report_user(self, user_id, reported_id, report_content, report_timestamp):
+        user_cursor = await self.db.users.find_one({"_id": ObjectId(user_id)})
+        reported_user_cursor = await self.db.users.find_one({"_id": ObjectId(reported_id)})
+        reported_user_name = reported_user_cursor["name"]
+        report_time = datetime.fromtimestamp(report_timestamp)
+        eastern = pytz.timezone("US/Eastern")
+        est_dt = report_time.replace(tzinfo=pytz.utc).astimezone(eastern)
+        pretty_time = est_dt.strftime("%B %d, %Y at %I:%M %p")
+        
+        pretty_time = str(report_time.strftime("%B %d, %Y at %I:%M %p (EST)"))
+        send_user_report_email(user_cursor["email"], user_cursor["name"], reported_user_name, report_content, pretty_time)
+        send_developer_report_email(user_cursor["name"], user_id, reported_user_name, reported_id, report_content, pretty_time)
