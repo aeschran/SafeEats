@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     TWILIO_AUTH_TOKEN: str
     TWILIO_PHONE: str
     GEOCODE_KEY: str
+    AWS_ACCESS_KEY: str
+    AWS_SECRET_KEY: str
+    AWS_REGION: str
+    AWS_BUCKET_NAME: str
 
 
     class Config:

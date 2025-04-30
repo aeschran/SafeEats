@@ -1,4 +1,5 @@
 from typing import Optional, Dict, List
+from pydantic import BaseModel, Field
 
 from backend.schemas.business import BusinessCreate
 
