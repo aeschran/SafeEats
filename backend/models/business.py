@@ -36,7 +36,7 @@ class Business:
             "location": self.location.to_dict(),
             "dietary_restrictions": self.dietary_restrictions,
             "avg_rating": self.avg_rating,
-            "social_media": self.social_media.model_dump(),
+            "social_media": self.social_media,
             "price": self.price,
             "hours": self.hours.model_dump() if self.hours else None
             # "hours": self.hours
