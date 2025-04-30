@@ -274,7 +274,7 @@ struct ProfileReviewView: View {
                 ForEach(viewModel.reviews, id: \.reviewId) { review in
                     ProfileReviewCard(review: review, onEdit: { editReview(review) },
                                       onDelete: { deleteReview(review) })
-                    .padding(.horizontal)
+                    .padding(.horizontal, 6)
                 }
             }
         }
@@ -338,42 +338,71 @@ struct ProfileReviewCard: View {
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
-            HStack {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(review.businessName)
-                        .font(.headline)
-                        .foregroundColor(.black)
-                        .lineLimit(1)
-                        .truncationMode(.tail) // Ensure it doesn't wrap too soon
-                        .frame(maxWidth: .infinity, alignment: .leading)
+            NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
+                HStack {
                     
-                    Text(review.reviewContent)
-                        .font(.body)
-                    
-                    HStack {
-                        ForEach(0..<review.rating, id: \.self) { _ in
-                            Image(systemName: "star.fill")
-                                .foregroundColor(.yellow)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(review.businessName)
+                        //                        .font(.headline)
+                        //                        .foregroundColor(.black)
+                            .lineLimit(1)
+                            .truncationMode(.tail) // Ensure it doesn't wrap too soon
+                        /*.frame(maxWidth: .infinity, alignment: .leading)*/
+                            .font(.system(size: 16, weight: .regular, design: .default))
+                            .foregroundColor(.black)
+                            .fontWeight(.semibold)
+                        
+                        
+                        
+                        //                    HStack {
+                        //                        ForEach(0..<review.rating, id: \.self) { _ in
+                        //                            Image(systemName: "star.fill")
+                        //                                .foregroundColor(.yellow)
+                        //                        }
+                        //                    }
+                        
+                        HStack(spacing: 2) {
+                            ForEach(0..<5, id: \.self) { index in
+                                Image(systemName: index < review.rating ? "star.fill" : "star")
+                                    .foregroundColor(index < review.rating ? .yellow : .gray)
+                            }
                         }
+                        Text(review.reviewContent)
+                            .font(.system(size: 16, weight: .regular, design: .default))
+                            .foregroundColor(.black)
+                            .lineLimit(2)
+                        
+                        Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
+                            .font(.caption)
+                            .foregroundColor(.gray)
                     }
+                    //                .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    //                .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+                    //                .frame(maxWidth: .infinity)
+                    Spacer()
+                    //                .padding(.horizontal, 2)
                     
-                    Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
-                        .font(.caption)
-                        .foregroundColor(.gray)
                 }
                 .padding()
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }.padding()
-            .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
-            .frame(maxWidth: .infinity)
+                
+                .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+                .frame(maxWidth: .infinity)
+            }.buttonStyle(PlainButtonStyle())
+//            .padding(.horizontal, 2)
+//            .padding(.horizontal, 2)
+//            }.padding()
+//                
+//            .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+//            .frame(maxWidth: .infinity)
 
             // Overlay with edit and delete buttons
-            HStack(spacing: 10) {
+            HStack(spacing: 5) {
                 Button(action: onEdit) {
                     Image(systemName: "pencil")
-                        .foregroundColor(.mainGreen)
-                        .padding(8)
-                        .background(Color.white)
+                        .foregroundColor(.mainGreen.darker())
+                        .padding(6)
+                        .background(Color.clear)
                         .clipShape(Circle())
                         .shadow(radius: 1)
                 }
@@ -381,13 +410,14 @@ struct ProfileReviewCard: View {
                 Button(action: onDelete) {
                     Image(systemName: "trash")
                         .foregroundColor(.red)
-                        .padding(8)
-                        .background(Color.white)
+                        .padding(6)
+                        .background(Color.clear)
                         .clipShape(Circle())
                         .shadow(radius: 1)
                 }
             }
-            .padding()
+            .padding([.top, .trailing], 8)
+            
         }
     }
 
@@ -448,257 +478,272 @@ struct EditReviewView: View {
         } ?? [])
     }
     var body: some View {
-        VStack {
-            Text("Edit Your Review\(Image(systemName: "pencil")) ")
-                .font(.largeTitle)
-                .fontWeight(.semibold)
-            Text(updatedReview.businessName)
-                .font(.title2)
-                .fontWeight(.medium)
-                .foregroundColor(Color.mainGreen)
-        }
-        
-        VStack(alignment:.leading,spacing: 20) {
-            
-            
-            HStack {
-                ForEach(1...5, id: \..self) { star in
-                    Image(systemName: star <= rating ? "star.fill" : "star")
-                        .resizable()
-                        .frame(width: 40, height: 40)
-                        .foregroundColor(.yellow)
-                        .onTapGesture {
-                            rating = star
-                        }
-                }
+        ScrollView {
+            VStack {
+                Spacer().frame(height: 24)
+                Text("Edit Your Review\(Image(systemName: "pencil")) ")
+                    .font(.largeTitle)
+                    .fontWeight(.semibold)
+                Text(updatedReview.businessName)
+                    .font(.title2)
+                    .fontWeight(.medium)
+                    .foregroundColor(Color.mainGreen)
             }
-            
-            // Meal Name
-            Text("Meal Name")
-                .font(.title3)
-                .fontWeight(.semibold)
-
-            TextField("Enter the meal you ate", text: $mealName)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .padding(.bottom)
-
-            // Accommodations
-            Text("Accommodations")
-                .font(.title3)
-                .fontWeight(.semibold)
-
-            Button(action: {
-                showAccommodationsPicker = true
-            }) {
+            .padding()
+            VStack(alignment:.leading,spacing: 20) {
+                
+                
                 HStack {
-                    Text(selectedAccommodations.isEmpty ? "Select Accommodations" : selectedAccommodations.joined(separator: ", "))
-                        .foregroundColor(selectedAccommodations.isEmpty ? .gray : .black)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
-                    Spacer()
-                    Image(systemName: "chevron.down")
-                        .foregroundColor(.gray)
+                    ForEach(1...5, id: \..self) { star in
+                        Image(systemName: star <= rating ? "star.fill" : "star")
+                            .resizable()
+                            .frame(width: 40, height: 40)
+                            .foregroundColor(.yellow)
+                            .onTapGesture {
+                                rating = star
+                            }
+                    }
                 }
-                .padding()
-                .background(Color.white)
-                .cornerRadius(8)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.gray, lineWidth: 1)
-                )
-            }
-            .sheet(isPresented: $showAccommodationsPicker) {
-                VStack {
-                    Text("Select Accommodations")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .padding()
-
-                    ScrollView {
-                        VStack(alignment: .leading) {
-                            ForEach(accommodationOptions, id: \.self) { option in
-                                Button(action: {
-                                    if selectedAccommodations.contains(option) {
-                                        selectedAccommodations.removeAll { $0 == option }
-                                    } else {
-                                        selectedAccommodations.append(option)
-                                    }
-                                }) {
-                                    HStack {
-                                        Text(option)
-                                            .foregroundColor(.black)
-                                        Spacer()
+                
+                // Meal Name
+                Text("Meal Name")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                
+                TextField("Enter the meal you ate", text: $mealName)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.bottom)
+                
+                // Accommodations
+                Text("Accommodations")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                
+                Button(action: {
+                    showAccommodationsPicker = true
+                }) {
+                    HStack {
+                        Text(selectedAccommodations.isEmpty ? "Select Accommodations" : selectedAccommodations.joined(separator: ", "))
+                            .foregroundColor(selectedAccommodations.isEmpty ? .gray : .black)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                        Spacer()
+                        Image(systemName: "chevron.down")
+                            .foregroundColor(.gray)
+                    }
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color.gray, lineWidth: 1)
+                    )
+                }
+                .sheet(isPresented: $showAccommodationsPicker) {
+                    VStack {
+                        Text("Select Accommodations")
+                            .font(.title2)
+                            .fontWeight(.semibold)
+                            .padding()
+                        
+                        ScrollView {
+                            VStack(alignment: .leading) {
+                                ForEach(accommodationOptions, id: \.self) { option in
+                                    Button(action: {
                                         if selectedAccommodations.contains(option) {
-                                            Image(systemName: "checkmark")
-                                                .foregroundColor(.mainGreen)
+                                            selectedAccommodations.removeAll { $0 == option }
+                                        } else {
+                                            selectedAccommodations.append(option)
                                         }
+                                    }) {
+                                        HStack {
+                                            Text(option)
+                                                .foregroundColor(.black)
+                                            Spacer()
+                                            if selectedAccommodations.contains(option) {
+                                                Image(systemName: "checkmark")
+                                                    .foregroundColor(.mainGreen)
+                                            }
+                                        }
+                                        .padding()
                                     }
-                                    .padding()
                                 }
                             }
+                            .padding(.horizontal)
                         }
-                        .padding(.horizontal)
+                        
+                        Button(action: {
+                            showAccommodationsPicker = false
+                        }) {
+                            Text("Done")
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.mainGreen)
+                                .cornerRadius(10)
+                                .padding()
+                        }
                     }
-
+                }
+                
+                
+                
+                TextEditor(text: $reviewContent)
+                    .frame(height: 150)
+                    .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6))) // Light gray background
+                    .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
+                
+                
+                
+                if let selectedImage = selectedImage {
+                    Image(uiImage: selectedImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 120)
+                        .cornerRadius(10)
+                } else if let existingImage = decodedImage() {
+                    Image(uiImage: existingImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(height: 120)
+                        .cornerRadius(10)
+                }
+                
+                // Image Picker Button
+                Button(action: {
+                    showImagePicker = true
+                    
+                }) {
+                    Text("Choose New Image")
+                        .font(.subheadline)
+                        .padding(8)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(8)
+                }
+                HStack {
                     Button(action: {
-                        showAccommodationsPicker = false
+                        var newImageBase64: String? = updatedReview.reviewImage
+                        
+                        if let selectedImage = selectedImage,
+                           let imageData = selectedImage.jpegData(compressionQuality: 0.8) {
+                            newImageBase64 = imageData.base64EncodedString()
+                        }
+                        //                    self.updatedReview.reviewContent = updatedReview.reviewContent
+                        //                    self.updatedReview.rating = updatedReview.rating
+                        //                    updatedReview.reviewImage = newImageBase64
+                        //                    updatedReview.reviewTimestamp: updatedReview.reviewTimestamp
+                        //                    updatedReview.meal = mealName
+                        //                    updatedReview.accommodations = selectedAccommodations.map { pref in
+                        //                        if pref.lowercased().contains("free") {
+                        //                            return Accommodation(preferenceType: "Allergy", preference: pref.replacingOccurrences(of: " Free", with: ""))
+                        //                        } else {
+                        //                            return Accommodation(preferenceType: "Dietary Restriction", preference: pref)
+                        //                        }
+                        //                    }
+                        
+                        
+                        let newReview = FriendReview(
+                            reviewId: updatedReview.reviewId,
+                            userId: updatedReview.userId,
+                            businessId: updatedReview.businessId,
+                            userName: updatedReview.userName,
+                            businessName: updatedReview.businessName,
+                            reviewContent: reviewContent,
+                            rating: rating,
+                            reviewImage: newImageBase64,
+                            reviewTimestamp: updatedReview.reviewTimestamp,
+                            meal: mealName,
+                            accommodations: selectedAccommodations.map { pref in
+                                if pref.lowercased().contains("free") {
+                                    return Accommodation(preferenceType: "Allergy", preference: pref.replacingOccurrences(of: " Free", with: ""))
+                                } else {
+                                    return Accommodation(preferenceType: "Dietary Restriction", preference: pref)
+                                }
+                            }
+                        )
+                        
+                        
+                        reviewModel.editReview(reviewID: updatedReview.reviewId, updatedReview: newReview, newImage: selectedImage) { success in
+                            if success {
+                                showAlert = true
+                                viewModel.fetchMyReviews()
+                            } else {
+                                print("Failed to UPDATE review")
+                            }
+                        }
                     }) {
-                        Text("Done")
+                        Text("Update Review")
                             .font(.headline)
                             .foregroundColor(.white)
                             .padding()
                             .frame(maxWidth: .infinity)
                             .background(Color.mainGreen)
                             .cornerRadius(10)
+                    }
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        Text("Cancel")
+                            .font(.headline)
+                            .foregroundColor(.black)
                             .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.mainGray)
+                            .cornerRadius(10)
                     }
                 }
-            }
-
-            
-            
-            TextEditor(text: $reviewContent)
-                .frame(height: 150)
-                .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6))) // Light gray background
-                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.gray, lineWidth: 1))
-            
-            
-            
-            if let selectedImage = selectedImage {
-                Image(uiImage: selectedImage)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 120)
-                    .cornerRadius(10)
-            } else if let existingImage = decodedImage() {
-                Image(uiImage: existingImage)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 120)
-                    .cornerRadius(10)
-            }
-
-            // Image Picker Button
-            Button(action: {
-                showImagePicker = true
                 
-            }) {
-                Text("Choose New Image")
-                    .font(.subheadline)
-                    .padding(8)
-                    .frame(maxWidth: .infinity)
-                    .background(Color.gray.opacity(0.2))
-                    .cornerRadius(8)
+                
             }
-            HStack {
-                Button(action: {
-                    var newImageBase64: String? = updatedReview.reviewImage
-                    
-                    if let selectedImage = selectedImage,
-                       let imageData = selectedImage.jpegData(compressionQuality: 0.8) {
-                        newImageBase64 = imageData.base64EncodedString()
-                    }
-                    
-                    let newReview = FriendReview(
-                        reviewId: updatedReview.reviewId,
-                        userId: updatedReview.userId,
-                        businessId: updatedReview.businessId,
-                        userName: updatedReview.userName,
-                        businessName: updatedReview.businessName,
-                        reviewContent: reviewContent,
-                        rating: rating,
-                        reviewImage: newImageBase64,
-                        reviewTimestamp: updatedReview.reviewTimestamp,
-                        meal: mealName,
-                        accommodations: selectedAccommodations.map { pref in
-                            if pref.lowercased().contains("free") {
-                                return Accommodation(preferenceType: "Allergy", preference: pref.replacingOccurrences(of: " Free", with: ""))
-                            } else {
-                                return Accommodation(preferenceType: "Dietary Restriction", preference: pref)
-                            }
-                        }
-                    )
-
-                    
-                    reviewModel.editReview(reviewID: updatedReview.reviewId, updatedReview: newReview, newImage: selectedImage) { success in
-                        if success {
-                            showAlert = true
-                            viewModel.fetchMyReviews()
-                        } else {
-                            print("Failed to UPDATE review")
-                        }
-                    }
-                }) {
-                    Text("Update Review")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.mainGreen)
-                        .cornerRadius(10)
-                }
-                Button(action: {
-                    presentationMode.wrappedValue.dismiss()
-                }) {
-                    Text("Cancel")
-                        .font(.headline)
-                        .foregroundColor(.black)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.mainGray)
-                        .cornerRadius(10)
-                }
-            }
-
+            .padding()
+            .navigationTitle("Update Review")
             
-        }
-        .padding()
-        .navigationTitle("Update Review")
-        
-        .alert("Update Successful", isPresented: $showAlert) {
-            Button("OK", role: .cancel) { presentationMode.wrappedValue.dismiss()}
-        } message: {
-            Text("Your review of \(updatedReview.businessName) was successfully updated!")
-        }
-        .sheet(isPresented: $showImagePicker) {
-            ReviewImagePicker(image: $selectedImage)
+            .alert("Update Successful", isPresented: $showAlert) {
+                Button("OK", role: .cancel) { presentationMode.wrappedValue.dismiss()}
+            } message: {
+                Text("Your review of \(updatedReview.businessName) was successfully updated!")
+            }
+            .sheet(isPresented: $showImagePicker) {
+                ReviewImagePicker(image: $selectedImage)
+            }
         }
     }
-    
-    func decodedImage() -> UIImage? {
-        guard var base64 = updatedReview.reviewImage, !base64.isEmpty else {
-            
-            return nil
-        }
-
-        // Remove prefix if it exists
-        if base64.starts(with: "data:image") {
-            if let commaIndex = base64.firstIndex(of: ",") {
-                base64 = String(base64[base64.index(after: commaIndex)...])
+        func decodedImage() -> UIImage? {
+            guard var base64 = updatedReview.reviewImage, !base64.isEmpty else {
+                
+                return nil
             }
-        }
-
-//        guard let imageData = Data(base64Encoded: base64, op  print("❌ Could not decode base64") else {
-//            return nil
-//        }
-//
-//        guard let image = UIImage(data: imageData) else {
-//            return nil
-//        }
-        guard let imageData = Data(base64Encoded: base64) else {
+            
+            // Remove prefix if it exists
+            if base64.starts(with: "data:image") {
+                if let commaIndex = base64.firstIndex(of: ",") {
+                    base64 = String(base64[base64.index(after: commaIndex)...])
+                }
+            }
+            
+            //        guard let imageData = Data(base64Encoded: base64, op  print("❌ Could not decode base64") else {
+            //            return nil
+            //        }
+            //
+            //        guard let image = UIImage(data: imageData) else {
+            //            return nil
+            //        }
+            guard let imageData = Data(base64Encoded: base64) else {
                 print("❌ Could not decode base64")
                 return nil
             }
-
+            
             guard let image = UIImage(data: imageData) else {
                 print("❌ Could not create UIImage from data")
                 return nil
             }
-
-        return image
-    }
-
-
+            
+            return image
+        }
+        
+    
     
 
-        }
+}
