@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 from utils.pyobjectid import PyObjectId
 from utils.enums import NotificationEnum
 
+
 class NotificationCreate(BaseModel):
     sender_id: str
     recipient_id: str

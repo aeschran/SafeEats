@@ -14,8 +14,15 @@ import SwiftUI
 class NotificationsViewModel: ObservableObject {
     @Published var notifications: [Notification] = []
     @Published var notificationId: String = ""
+    
+    @Published var businessGroupedNotifications: [String: [Notification]] = [:]
+    @Published var businessGroupedNames: [String: String] = [:]
     @Published var navigateToProfile: Bool = false
     @Published var senderID: String? = nil
+    @Published var showBellDot: Bool = false
+    
+    @Published var notificationSent:Bool = false
+
     @AppStorage("id") var id_:String?
     
     private let baseURL = "http://127.0.0.1:8000"  // Replace with your actual backend URL
@@ -46,6 +53,65 @@ class NotificationsViewModel: ObservableObject {
         }
     }
     
+    func fetchNotificationsForBusinesses(_ businesses: [(id: String, name: String)]) {
+        businessGroupedNotifications = [:]
+        businessGroupedNames = [:]
+
+        let group = DispatchGroup()
+
+        for (id, name) in businesses {
+            guard let url = URL(string: "\(baseURL)/notifications/\(id)") else { continue }
+
+            group.enter()
+            Task {
+                do {
+                    let (data, _) = try await URLSession.shared.data(from: url)
+                    let fetched = try JSONDecoder().decode([Notification].self, from: data)
+
+                    DispatchQueue.main.async {
+                        self.businessGroupedNotifications[id] = fetched.sorted { $0.timestamp > $1.timestamp }
+                        self.businessGroupedNames[id] = name
+                    }
+                } catch {
+                    print("Failed to fetch notifications for business \(id): \(error)")
+                }
+                group.leave()
+            }
+        }
+
+        // Once all fetches are complete, update `showBellDot`
+        group.notify(queue: .main) {
+            self.showBellDot = !self.businessGroupedNotifications.values.flatMap { $0 }.isEmpty
+        }
+    }
+
+    
+    
+
+    func deleteNotification(notificationId: String) {
+        guard let url = URL(string: "\(baseURL)/notifications/delete/\(notificationId)") else { return }
+
+        Task {
+            do {
+                var request = URLRequest(url: url)
+                request.httpMethod = "DELETE"
+
+                let (_, response) = try await URLSession.shared.data(for: request)
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                    DispatchQueue.main.async {
+                        self.notifications.removeAll { $0.id == notificationId }
+                        for (businessId, list) in self.businessGroupedNotifications {
+                            self.businessGroupedNotifications[businessId] = list.filter { $0.id != notificationId }
+                        }
+                    }
+                }
+            } catch {
+                print("Failed to delete notification: \(error)")
+            }
+        }
+    }
+
+
     func acceptRequest(notificationId: String, recipientId: String, senderId: String) {
         guard let url = URL(string: "http://localhost:8000/friends/accept") else { return }
         
@@ -103,6 +169,84 @@ class NotificationsViewModel: ObservableObject {
                 print("Failed to deny request: \(error)")
             }
         }
+    }
+    
+    
+    func createNotification(recipientId: String, type: Int, content: String) async -> Bool {
+        guard let id = id_ else {
+            print("Error: User data is not available")
+            return false
+        }
+        
+        let requestBody: [String: Any] = [
+            "sender_id": id,
+            "recipient_id": recipientId,
+            "type": type,
+            "content": content,
+            "timestamp": Date().timeIntervalSince1970
+        ]
+        
+        guard let url = URL(string: "\(baseURL)/notifications/create") else { return false}
+        
+        do {
+            let requestData = try JSONSerialization.data(withJSONObject: requestBody)
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = requestData
+            
+            let (_, response) = try await URLSession.shared.data(for: request)
+            
+            if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                print("SUCCESS notification created: \(response)")
+                return true
+                    
+            } else {
+                print("Failed to send notification: \(response)")
+                return false
+            }
+        } catch {
+            print("Error sending notification: \(error.localizedDescription)")
+            return false
+        }
+    }
+    
+    func createUserReport(senderId: String, type: Int, content: String) {
+        guard let id = id_ else {
+            print("Error: User data is not available")
+                return
+        
+        }
+        
+        let requestBody: [String: Any] = [
+            "sender_id": senderId,
+            "recipient_id": id,
+            "type": type,
+            "content": content,
+            "timestamp": Date().timeIntervalSince1970
+        ]
+        
+        let url = URL(string: "\(baseURL)/notifications/create/report")!
+        
+        Task {
+                do {
+                    let requestData = try JSONSerialization.data(withJSONObject: requestBody)
+                    var request = URLRequest(url: url)
+                    request.httpMethod = "POST"
+                    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                    request.httpBody = requestData
+                    
+                    let (_, response) = try await URLSession.shared.data(for: request)
+                    
+                    if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                        print("SUCCESS notification created: \(response)")
+                    } else {
+                        print("Failed to send notification: \(response)")
+                    }
+                } catch {
+                    print("Error sending notification: \(error.localizedDescription)")
+                }
+            }
     }
     
     //    func respondToRequest(notificationId: String, accept: Bool) {

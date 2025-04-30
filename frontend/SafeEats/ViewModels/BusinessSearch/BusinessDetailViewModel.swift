@@ -19,6 +19,8 @@ struct Review: Identifiable, Codable {
     var upvotes: Int
     var downvotes: Int
     var userVote: Int?
+    let meal: String?
+    let accommodations: [Accommodation]?
     
     enum CodingKeys: String, CodingKey {
         case id = "review_id"  // Maps JSON "review_id" to Swift "id"
@@ -31,8 +33,31 @@ struct Review: Identifiable, Codable {
         case upvotes
         case downvotes
         case userVote = "user_vote"
+        case meal
+        case accommodations
     }
 }
+
+struct Comment: Identifiable, Codable {
+    let id: String
+    let reviewID: String
+    let commenterID: String
+    let commenterUsername: String
+    let isBusiness: Bool
+    let commentContent: String
+    let commentTimestamp: Double
+
+    enum CodingKeys: String, CodingKey {
+        case id = "_id"
+        case reviewID = "review_id"
+        case commenterID = "commenter_id"
+        case commenterUsername = "commenter_username"
+        case isBusiness = "is_business"
+        case commentContent = "comment_content"
+        case commentTimestamp = "comment_timestamp"
+    }
+}
+
 
 
 
@@ -46,6 +71,8 @@ class BusinessDetailViewModel: ObservableObject {
     @AppStorage("id") var id_: String?
     @Published var collections: [Collection] = []
     @Published var errorMessage: String?
+    
+    @Published var comments: [String: [Comment]] = [:]  // Map reviewID -> comments
     
     private let baseURL = "http://127.0.0.1:8000"
     
@@ -127,53 +154,62 @@ class BusinessDetailViewModel: ObservableObject {
             reviews[index] = review
         }
     }
-    //    func removeUpvote(_ reviewID: String) {
-    //        if let index = reviews.firstIndex(where: { $0.id == reviewID }) {
-    //            if reviews[index].userVote == 1 {
-    //                reviews[index].upvotes -= 1
-    //                reviews[index].userVote = nil
-    //                updateReviewVote(reviewID, vote: false)  // Remove the upvote
-    //            }
-    //        }
-    //    }
-    //
-    //    func removeDownvote(_ reviewID: String) {
-    //        if let index = reviews.firstIndex(where: { $0.id == reviewID }) {
-    //            if reviews[index].userVote == -1 {
-    //                reviews[index].downvotes -= 1
-    //                reviews[index].userVote = nil
-    //                updateReviewVote(reviewID, vote: false)  // Remove the downvote
-    //            }
-    //        }
-    //    }
     
-    // private func updateReviewVote(_ reviewID: String, vote: Int) {
-    //     guard let url = URL(string: "http://127.0.0.1:8000/review/vote/") else { return }
-    //     var request = URLRequest(url: url)
-    //     request.httpMethod = "POST"
-    //     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    /** COMMENTS **/
     
-    //     let body: [String: Any] = [
-    //         "review_id": reviewID,
-    //         "user_id": id_,  // Replace with the actual user ID
-    //         "vote": vote
-    //     ]
+
+    func fetchComments(for reviewId: String) {
+        guard let url = URL(string: "\(baseURL)/comment/\(reviewId)") else { return }
+        
+        URLSession.shared.dataTask(with: url) { data, response, error in
+            guard let data = data, error == nil else {
+                print("Error fetching comments:", error?.localizedDescription ?? "Unknown error")
+                return
+            }
+            
+            do {
+                let decodedComments = try JSONDecoder().decode([Comment].self, from: data)
+                DispatchQueue.main.async {
+                    self.comments[reviewId] = decodedComments
+                }
+                print(decodedComments)
+            } catch {
+                print("Error decoding comments:", error)
+            }
+        }.resume()
+    }
+
+    func postComment(for reviewId: String, commentContent: String, isBusiness: Bool) {
+        guard let id = id_ else { return }
+        guard let url = URL(string: "\(baseURL)/comment/create") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "review_id": reviewId,
+            "commenter_id": id,
+            "is_business": isBusiness,
+            "comment_content": commentContent
+        ]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+            URLSession.shared.dataTask(with: request) { _, _, _ in
+                DispatchQueue.main.async {
+                    self.fetchComments(for: reviewId)
+                }
+            }.resume()
+        } catch {
+            print("Error encoding comment data:", error)
+        }
+    }
+
     
-    //     do {
-    //         let data = try JSONSerialization.data(withJSONObject: body, options: [])
-    //         request.httpBody = data
-    
-    //         URLSession.shared.dataTask(with: request) { _, _, _ in
-    //             // Handle response or error if needed
-    //         }.resume()
-    //     } catch {
-    //         print("Error encoding vote data:", error)
-    //     }
-    
-    
-    // }
     
     func addBusinessToCollection(collectionName: String, businessID: String) async {
+        guard let id = id_ else { return }
         guard let url = URL(string: "\(baseURL)/collections/add") else { return }
         
         
@@ -183,7 +219,7 @@ class BusinessDetailViewModel: ObservableObject {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         let body: [String: Any] = [
-            "user_id": id_,
+            "user_id": id,
             "collection_name": collectionName,
             "business_id": businessID
         ]
@@ -378,4 +414,42 @@ class BusinessDetailViewModel: ObservableObject {
             break
         }
     }
+    
+    func reportReview(userName: String, reviewId: String, message: String) async {
+    guard let url = URL(string: "\(baseURL)/review/report") else { return }
+    
+    var request = URLRequest(url: url)
+    request.httpMethod = "POST"
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    
+    let body: [String: Any] = [
+        "user_name": userName,
+        "review_id": reviewId,
+        "message": message
+    ]
+    
+    do {
+        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+    } catch {
+        DispatchQueue.main.async {
+            self.errorMessage = "Failed to encode report data"
+        }
+        return
+    }
+    
+    URLSession.shared.dataTask(with: request) { data, response, error in
+        DispatchQueue.main.async {
+            if let data = data {
+                do {
+                    let responseMessage = try JSONDecoder().decode(String.self, from: data)
+                    self.errorMessage = responseMessage
+                } catch {
+                    self.errorMessage = "Failed to report review"
+                }
+            } else {
+                self.errorMessage = "Failed to report review"
+            }
+        }
+    }.resume()
+}
 }

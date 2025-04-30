@@ -19,6 +19,9 @@ struct FriendReview: Identifiable, Codable {
     let rating: Int
     let reviewImage: String?
     let reviewTimestamp: Double
+    let meal: String?
+    let accommodations: [Accommodation]?
+
 
     enum CodingKeys: String, CodingKey {
         case reviewId = "review_id"
@@ -30,6 +33,18 @@ struct FriendReview: Identifiable, Codable {
         case rating
         case reviewImage = "review_image"
         case reviewTimestamp = "review_timestamp"
+        case meal
+        case accommodations = "accommodations"
+    }
+}
+
+struct Accommodation: Codable {
+    let preferenceType: String
+    let preference: String
+
+    enum CodingKeys: String, CodingKey {
+        case preferenceType = "preference_type"
+        case preference
     }
 }
 
@@ -105,6 +120,7 @@ class FeedViewModel: ObservableObject {
         }
 
     
+
     func fetchMyReviews() {
         guard let id = id_ else {
             print("Error: User ID not found")

@@ -26,6 +26,7 @@ struct ProfileView: View {
     @State private var showUnfollowAlert: Bool = false
     //    print(viewModel.isFollowing)
     //    print(viewModel.isRequested)
+    @State private var navigateToReport = false
     
     var body: some View {
         NavigationStack{
@@ -157,9 +158,11 @@ struct ProfileView: View {
                                 alignment: .bottom
                                 
                             )
+                       
                         
                     }
                 }.padding(6)
+                OtherProfileReviewView(friendId: friendId)
             }
             .onAppear {
                 // Fetch the data after the view appears
@@ -167,7 +170,220 @@ struct ProfileView: View {
             }
             .navigationTitle(viewModel.username) // Centered title
             .navigationBarTitleDisplayMode(.inline) // Ensures it's in the center
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    HStack(spacing: 8) {
+                        Button(action: {
+                            navigateToReport = true
+                        }) {
+                            Image(systemName: "exclamationmark.bubble")
+                                .font(.system(size: 17))
+                                .foregroundColor(.black)
+                        }
+                        NavigationLink(
+                            destination: ReportUserView(friendId: friendId, username: viewModel.username),
+                            isActive: $navigateToReport
+                        ) {
+                            EmptyView()
+                        }
+                        .hidden()
+                    }
+                }
+            }
         }
+    }
+}
+
+struct OtherProfileReviewView: View {
+    @StateObject var viewModel: ProfileViewModel
+    let friendId: String
+    
+    // Accept the friendId
+    init(friendId: String) {
+        self.friendId = friendId
+        _viewModel = StateObject(wrappedValue: ProfileViewModel(friendId: friendId))
+    }
+    
+    @State private var showDeleteConfirmation = false
+    @State private var reviewToDelete: FriendReview? = nil
+    
+    @State private var showEditSheet = false
+    @State private var reviewToEdit: FriendReview? = nil
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 12) {
+                ForEach(viewModel.reviews, id: \.reviewId) { review in
+                    OtherProfileReviewCard(review: review)
+                    .padding(.horizontal)
+                }
+            }
+        }
+        .onAppear {
+            viewModel.fetchUserReviews(friendId: friendId)
+        }
+//        .alert(isPresented: $showDeleteConfirmation) {
+//            Alert(
+//                title: Text("Are you sure?"),
+//                message: Text("You are about to delete this review."),
+//                primaryButton: .destructive(Text("Delete")) {
+//                    confirmDeleteReview()
+//                },
+//                secondaryButton: .cancel()
+//            )
+//        }
+//        
+//        .sheet(isPresented: $showEditSheet) {
+//            if let review = reviewToEdit {
+//                
+//                EditReviewView(viewModel: viewModel, businessId: review.businessId, review: review)
+//            } else {
+//               Text("INVALID")
+//            }
+//        }
+    }
+//    private func editReview(_ review: FriendReview) {
+//        DispatchQueue.main.async {
+//            reviewToEdit = review
+//            
+//        }
+//        showEditSheet = true
+//    }
+//    private func deleteReview(_ review: FriendReview) {
+//        reviewToDelete = review
+//        showDeleteConfirmation = true
+//    }
+
+//    private func confirmDeleteReview() {
+//        if let review = reviewToDelete {
+//            reviewViewModel.deleteReview(reviewID: review.reviewId, businessID: review.businessId) { success in
+//                if success {
+//                    print("Review deleted successfully")
+//                    viewModel.fetchMyReviews()
+//                } else {
+//                    print("Failed to delete review")
+//                }
+//            }
+//        }
+//        showDeleteConfirmation = false
+//    }
+    
+}
+
+
+struct OtherProfileReviewCard: View {
+    let review: FriendReview
+//    var onEdit: () -> Void
+//    var onDelete: () -> Void
+
+    var body: some View {
+        NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
+            HStack {
+                VStack(alignment: .leading, spacing: 8) {
+                    // Title: "{user} reviewed {business}"
+                    HStack(spacing: 0) {
+                        Text("\(review.userName) reviewed ")
+                            .font(.headline)
+                            .foregroundColor(.black)
+                        Text(review.businessName)
+                            .font(.headline)
+                            .foregroundColor(.black)
+                            .lineLimit(1)
+                            .truncationMode(.tail) // Ensure it doesn't wrap too soon
+                        /*.frame(maxWidth: .infinity, alignment: .leading)*/ // Extend as much as possible
+                            .frame(maxWidth: 200, alignment: .leading)
+                    }
+                    
+                    // Star Rating
+                    HStack(spacing: 2) {
+                        ForEach(0..<5, id: \.self) { index in
+                            Image(systemName: index < review.rating ? "star.fill" : "star")
+                                .foregroundColor(index < review.rating ? .yellow : .gray)
+                        }
+                    }
+                    
+                    // Review Content (Highlighted in black)
+                    Text(review.reviewContent)
+                        .font(.body)
+                        .foregroundColor(.black)
+                        .lineLimit(2)
+                    
+                    // Timestamp
+                    Text("Reviewed on \(formattedDate(from: review.reviewTimestamp))")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                    
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                Spacer()
+                
+            }
+            .padding()
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(PlainButtonStyle())
+        
+//        ZStack(alignment: .topTrailing) {
+//            HStack {
+//                VStack(alignment: .leading, spacing: 8) {
+//                    Text(review.businessName)
+//                        .font(.headline)
+//                        .foregroundColor(.black)
+//                        .lineLimit(1)
+//                        .truncationMode(.tail) // Ensure it doesn't wrap too soon
+//                        .frame(maxWidth: .infinity, alignment: .leading)
+//                    
+//                    Text(review.reviewContent)
+//                        .font(.body)
+//                    
+//                    HStack {
+//                        ForEach(0..<review.rating, id: \.self) { _ in
+//                            Image(systemName: "star.fill")
+//                                .foregroundColor(.yellow)
+//                        }
+//                    }
+//                    
+//                    Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
+//                        .font(.caption)
+//                        .foregroundColor(.gray)
+//                }
+//                .padding()
+//                .frame(maxWidth: .infinity, alignment: .leading)
+//            }.padding()
+//            .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+//            .frame(maxWidth: .infinity)
+//
+//            // Overlay with edit and delete buttons
+////            HStack(spacing: 10) {
+////                Button(action: onEdit) {
+////                    Image(systemName: "pencil")
+////                        .foregroundColor(.mainGreen)
+////                        .padding(8)
+////                        .background(Color.white)
+////                        .clipShape(Circle())
+////                        .shadow(radius: 1)
+////                }
+////
+////                Button(action: onDelete) {
+////                    Image(systemName: "trash")
+////                        .foregroundColor(.red)
+////                        .padding(8)
+////                        .background(Color.white)
+////                        .clipShape(Circle())
+////                        .shadow(radius: 1)
+////                }
+////            }
+//            .padding()
+//        }
+    }
+
+    private func formattedDate(from timestamp: Double) -> String {
+        let date = Date(timeIntervalSince1970: timestamp)
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter.string(from: date)
     }
 }
 

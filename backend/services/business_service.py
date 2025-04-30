@@ -1,5 +1,5 @@
 from models.business import Business
-from schemas.business import BusinessCreate, BusinessResponse, BusinessAddPreferences, EditBusiness
+from schemas.business import BusinessCreate, BusinessResponse, BusinessAddPreferences, EditBusiness, Hours, Day
 from services.base_service import BaseService
 from typing import List
 from bson import ObjectId
@@ -13,6 +13,8 @@ class BusinessService(BaseService):
 
     async def create_business(self, business: BusinessCreate):
         updated_location = Location(coordinates=[business.location.coordinates[0], business.location.coordinates[1]])
+        # day = Day()
+        updated_hours = Hours(display=business.hours.display, is_local_holiday=business.hours.is_local_holiday, open_now=business.hours.open_now)
         new_business = Business(
             name=business.name,
             owner_id=business.owner_id,
@@ -26,7 +28,8 @@ class BusinessService(BaseService):
             dietary_restrictions=business.dietary_restrictions,
             avg_rating=business.avg_rating,
             social_media=business.social_media,
-            price=business.price
+            price=business.price,
+            hours=updated_hours
         )
         existing_doc = await self.db.businesses.find_one({
             "name": business.name,
@@ -41,7 +44,7 @@ class BusinessService(BaseService):
         else:
             existing_avg_rating = existing_doc.get("avg_rating", 0.0)  # Preserve existing rating
             business.avg_rating = existing_avg_rating  # Assign it before updating
-            return self.update_business(business_id=existing_doc["_id"], business=business)
+            return await self.update_business(business_id=existing_doc["_id"], business=business)
 
     def get_businesses(self):
         businesses = self.db.businesses.find()
@@ -63,11 +66,21 @@ class BusinessService(BaseService):
             return business
         return
 
-    def update_business(self, business_id: ObjectId, business: BusinessCreate):
+    async def update_business(self, business_id: ObjectId, business: BusinessCreate):
         updated_location = Location(coordinates=[business.location.coordinates[0], business.location.coordinates[1]])
+        
+        # Fetch the existing business first
+        existing_business = await self.db.businesses.find_one({"_id": business_id})
+        if not existing_business:
+            return None
+
+
+        owner_id = await self.get_owner_id_by_business_id(business_id)
+
+
         updated_business = Business(
             name=business.name,
-            owner_id=business.owner_id,
+            owner_id=owner_id,  # ✅ Use existing owner_id
             website=business.website,
             tel=business.tel,
             description=business.description,
@@ -78,21 +91,48 @@ class BusinessService(BaseService):
             dietary_restrictions=business.dietary_restrictions,
             avg_rating=business.avg_rating,
             social_media=business.social_media,
-            price=business.price
+            price=business.price,
+            hours=business.hours
         )
+
         update_data = {k: v for k, v in updated_business.to_dict().items() if v is not None}
 
-        # Prevent overwriting dietary_restrictions with an empty list -> May need to change this
+        # Flatten social_media to dict
+        if isinstance(update_data.get("social_media"), object):
+            update_data["social_media"] = update_data["social_media"]
+
+        if isinstance(update_data.get("hours"), object):
+            update_data["hours"] = update_data["hours"]
+        # if isinstance(update_data.get("hours"), Hours):
+        #     update_data["hours"] = {
+        #         "display": update_data["hours"].display,
+        #         "is_local_holiday": update_data["hours"].is_local_holiday,
+        #         "open_now": update_data["hours"].open_now,
+        #         "regular": [
+        #             {"day": day.day, "open": day.open, "close": day.close}
+        #             for day in update_data["hours"].regular
+        #         ] if update_data["hours"].regular else []
+        #     }
+
+        # Prevent overwriting dietary_restrictions with an empty list
         if business.dietary_restrictions == []:
             update_data.pop("dietary_restrictions", None)
 
         result = self.db.businesses.update_one({"_id": business_id}, {"$set": update_data})
-        # result = self.db.businesses.update_one({"_id": business_id}, {"$set": updated_business.to_dict()})
+
         update_data["_id"] = business_id
         if result is None:
             return None
-        response = BusinessResponse(**update_data)
-        return response
+        return BusinessResponse(**update_data)
+
+    async def get_owner_id_by_business_id(self, business_id: str):
+        business_object_id = ObjectId(business_id)
+        business =  await self.db.businesses.find_one({"_id": business_object_id}, {"owner_id": 1})
+        if business and "owner_id" in business:
+            return business["owner_id"]
+        return None
+
+
     
     def delete_business(self, business_id: ObjectId):
         result = self.db.businesses.delete_one({"_id": business_id})
@@ -135,6 +175,7 @@ class BusinessService(BaseService):
         )
 
         return avg_rating
+
 
     
     async def get_review_count(self, business_id: str) -> int:

@@ -1,10 +1,13 @@
 from models.review import Review, ReviewVote, ReviewAddImage
-from schemas.review import ReviewCreate, ReviewResponse, ReviewAddVote, ReviewImage
+from schemas.review import ReviewCreate, ReviewResponse, ReviewAddVote, ReviewImage, ReportReview
 from services.base_service import BaseService
 import logging
 from bson import ObjectId
 from fastapi import HTTPException
 import time
+import sendgrid
+from sendgrid.helpers.mail import Mail, Email, To, Content
+from core.config import settings
 
 class ReviewService(BaseService):
     def __init__(self):
@@ -29,7 +32,10 @@ class ReviewService(BaseService):
                 rating=review_create.rating,
                 # review_image=review_image,
                 upvotes=0,
-                downvotes=0
+                downvotes=0,
+                meal=review_create.meal,
+                accommodations=review_create.accommodations
+
             )
             result = await self.db.user_reviews.insert_one(review.to_dict())
 
@@ -193,6 +199,58 @@ class ReviewService(BaseService):
                     "rating": review["rating"],
                     "review_image": review["review_image"],  
                     "review_timestamp": review["review_timestamp"],
+                    "meal": review["meal"],
+                    "accommodations": review["accommodations"]
+                })
+
+            return result if result else []
+
+        except Exception as e:
+            print("Error:", str(e))  
+            return []
+        
+    async def get_user_reviews(self, user_id: str):
+    
+        try:
+            user_object_id = ObjectId(user_id)
+
+            # Step 1: Find Reviews by the User
+            reviews_cursor = self.db.user_reviews.find({"user_id": user_object_id})
+            reviews = await reviews_cursor.to_list(None)
+            print("User Reviews:", reviews)  # Debugging step
+
+            if not reviews:
+                return []  # Return empty list if the user has no reviews
+
+            business_ids = {ObjectId(review["business_id"]) for review in reviews if review.get("business_id")}
+            print("Business IDs being queried:", business_ids)  # Debugging step
+
+            businesses_cursor = self.db.businesses.find({"_id": {"$in": list(business_ids)}})
+            businesses = {str(business["_id"]): business["name"] for business in await businesses_cursor.to_list(None)}
+            print("Fetched Businesses:", businesses)  # Debugging step
+
+            user_cursor = await self.db.users.find_one({"_id": user_object_id})
+            user_name = user_cursor["name"] if user_cursor else "Unknown"
+            print("User Name:", user_name)  # Debugging step
+
+            result = []
+            for review in reviews:
+                review_image_cursor = await self.db.review_images.find_one({"review_id": ObjectId(review["_id"])})
+                if review_image_cursor:
+                    review["review_image"] = review_image_cursor["review_image"]
+                else:
+                    review["review_image"] = ""
+                
+                result.append({
+                    "review_id": str(review["_id"]),
+                    "user_id": str(review["user_id"]),
+                    "business_id": str(review["business_id"]),
+                    "user_name": user_name,  
+                    "business_name": businesses.get(str(review["business_id"]), "Unknown"),
+                    "review_content": review["review_content"],
+                    "rating": review["rating"],
+                    "review_image": review["review_image"],  
+                    "review_timestamp": review["review_timestamp"],
                 })
 
             return result if result else []
@@ -219,9 +277,7 @@ class ReviewService(BaseService):
             for review in reviews:
                 user_doc = await self.db.users.find_one({"_id": review["user_id"]})
                 user_name = user_doc["name"] if user_doc else "Unknown"
-                print(user_name)
-                print(review["_id"])
-                print(user_id)
+
                 user_vote_cursor = await self.db.review_votes.find_one({"review_id": review["_id"], "user_id": ObjectId(user_id)})
                 if user_vote_cursor:
                     if user_vote_cursor["vote"] == 0:
@@ -235,7 +291,9 @@ class ReviewService(BaseService):
                             "review_timestamp": review["review_timestamp"],
                             "upvotes": review["upvotes"],
                             "downvotes": review["downvotes"],
-                            "user_vote": -1
+                            "user_vote": -1,
+                            "meal": review["meal"],
+                            "accommodations": review["accommodations"]
                         })
                     #downvote
                     elif user_vote_cursor["vote"] == 1:
@@ -249,7 +307,10 @@ class ReviewService(BaseService):
                             "review_timestamp": review["review_timestamp"],
                             "upvotes": review["upvotes"],
                             "downvotes": review["downvotes"],
-                            "user_vote": 1
+                            "user_vote": 1,
+                            "meal": review["meal"],
+                            "accommodations": review["accommodations"]
+                            
                         })
                 else:
                     #upvote
@@ -263,6 +324,8 @@ class ReviewService(BaseService):
                         "review_timestamp": review["review_timestamp"],
                         "upvotes": review["upvotes"],
                         "downvotes": review["downvotes"],
+                        "meal": review["meal"],
+                        "accommodations": review["accommodations"]
                     })
             return result
 
@@ -348,6 +411,24 @@ class ReviewService(BaseService):
             return result  
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
+        
+    async def report_review(self, report_review: ReportReview):
+        sg = sendgrid.SendGridAPIClient(api_key=settings.SENDGRID_KEY)
+        to_email = To("safeeats.dev@gmail.com")
+        from_email = Email("safeeats.noreply@gmail.com")
+        review = await self.db.user_reviews.find_one({"_id": ObjectId(report_review.review_id)})
+        # Check if the review exists
+        if not review:
+            raise HTTPException(status_code=404, detail="Review not found")
+        subject = f"{report_review.user_name} has reported a review"
+        content = Content("text/plain", f"Review ID: {str(review['_id'])} \n\nReview Content: {review['review_content']}\n\nReporter: {report_review.user_name}\n\nReason for Reporting: {report_review.message}")
+        mail = Mail(from_email, to_email, subject, content)
+        try:
+            response = sg.send(mail)
+        except:
+            return None
+        
+        return(response.status_code, response.body, response.headers)
 
 
 

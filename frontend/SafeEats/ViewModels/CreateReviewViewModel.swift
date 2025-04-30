@@ -17,7 +17,7 @@ class CreateReviewViewModel: ObservableObject {
     private let baseURL = "http://127.0.0.1:8000"
     @AppStorage("id") var id_: String?
 
-    func submitReview(businessId: String, reviewContent: String, rating: Int, image: UIImage?) {
+    func submitReview(businessId: String, reviewContent: String, rating: Int, image: UIImage?, mealName: String, selectedAccommodations: [String]) {
         guard let id = id_ else {
             print("ID is nil")
             return
@@ -28,13 +28,31 @@ class CreateReviewViewModel: ObservableObject {
         // Convert image to base64 string if it exists
         let base64Image = image != nil ? convertImageToBase64(image: image!) : ""
         
+        let accommodationsArray: [[String: String]] = selectedAccommodations.map { preference in
+               if preference.lowercased().contains("free") {
+                   return [
+                       "preference_type": "Allergy",
+                       "preference": preference.replacingOccurrences(of: " Free", with: "")
+                   ]
+               } else {
+                   return [
+                       "preference_type": "Dietary Restriction",
+                       "preference": preference
+                   ]
+               }
+           }
+           
         // Review data without image
         let reviewData: [String: Any] = [
             "user_id": id,
             "business_id": businessId,
             "review_content": reviewContent,
-            "rating": rating
+            "rating": rating,
+            "meal": mealName.isEmpty ? "" : mealName,
+            "accommodations": accommodationsArray.isEmpty ? [] : accommodationsArray,
+            
         ]
+        print(reviewData)
         
         guard let createReviewData = try? JSONSerialization.data(withJSONObject: reviewData) else {
             print("Failed to encode review data")
@@ -101,6 +119,8 @@ class CreateReviewViewModel: ObservableObject {
                         }
                     }.resume()
                 }
+                
+                self.sendReviewNotification(businessId: businessId, rating: rating)
             } catch {
                 print("Error decoding review creation response: \(error)")
             }
@@ -141,13 +161,30 @@ class CreateReviewViewModel: ObservableObject {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
 
         do {
-            let jsonData = try JSONEncoder().encode(updatedReview)
-            request.httpBody = jsonData
+            let encoder = JSONEncoder()
+                    encoder.keyEncodingStrategy = .convertToSnakeCase
+                    let data = try encoder.encode(updatedReview)
+                    var reviewDict = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] ?? [:]
+
+                    // 2. Then override/add `meal` and `accomodations`
+                    reviewDict["meal"] = updatedReview.meal ?? ""
+
+                    reviewDict["accommodations"] = updatedReview.accommodations?.map { accom in
+                        [
+                            "preference": accom.preference,
+                            "preference_type": accom.preferenceType
+                        ]
+                    } ?? []
+
+                    // 3. Re-encode to JSON
+                    print(reviewDict)
+                    let finalJsonData = try JSONSerialization.data(withJSONObject: reviewDict, options: [])
+                    request.httpBody = finalJsonData
         } catch {
             print("Error encoding review update: \(error)")
             return
         }
-
+        
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
                 DispatchQueue.main.async {
@@ -217,6 +254,43 @@ class CreateReviewViewModel: ObservableObject {
             }
         }.resume()
     }
+    
+    
+    private func sendReviewNotification(businessId: String, rating: Int) {
+        guard let id = id_ else {
+            print("User ID missing, cannot send notification")
+            return
+        }
+        
+        let notificationURL = URL(string: "\(baseURL)/notifications/create")!
+        
+        let notificationData: [String: Any] = [
+            "sender_id": id,
+            "recipient_id": businessId,  // Assuming backend knows that businesses use their _id
+            "type": 3,                   // Review notification type
+            "content": "Your business has received a new review!\n\n\tRating: \(rating)",
+            "timestamp": Date().timeIntervalSince1970
+        ]
+        
+        guard let httpBody = try? JSONSerialization.data(withJSONObject: notificationData) else {
+            print("Failed to encode notification data")
+            return
+        }
+        
+        var request = URLRequest(url: notificationURL)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = httpBody
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Failed to send review notification: \(error.localizedDescription)")
+            } else {
+                print("Review notification sent successfully!")
+            }
+        }.resume()
+    }
+
 
 
     
