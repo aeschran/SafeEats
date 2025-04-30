@@ -285,200 +285,207 @@ struct BusinessDetailView: View {
         
         var body: some View {
             NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
-                VStack(alignment: .leading, spacing: 8) {
-                    // Username + Date
-                    HStack {
-                        Text("\(review.userName) ")
-                            .font(.headline)
-                            .foregroundColor(.black)
-                        
-                        Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    
-                    // Star Rating
-                    HStack(spacing: 2) {
-                        ForEach(0..<5, id: \.self) { index in
-                            Image(systemName: index < review.rating ? "star.fill" : "star")
-                                .foregroundColor(index < review.rating ? .yellow : .gray)
+                HStack {
+                    VStack(alignment: .leading, spacing: 8) {
+                        // Username + Date
+                        HStack {
+                            Text("\(review.userName) ")
+                                .font(.headline)
+                                .foregroundColor(.black)
+                            
+                            Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
+                                .font(.caption)
+                                .foregroundColor(.gray)
                         }
                         
-                        if (currentUsername != review.userName) {
-                            Button(action: { showReportSheet = true }) {
-                                Image(systemName: "exclamationmark.bubble.fill")
-                                    .foregroundColor(Color.customLightRed)
+                        // Star Rating
+                        HStack(spacing: 2) {
+                            ForEach(0..<5, id: \.self) { index in
+                                Image(systemName: index < review.rating ? "star.fill" : "star")
+                                    .foregroundColor(index < review.rating ? .yellow : .gray)
+                            }
+                            
+                            if (currentUsername != review.userName) {
+                                Button(action: { showReportSheet = true }) {
+                                    Image(systemName: "exclamationmark.bubble.fill")
+                                        .foregroundColor(Color.customLightRed)
+                                        .font(.headline)
+                                }
+                                .sheet(isPresented: $showReportSheet) {
+                                    VStack(alignment: .leading, spacing: 16) {
+                                        Text("Report Review")
+                                            .font(.title2)
+                                            .bold()
+                                        Text("Select reasons for reporting:")
+                                        
+                                        ForEach(["Inappropriate", "Spam", "Off-topic", "Harassment"], id: \.self) { reason in
+                                            Button(action: {
+                                                if selectedReasons.contains(reason) {
+                                                    selectedReasons.remove(reason)
+                                                } else {
+                                                    selectedReasons.insert(reason)
+                                                }
+                                            }) {
+                                                HStack {
+                                                    Image(systemName: selectedReasons.contains(reason) ? "checkmark.square.fill" : "square")
+                                                    Text(reason)
+                                                }
+                                            }
+                                            .foregroundColor(.primary)
+                                        }
+                                        
+                                        TextField("Other (optional)", text: $otherReason)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                        
+                                        HStack {
+                                            Button("Cancel") {
+                                                showReportSheet = false
+                                            }
+                                            Spacer()
+                                            Button("Submit") {
+                                                var message = selectedReasons.joined(separator: ", ")
+                                                if !otherReason.isEmpty {
+                                                    message += (message.isEmpty ? "" : ", ") + otherReason
+                                                }
+                                                
+                                                Task {
+                                                    let userName = UserDefaults.standard.string(forKey: "username") ?? "Anonymous"
+                                                    await viewModel.reportReview(userName: userName, reviewId: review.id, message: message)
+                                                }
+                                                showReportSheet = false
+                                            }
+                                        }
+                                        .padding(.top, 10)
+                                    }
+                                    .padding()
+                                }
+                            }
+                        }
+                        if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !review.accommodations!.isEmpty) {
+                            if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !(review.accommodations ?? []).isEmpty) {
+                                Text(formattedMealAndAccommodations(meal: review.meal, accommodations: review.accommodations))
+                                    .font(.footnote)
+                                    .foregroundColor(.black)
+                                    .fixedSize(horizontal: false, vertical: true) // Allow wrapping
+                                    .fontWeight(.light)
+                            }
+                            
+                        }
+                        
+                        
+                        // Review Content
+                        Text(review.reviewContent)
+                            .font(.body)
+                            .foregroundColor(.black)
+                            .lineLimit(2)
+                        
+                        // Upvote / Downvote
+                        HStack {
+                            Button(action: { viewModel.upvoteReview(review.id) }) {
+                                Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
+                                    .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
                                     .font(.headline)
                             }
-                            .sheet(isPresented: $showReportSheet) {
-                                VStack(alignment: .leading, spacing: 16) {
-                                    Text("Report Review")
-                                        .font(.title2)
-                                        .bold()
-                                    Text("Select reasons for reporting:")
-                                    
-                                    ForEach(["Inappropriate", "Spam", "Off-topic", "Harassment"], id: \.self) { reason in
-                                        Button(action: {
-                                            if selectedReasons.contains(reason) {
-                                                selectedReasons.remove(reason)
-                                            } else {
-                                                selectedReasons.insert(reason)
-                                            }
-                                        }) {
-                                            HStack {
-                                                Image(systemName: selectedReasons.contains(reason) ? "checkmark.square.fill" : "square")
-                                                Text(reason)
-                                            }
-                                        }
-                                        .foregroundColor(.primary)
-                                    }
-                                    
-                                    TextField("Other (optional)", text: $otherReason)
-                                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    
-                                    HStack {
-                                        Button("Cancel") {
-                                            showReportSheet = false
-                                        }
-                                        Spacer()
-                                        Button("Submit") {
-                                            var message = selectedReasons.joined(separator: ", ")
-                                            if !otherReason.isEmpty {
-                                                message += (message.isEmpty ? "" : ", ") + otherReason
-                                            }
-                                            
-                                            Task {
-                                                let userName = UserDefaults.standard.string(forKey: "username") ?? "Anonymous"
-                                                await viewModel.reportReview(userName: userName, reviewId: review.id, message: message)
-                                            }
-                                            showReportSheet = false
-                                        }
-                                    }
-                                    .padding(.top, 10)
-                                }
-                                .padding()
+                            
+                            Text("\(review.upvotes - review.downvotes)")
+                                .font(.subheadline)
+                            
+                            Button(action: { viewModel.downvoteReview(review.id) }) {
+                                Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
+                                    .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
+                                    .font(.headline)
                             }
                         }
-                    }
-                    if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !review.accommodations!.isEmpty) {
-                        if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !(review.accommodations ?? []).isEmpty) {
-                            Text(formattedMealAndAccommodations(meal: review.meal, accommodations: review.accommodations))
-                                .font(.footnote)
-                                .foregroundColor(.black)
-                                .fixedSize(horizontal: false, vertical: true) // Allow wrapping
-                                .fontWeight(.light)
-                        }
-
-                    }
-                    
-                    
-                    // Review Content
-                    Text(review.reviewContent)
-                        .font(.body)
-                        .foregroundColor(.black)
-                        .lineLimit(2)
-                    
-                    // Upvote / Downvote
-                    HStack {
-                        Button(action: { viewModel.upvoteReview(review.id) }) {
-                            Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
-                                .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
-                                .font(.headline)
-                        }
-                        
-                        Text("\(review.upvotes - review.downvotes)")
-                            .font(.subheadline)
-                        
-                        Button(action: { viewModel.downvoteReview(review.id) }) {
-                            Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
-                                .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
-                                .font(.headline)
-                        }
-                    }
-                    .padding(.top, 3)
-                    .padding(.bottom, 5)
-                    if let reviewComments = viewModel.comments[review.id] {
-                        // Filter only business comments
-                        
-                        let businessComments = reviewComments.filter { $0.isBusiness }
-
-                        if !businessComments.isEmpty {
-                            Divider()
-
-                            ForEach(businessComments) { comment in
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Business Owner")
-                                        .font(.caption)
-                                        .foregroundColor(.mainGreen)
-                                        .bold()
-                                    
-                                    Text(comment.commentContent)
-                                        .font(.body)
-                                        .foregroundColor(.black)
+                        .padding(.top, 3)
+                        .padding(.bottom, 5)
+                        if let reviewComments = viewModel.comments[review.id] {
+                            // Filter only business comments
+                            
+                            let businessComments = reviewComments.filter { $0.isBusiness }
+                            
+                            if !businessComments.isEmpty {
+                                Divider()
+                                
+                                ForEach(businessComments) { comment in
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Business Owner")
+                                            .font(.caption)
+                                            .foregroundColor(.mainGreen)
+                                            .bold()
+                                        
+                                        Text(comment.commentContent)
+                                            .font(.body)
+                                            .foregroundColor(.black)
+                                    }
+                                    .padding(10)
+                                    .background(Color.mainGreen.opacity(0.15))
+                                    .cornerRadius(10)
                                 }
-                                .padding(10)
-                                .background(Color.mainGreen.opacity(0.15))
-                                .cornerRadius(10)
+                            } else {
+                                //                            Text("No comments yet.")
+                                //                                .font(.caption)
+                                //                                .foregroundColor(.gray)
+                                //                                .padding(.top, 5)
                             }
                         } else {
-//                            Text("No comments yet.")
-//                                .font(.caption)
-//                                .foregroundColor(.gray)
-//                                .padding(.top, 5)
+                            //                        Text("No comments yet.")
+                            //                            .font(.caption)
+                            //                            .foregroundColor(.gray)
+                            //                            .padding(.top, 5)
                         }
-                    } else {
-//                        Text("No comments yet.")
-//                            .font(.caption)
-//                            .foregroundColor(.gray)
-//                            .padding(.top, 5)
+                        
+                        
+                        // Comment list
+                        //                                if let reviewComments = viewModel.comments[review.id] {
+                        //                                    ForEach(reviewComments) { comment in
+                        //                                        VStack(alignment: .leading, spacing: 4) {
+                        //                                            Text(comment.commenterUsername)
+                        //                                                .font(.caption)
+                        //                                                .foregroundColor(.gray)
+                        //
+                        //                                            Text(comment.commentContent)
+                        //                                                .font(.body)
+                        //                                                .foregroundColor(.black)
+                        //                                        }
+                        //                                        .padding(8)
+                        //                                        .background(Color.gray.opacity(0.15))
+                        //                                        .cornerRadius(8)
+                        //                                    }
+                        //                                } else {
+                        //                                    Text("No comments yet.")
+                        //                                        .font(.caption)
+                        //                                        .foregroundColor(.gray)
+                        //                                        .padding(.top, 5)
+                        //                                }
+                        
+                        // TextField to add a new comment
+                        //                                HStack {
+                        //                                    TextField("Add a comment...", text: $commentContent)
+                        //                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        //
+                        //                                    Button(action: {
+                        //                                        if !commentContent.isEmpty {
+                        //                                            viewModel.postComment(for: review.id, commentContent: commentContent, isBusiness: false)
+                        //                                            commentContent = "" // Clear field after posting
+                        //                                        }
+                        //                                    }) {
+                        //                                        Image(systemName: "paperplane.fill")
+                        //                                            .foregroundColor(.mainGreen)
+                        //                                    }
+                        //                                }
+                        //                                .padding(.top, 5)
+                        
+                        
                     }
-
-                                
-                                // Comment list
-//                                if let reviewComments = viewModel.comments[review.id] {
-//                                    ForEach(reviewComments) { comment in
-//                                        VStack(alignment: .leading, spacing: 4) {
-//                                            Text(comment.commenterUsername)
-//                                                .font(.caption)
-//                                                .foregroundColor(.gray)
-//                                            
-//                                            Text(comment.commentContent)
-//                                                .font(.body)
-//                                                .foregroundColor(.black)
-//                                        }
-//                                        .padding(8)
-//                                        .background(Color.gray.opacity(0.15))
-//                                        .cornerRadius(8)
-//                                    }
-//                                } else {
-//                                    Text("No comments yet.")
-//                                        .font(.caption)
-//                                        .foregroundColor(.gray)
-//                                        .padding(.top, 5)
-//                                }
-                                
-                                // TextField to add a new comment
-//                                HStack {
-//                                    TextField("Add a comment...", text: $commentContent)
-//                                        .textFieldStyle(RoundedBorderTextFieldStyle())
-//                                    
-//                                    Button(action: {
-//                                        if !commentContent.isEmpty {
-//                                            viewModel.postComment(for: review.id, commentContent: commentContent, isBusiness: false)
-//                                            commentContent = "" // Clear field after posting
-//                                        }
-//                                    }) {
-//                                        Image(systemName: "paperplane.fill")
-//                                            .foregroundColor(.mainGreen)
-//                                    }
-//                                }
-//                                .padding(.top, 5)
-                            
-                            
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    Spacer()
+                    
                 }
                 .padding()
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(10)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 2)
                 .onAppear {
                     viewModel.fetchComments(for: review.id)
                 }

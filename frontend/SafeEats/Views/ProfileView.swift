@@ -283,15 +283,19 @@ struct OtherProfileReviewCard: View {
                     // Title: "{user} reviewed {business}"
                     HStack(spacing: 0) {
                         Text("\(review.userName) reviewed ")
-                            .font(.headline)
+//                            .font(.footnote)
+                            .font(.system(size: 16, weight: .regular, design: .default))
                             .foregroundColor(.black)
+                            .fontWeight(.semibold)
                         Text(review.businessName)
-                            .font(.headline)
+                            //.font(.footnote)
+                            .font(.system(size: 16, weight: .regular, design: .default))
                             .foregroundColor(.black)
                             .lineLimit(1)
                             .truncationMode(.tail) // Ensure it doesn't wrap too soon
                         /*.frame(maxWidth: .infinity, alignment: .leading)*/ // Extend as much as possible
                             .frame(maxWidth: 200, alignment: .leading)
+                            .fontWeight(.semibold)
                     }
                     
                     // Star Rating
@@ -304,12 +308,13 @@ struct OtherProfileReviewCard: View {
                     
                     // Review Content (Highlighted in black)
                     Text(review.reviewContent)
-                        .font(.body)
+                        .font(.system(size: 16, weight: .regular, design: .default))
+//                        .font(.footnote)
                         .foregroundColor(.black)
                         .lineLimit(2)
                     
                     // Timestamp
-                    Text("Reviewed on \(formattedDate(from: review.reviewTimestamp))")
+                    Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
                         .font(.caption)
                         .foregroundColor(.gray)
                     
@@ -321,6 +326,7 @@ struct OtherProfileReviewCard: View {
             .padding()
             .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
             .frame(maxWidth: .infinity)
+            .padding(.horizontal, 2)
         }
         .buttonStyle(PlainButtonStyle())
         
