@@ -142,7 +142,7 @@ struct DetailedReviewView: View {
                 Text(isBusiness ? "Business Owner" : comment.commenterUsername)
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                    .foregroundColor(isBusiness ? .mainGreen : .primary)
+                    .foregroundColor(isBusiness ? .mainGreen.darker() : .primary)
                 Spacer()
                 
 

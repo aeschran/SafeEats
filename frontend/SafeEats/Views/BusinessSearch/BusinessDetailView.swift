@@ -410,7 +410,7 @@ struct BusinessDetailView: View {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text("Business Owner")
                                             .font(.caption)
-                                            .foregroundColor(.mainGreen)
+                                            .foregroundColor(.mainGreen.darker())
                                             .bold()
                                         
                                         Text(comment.commentContent)
@@ -659,13 +659,13 @@ struct BusinessDetailView: View {
                             ForEach(lines, id: \.self) { line in
                                 Text(line)
                                     .font(.body)
-                                    .foregroundColor(.mainGreen)
+                                    .foregroundColor(.mainGreen.darker())
                             }
                         }
                     } else {
                         Text("No business hours available.")
-                            .font(.subheadline)
-                            .foregroundColor(.mainGreen)
+                            
+                            .foregroundColor(.black)
                     }
                     
                     Spacer()
@@ -683,7 +683,7 @@ struct BusinessDetailView: View {
 
                    } else {
                        Text("No business hours available")
-                           .foregroundColor(.mainGreen)
+                           .foregroundColor(.black)
                    }
         }
     }
@@ -700,7 +700,10 @@ struct BusinessDetailView: View {
                         HStack {
                             Link(destination: url) {
                                 Image("Instagram")
+                                    .renderingMode(.template)
                                     .resizable()
+                                    .foregroundColor(Color.mainGreen)
+                                    
                                     .frame(width: 30, height: 30)
                             }
                         }
@@ -709,8 +712,11 @@ struct BusinessDetailView: View {
                         HStack {
                             Link(destination: url) {
                                 Image("Twitter")
+                                    .renderingMode(.template)
                                     .resizable()
-                                    .frame(width: 25, height: 25)
+                                    .foregroundColor(Color.mainGreen)
+                                    
+                                    .frame(width: 26, height: 26)
                             }
                         }
                     }
@@ -719,7 +725,10 @@ struct BusinessDetailView: View {
                             
                             Link(destination: url) {
                                 Image("Facebook")
+                                    .renderingMode(.template)
                                     .resizable()
+                                    .foregroundColor(Color.mainGreen)
+                                    
                                     .frame(width: 25, height: 25)
                             }
                         }

@@ -164,7 +164,9 @@ struct ClaimBusinessDetailView: View {
                         ratingsSection
                         descriptionSection
                         menuSection
+                        businessHoursSection
                         addressSection
+                        socialMediaSection
                     }
                     .padding([.bottom, .horizontal], 30)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -197,10 +199,10 @@ struct ClaimBusinessDetailView: View {
     private var reviewsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                VStack(alignment: .leading) {
                     Text("Reviews")
                         .font(.title2)
                         .fontWeight(.semibold)
+                Spacer()
                     Menu {
                         ForEach(filterOptions, id: \.self) { option in
                             Button(action: {
@@ -227,20 +229,20 @@ struct ClaimBusinessDetailView: View {
                         .frame(width: 180)
                         
                     }
-                }
-                Spacer()
-                NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
-                    viewModel.updateAverageRating(businessId: business.id)
-                    viewModel.fetchReviews(for: business.id)// Reload reviews after submission
-                    
-                }, businessId: business.id)) {
-                    Text("Write a Review")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.mainGreen)
-                        .cornerRadius(10)
-                }
+                
+                
+//                NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
+//                    viewModel.updateAverageRating(businessId: business.id)
+//                    viewModel.fetchReviews(for: business.id)// Reload reviews after submission
+//                    
+//                }, businessId: business.id)) {
+//                    Text("Write a Review")
+//                        .font(.headline)
+//                        .foregroundColor(.white)
+//                        .padding()
+//                        .background(Color.mainGreen)
+//                        .cornerRadius(10)
+//                }
             }.padding(.bottom, 20)
             ForEach(viewModel.reviews, id: \.id) { review in
                 ReviewCardView(review: review, viewModel: viewModel)
@@ -280,6 +282,17 @@ struct ClaimBusinessDetailView: View {
                         }
                     }
                     
+                    if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !review.accommodations!.isEmpty) {
+                        if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !(review.accommodations ?? []).isEmpty) {
+                            Text(formattedMealAndAccommodations(meal: review.meal, accommodations: review.accommodations))
+                                .font(.footnote)
+                                .foregroundColor(.black)
+                                .fixedSize(horizontal: false, vertical: true) // Allow wrapping
+                                .fontWeight(.light)
+                        }
+                        
+                    }
+                    
                     // Review Content
                     Text(review.reviewContent)
                         .font(.body)
@@ -305,6 +318,7 @@ struct ClaimBusinessDetailView: View {
                     }
                     .padding(.top, 3)
                     .padding(.bottom, 5)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .padding()
                 .background(Color.gray.opacity(0.1))
@@ -320,6 +334,22 @@ struct ClaimBusinessDetailView: View {
             formatter.dateStyle = .medium
             formatter.timeStyle = .short
             return formatter.string(from: date)
+        }
+        private func formattedMealAndAccommodations(meal: String?, accommodations: [Accommodation]?) -> String {
+            var parts: [String] = []
+            
+            if let meal = meal, !meal.isEmpty {
+                parts.append(meal)
+            }
+            
+            if let accommodations = accommodations, !accommodations.isEmpty {
+                let formattedAccommodations = accommodations.map { accom in
+                    accom.preferenceType == "Allergy" ? "\(accom.preference) Free" : accom.preference
+                }.joined(separator: ", ")
+                parts.append(formattedAccommodations)
+            }
+            
+            return parts.joined(separator: " | ")
         }
     }
     
@@ -476,7 +506,100 @@ struct ClaimBusinessDetailView: View {
                 }
             }
         }
+    
+    var businessHoursSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Business Hours")
+                .font(.title2)
+                .fontWeight(.semibold)
+            
+            if let hours = business.hours {
+                HStack(alignment: .top) { // <- align top because now it might be multiple lines
+                    if let display = hours.display {
+                        let lines = display.components(separatedBy: ";").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            ForEach(lines, id: \.self) { line in
+                                Text(line)
+                                    .font(.body)
+                                    .foregroundColor(.mainGreen.darker())
+                            }
+                        }
+                    } else {
+                        Text("No business hours available.")
+                            
+                            .foregroundColor(.black)
+                    }
+                    
+                    Spacer()
+                    
+                    if let isOpen = hours.open_now {
+                        Text(isOpen ? "Open now" : "Closed")
+                            .font(.subheadline)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+//                            .background(isOpen ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
+                            .foregroundColor(isOpen ? .green : .red)
+                            .cornerRadius(8)
+                    }
+                }
+
+                   } else {
+                       Text("No business hours available")
+                           .foregroundColor(.black)
+                   }
+        }
+    }
         
+    var socialMediaSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Social Media")
+                .font(.title2)
+                .fontWeight(.semibold)
+            HStack(spacing: 20) {
+                if let social = business.social_media,
+                   social.instagram != nil || social.twitter != nil || social.facebook_id != nil {
+                    if let ig = social.instagram, let url = URL(string: "https://instagram.com/\(ig)") {
+                        HStack {
+                            Link(destination: url) {
+                                Image("Instagram")
+                                    .renderingMode(.template)
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
+                                    
+                                    .foregroundColor(Color.mainGreen)
+                            }
+                        }
+                    }
+                    if let tw = social.twitter, let url = URL(string: "https://twitter.com/\(tw)") {
+                        HStack {
+                            Link(destination: url) {
+                                Image("Twitter")
+                                    .renderingMode(.template)
+                                    .resizable()
+                                    .frame(width: 26, height: 26)
+                                    .foregroundColor(Color.mainGreen)
+                            }
+                        }
+                    }
+                    if let fb = social.facebook_id, let url = URL(string: "https://facebook.com/\(fb)") {
+                        HStack {
+                            
+                            Link(destination: url) {
+                                Image("Facebook")
+                                    .renderingMode(.template)
+                                    .resizable()
+                                    .frame(width: 25, height: 25)
+                                    .foregroundColor(Color.mainGreen)
+                            }
+                        }
+                    }
+                } else {
+                    Text("No social media available.")
+                }
+            }
+        }
+    }
         func openInAppleMaps(address: String) {
             let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
             if let url = URL(string: "http://maps.apple.com/?address=\(encodedAddress)") {
