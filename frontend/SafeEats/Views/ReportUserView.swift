@@ -11,6 +11,7 @@ struct ReportUserView: View {
     let friendId: String
     let username: String
     
+    @StateObject var viewModel = NotificationsViewModel()
     @State private var selectedReason: String = ""
     @State private var descriptionText: String = ""
     @State private var showConfirmation = false
@@ -80,7 +81,8 @@ struct ReportUserView: View {
                 
                 // TODO: - implement report user
                 Button(action: {
-                    reportContent = "\(selectedReason): \(descriptionText)"
+                    viewModel.createUserReport(senderId: friendId, type: 4, content: "\(selectedReason): \(descriptionText)")
+//                    onReviewSubmitted()
                     showConfirmation = true
                 }) {
                     Text("Submit Report")

@@ -50,7 +50,7 @@ def send_user_report_email(email: str, user: str, reported_user: str, report_con
     from_email = Email("safeeats.noreply@gmail.com")
     to_email = To(email)
     subject = f"SafeEats Reported User: {reported_user}"
-    content = Content("text/plain", f"Hi {user},\n\nYour Report Has Been Submitted!\nYou reported user {reported_user} on {report_time} for:\n {report_content}")
+    content = Content("text/plain", f"Hi {user},\n\nYour Report Has Been Submitted!\nYou reported user {reported_user} on {report_time} for: {report_content}.\nYou can expect to hear a response in a week. Thank you for doing your part to keep our community safe.\n\n - The SafeEats Team")
     mail = Mail(from_email, to_email, subject, content)
     
     response = sg.send(mail)
@@ -61,7 +61,7 @@ def send_developer_report_email(user: str, user_id: str, reported_user_name: str
     from_email = Email("safeeats.noreply@gmail.com")
     to_email = To("safeeats.dev@gmail.com")
     subject = f"Report User: {reported_user_name}"
-    content = Content("text/plain", f" User {user} reported {reported_user_name} on {report_time}:\n\n Sender Id: {user_id} \n Reported User Id: {reported_user_id} \n Reason: {report_content}")
+    content = Content("text/plain", f" User {user} reported {reported_user_name} on {report_time}:\n\n Reporter ID: {user_id} \n Reported User ID: {reported_user_id} \n Reason: {report_content}")
     mail = Mail(from_email, to_email, subject, content)
     response = sg.send(mail)
     print(response.status_code, response.body, response.headers)
