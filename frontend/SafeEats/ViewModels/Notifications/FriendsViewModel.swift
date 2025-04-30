@@ -10,12 +10,15 @@ import SwiftUI
 @Observable
 class FriendsViewModel {
     var requests: [NotificationResponse] = []
+
     
     init() {
         fetchRequests()
     }
     
     func fetchRequests() {
+        
+        
         guard let url = URL(string: "http://localhost:8000/notifications/67be93f783402626a81f76da") else { return }
         
         Task {

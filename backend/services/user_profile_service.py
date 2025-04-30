@@ -77,9 +77,9 @@ class UserProfileService(BaseService):
         friend_data = await self.db.friends.find_one({"user_id": ObjectId(_id), "friend_id": ObjectId(friend_id)})
         if not friend_data:
             friend_data = await self.db.friends.find_one({"user_id": ObjectId(friend_id), "friend_id": ObjectId(_id)})
-        notifications_data = await self.db.notifications.find_one({"user_id": ObjectId(_id), "friend_id": ObjectId(friend_id)})
+        notifications_data = await self.db.notifications.find_one({"sender_id": ObjectId(_id), "recipient_id": ObjectId(friend_id), "type" : 1})
         if not notifications_data:
-            notifications_data = await self.db.notifications.find_one({"sender_id": ObjectId(friend_id), "recipient_id": ObjectId(_id)})
+            notifications_data = await self.db.notifications.find_one({"sender_id": ObjectId(friend_id), "recipient_id": ObjectId(_id), "type" : 1})
         if user:
             if friend_data:
                 if user_image:
@@ -100,10 +100,6 @@ class UserProfileService(BaseService):
                     else:
                         user = user.copy(update={"is_following": False, "image": None, "is_requested": False})
 
-                    # user = user.copy(update={"image": user_image["image"], "is_following": False})
-                # else:
-                    # print("4")
-                    # user = user.copy(update={"is_following": False, "image": None})
             return user
         return None
 

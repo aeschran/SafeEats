@@ -211,6 +211,44 @@ class NotificationsViewModel: ObservableObject {
         }
     }
     
+    func createUserReport(senderId: String, type: Int, content: String) {
+        guard let id = id_ else {
+            print("Error: User data is not available")
+                return
+        
+        }
+        
+        let requestBody: [String: Any] = [
+            "sender_id": senderId,
+            "recipient_id": id,
+            "type": type,
+            "content": content,
+            "timestamp": Date().timeIntervalSince1970
+        ]
+        
+        let url = URL(string: "\(baseURL)/notifications/create/report")!
+        
+        Task {
+                do {
+                    let requestData = try JSONSerialization.data(withJSONObject: requestBody)
+                    var request = URLRequest(url: url)
+                    request.httpMethod = "POST"
+                    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                    request.httpBody = requestData
+                    
+                    let (_, response) = try await URLSession.shared.data(for: request)
+                    
+                    if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+                        print("SUCCESS notification created: \(response)")
+                    } else {
+                        print("Failed to send notification: \(response)")
+                    }
+                } catch {
+                    print("Error sending notification: \(error.localizedDescription)")
+                }
+            }
+    }
+    
     //    func respondToRequest(notificationId: String, accept: Bool) {
     //        guard let url = URL(string: "\(baseURL)/notifications/\(notificationId)/response") else { return }
     //        
