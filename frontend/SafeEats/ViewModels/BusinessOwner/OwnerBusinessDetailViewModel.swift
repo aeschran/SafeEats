@@ -24,6 +24,7 @@ class OwnerBusinessDetailViewModel: ObservableObject {
     ]
     
     private let baseURL = "http://127.0.0.1:8000"
+    @Published var business: Business?
 
     func addPreferencesToBusiness(businessID: String) async {
         guard let url = URL(string: "\(baseURL)/businesses/\(businessID)/addPreferences") else { return }
@@ -77,5 +78,24 @@ class OwnerBusinessDetailViewModel: ObservableObject {
                 print("Server Response: \(httpResponse.statusCode)")
             }
         }.resume()
+    }
+    
+    func getBusinessInformation(businessId: String) async {
+        guard let url = URL(string: "\(baseURL)/business_search/get/\(businessId)") else { return }
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            if let jsonString = String(data: data, encoding: .utf8) {
+                
+            }
+            let decodedBusiness = try JSONDecoder().decode(Business.self, from: data)
+
+            DispatchQueue.main.async {
+                self.business = decodedBusiness
+            }
+
+        } catch {
+            print("Failed to fetch business information: \(error.localizedDescription)")
+        }
     }
 }
