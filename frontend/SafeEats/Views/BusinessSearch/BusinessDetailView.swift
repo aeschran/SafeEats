@@ -433,7 +433,7 @@ struct BusinessDetailView: View {
                         
                         
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(alignment: .leading)
                     Spacer()
                     
 
@@ -662,23 +662,24 @@ struct BusinessDetailView: View {
                                     .foregroundColor(.mainGreen)
                             }
                         }
+                        Spacer()
+                        
+                        if let isOpen = hours.open_now {
+                            Text(isOpen ? "Open now" : "Closed")
+                                .font(.subheadline)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+    //                            .background(isOpen ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
+                                .foregroundColor(isOpen ? .green : .red)
+                                .cornerRadius(8)
+                        }
                     } else {
                         Text("No business hours available.")
                             .font(.subheadline)
                             .foregroundColor(.mainGreen)
                     }
                     
-                    Spacer()
                     
-                    if let isOpen = hours.open_now {
-                        Text(isOpen ? "Open now" : "Closed")
-                            .font(.subheadline)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-//                            .background(isOpen ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
-                            .foregroundColor(isOpen ? .green : .red)
-                            .cornerRadius(8)
-                    }
                 }
 
                    } else {

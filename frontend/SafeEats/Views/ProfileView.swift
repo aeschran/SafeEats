@@ -88,8 +88,7 @@ struct ProfileView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.vertical, 4)
                     
-                    HStack{
-                        
+                    HStack {
                         if viewModel.isFollowing {
                             Button(action: {
                                 showUnfollowAlert = true
@@ -108,42 +107,40 @@ struct ProfileView: View {
                                     title: Text("Unfollow"),
                                     message: Text("Are you sure you want to unfollow?"),
                                     primaryButton: .destructive(Text("Yes")) {
-                                        Task {
-                                            await viewModel.unfollowFriend()
-                                        }
+                                        Task { await viewModel.unfollowFriend() }
                                     },
                                     secondaryButton: .cancel()
                                 )
                             }
-                            
-                        } else if viewModel.isRequested {
+
+                        } else if viewModel.isRequested || didTap {
+                            // Disabled "Requested" state
                             Text("Requested")
-                                .foregroundColor(Color.black)
+                                .foregroundColor(.black)
                                 .padding()
                                 .font(.footnote)
                                 .fontWeight(.semibold)
-                                .frame(width:400, height: 34)
+                                .frame(width: 400, height: 34)
                                 .background(Color.mainGray)
                                 .cornerRadius(6)
+
                         } else {
                             Button(action: {
                                 didTap = true
-                                Task {
-                                    await viewModel.sendFriendRequest()
-                                }
-                                
+                                Task { await viewModel.sendFriendRequest() }
                             }) {
-                                Text(didTap ? "Requested" : "Follow")
-                                    .foregroundColor(didTap ? Color.black : Color.black)
+                                Text("Follow")
+                                    .foregroundColor(.black)
                                     .padding()
                                     .font(.footnote)
                                     .fontWeight(.semibold)
-                                    .frame(width:400, height: 34)
-                                    .background(didTap ? Color.mainGray : Color.mainGreen)
+                                    .frame(width: 400, height: 34)
+                                    .background(Color.mainGreen)
                                     .cornerRadius(6)
                             }
                         }
                     }
+
                     HStack {
                         Text("Reviews")
                             .font(.footnote)

@@ -182,32 +182,7 @@ struct AuthView: View {
                     }
                     
                     
-                    BottomView(authType: $authType)
-                        .onAppear {
-                            navigateToCreateProfile = false
-                            navigateToLanding = false
-                            
-                        }
-                        .navigationDestination(isPresented: $navigateToCreateProfile) {
-                            if navigateToCreateProfile { // Ensure it only goes to CreateProfile if isCreated is false
-                                CreateProfileView().navigationBarBackButtonHidden(true)
-                            } else {
-                                LandingPage().navigationBarBackButtonHidden(true)
-                            }
-                        }
-                    /*
-                     
-                     .navigationDestination(isPresented: $navigateToCreateProfile) {
-                     CreateProfileView().navigationBarBackButtonHidden(true)
-                     }
-                     .navigationDestination(isPresented: $navigateToLanding) {
-                     LandingPage().navigationBarBackButtonHidden(true)
-                     }
-                     */
-                    //
-                    //                        .navigationDestination(isPresented: $navigateToLanding) {
-                    //                            LandingPage().navigationBarBackButtonHidden(true)
-                    //                        }
+                    
                     if (authType == .login) {
                         Button {
                             resetPassword = true
@@ -408,34 +383,7 @@ struct SegmentedView: View {
     }
 }
 
-struct BottomView: View {
-    @Binding var authType: AuthType
-    
-    var body: some View {
-        HStack(spacing: 3) {
-            Text(authType == .login ? "Don't have an account?" : "Already have an account?")
-                .font(.system(size: 15, weight: .medium))
-            
-            Button {
-                if authType == .login {
-                    withAnimation {
-                        authType = .register
-                    }
-                }
-                else {
-                    withAnimation {
-                        authType = .login
-                    }
-                }
-            } label: {
-                Text(authType == .login ? "Register" : "Login")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(.blue)
-            }
-            
-        }
-    }
-}
+
 
 
 
