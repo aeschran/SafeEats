@@ -427,59 +427,16 @@ struct BusinessDetailView: View {
                                 //                                .foregroundColor(.gray)
                                 //                                .padding(.top, 5)
                             }
-                        } else {
-                            //                        Text("No comments yet.")
-                            //                            .font(.caption)
-                            //                            .foregroundColor(.gray)
-                            //                            .padding(.top, 5)
-                        }
+
+                        } 
                         
-                        
-                        // Comment list
-                        //                                if let reviewComments = viewModel.comments[review.id] {
-                        //                                    ForEach(reviewComments) { comment in
-                        //                                        VStack(alignment: .leading, spacing: 4) {
-                        //                                            Text(comment.commenterUsername)
-                        //                                                .font(.caption)
-                        //                                                .foregroundColor(.gray)
-                        //
-                        //                                            Text(comment.commentContent)
-                        //                                                .font(.body)
-                        //                                                .foregroundColor(.black)
-                        //                                        }
-                        //                                        .padding(8)
-                        //                                        .background(Color.gray.opacity(0.15))
-                        //                                        .cornerRadius(8)
-                        //                                    }
-                        //                                } else {
-                        //                                    Text("No comments yet.")
-                        //                                        .font(.caption)
-                        //                                        .foregroundColor(.gray)
-                        //                                        .padding(.top, 5)
-                        //                                }
-                        
-                        // TextField to add a new comment
-                        //                                HStack {
-                        //                                    TextField("Add a comment...", text: $commentContent)
-                        //                                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        //
-                        //                                    Button(action: {
-                        //                                        if !commentContent.isEmpty {
-                        //                                            viewModel.postComment(for: review.id, commentContent: commentContent, isBusiness: false)
-                        //                                            commentContent = "" // Clear field after posting
-                        //                                        }
-                        //                                    }) {
-                        //                                        Image(systemName: "paperplane.fill")
-                        //                                            .foregroundColor(.mainGreen)
-                        //                                    }
-                        //                                }
-                        //                                .padding(.top, 5)
                         
                         
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     Spacer()
                     
+
                 }
                 .padding()
                 .background(Color.gray.opacity(0.1))
@@ -489,6 +446,7 @@ struct BusinessDetailView: View {
                 .onAppear {
                     viewModel.fetchComments(for: review.id)
                 }
+                .frame(maxWidth: .infinity)
             }
             .buttonStyle(PlainButtonStyle())
         }

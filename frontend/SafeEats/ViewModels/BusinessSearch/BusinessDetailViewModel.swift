@@ -205,6 +205,33 @@ class BusinessDetailViewModel: ObservableObject {
             print("Error encoding comment data:", error)
         }
     }
+    
+    func postBusinessReply(to reviewId: String, content: String, ownerId: String) {
+        guard let url = URL(string: "\(baseURL)/comment/create") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "review_id": reviewId,
+            "commenter_id": ownerId,
+            "is_business": true,
+            "comment_content": content
+        ]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body)
+            URLSession.shared.dataTask(with: request) { _, _, _ in
+                DispatchQueue.main.async {
+                    self.fetchComments(for: reviewId)
+                }
+            }.resume()
+        } catch {
+            print("Error posting reply: \(error)")
+        }
+    }
+
 
     
     
