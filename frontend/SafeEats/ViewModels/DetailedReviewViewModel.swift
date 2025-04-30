@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import UIKit
+import SwiftUI
 
 
 struct DetailedReview: Identifiable, Codable {
@@ -24,6 +25,7 @@ struct DetailedReview: Identifiable, Codable {
     var reviewImage: String?
     let meal: String?
     let accommodations: [Accommodation]?
+    
     
     enum CodingKeys: String, CodingKey {
         case id = "_id"  // Maps JSON "review_id" to Swift "id"
@@ -51,7 +53,7 @@ struct DetailedReview: Identifiable, Codable {
 class DetailedReviewViewModel: ObservableObject {
     @Published var review: DetailedReview?
     @Published var comments: [Comment] = []
-    
+    @AppStorage("id") var id_: String?
     private let baseURL = "http://127.0.0.1:8000"
     
     func fetchDetailedReview(reviewID: String) {
@@ -144,5 +146,26 @@ class DetailedReviewViewModel: ObservableObject {
             print("Error posting comment:", error)
         }
     }
+    
+    
+
+    func deleteComment(commentID: String, isBusiness: Bool) async {
+        guard let id = UserDefaults.standard.string(forKey: "id") else { return }
+        guard let url = URL(string: "\(baseURL)/comment/\(commentID)?user_id=\(id)&is_business=\(isBusiness)") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse {
+                print("Delete status: \(httpResponse.statusCode)")
+            }
+        } catch {
+            print("Error deleting comment:", error)
+        }
+    }
+
 
 }

@@ -177,6 +177,7 @@ struct OwnerBusinessDetailView: View {
                     await viewModel.fetchBusinessData(businessID: business.id)
                 }
                 .padding(.top, 5)
+                
             }
         }
     }
@@ -224,50 +225,210 @@ struct OwnerBusinessDetailView: View {
     struct ReviewCardView: View {
         let review: Review
         @ObservedObject var viewModel: BusinessDetailViewModel
-        @State private var userVote: Int? = nil
+        @AppStorage("id") var businessOwnerId: String?  // Your owner ID
+        @State private var newReply: String = ""
+        
+        // --- Report Sheet State ---
+        @State private var showReportSheet = false
+        @State private var selectedReasons: Set<String> = []
+        @State private var otherReason: String = ""
+        @AppStorage("username") private var currentUsername: String = ""
 
+        @State private var commentContent: String = ""
+
+        
         var body: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text("\(review.userName) ")
-                        .font(.headline)
+            NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
+                VStack(alignment: .leading, spacing: 8) {
+                    // Username + Date
+                    HStack {
+                        Text("\(review.userName) ")
+                            .font(.headline)
+                            .foregroundColor(.black)
+                        
+                        Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    
+                    // Star Rating
+                    HStack(spacing: 2) {
+                        ForEach(0..<5, id: \.self) { index in
+                            Image(systemName: index < review.rating ? "star.fill" : "star")
+                                .foregroundColor(index < review.rating ? .yellow : .gray)
+                        }
+                        
+                        if (currentUsername != review.userName) {
+                            Button(action: { showReportSheet = true }) {
+                                Image(systemName: "exclamationmark.bubble.fill")
+                                    .foregroundColor(Color.customLightRed)
+                                    .font(.headline)
+                            }
+                            .sheet(isPresented: $showReportSheet) {
+                                VStack(alignment: .leading, spacing: 16) {
+                                    Text("Report Review")
+                                        .font(.title2)
+                                        .bold()
+                                    Text("Select reasons for reporting:")
+                                    
+                                    ForEach(["Inappropriate", "Spam", "Off-topic", "Harassment"], id: \.self) { reason in
+                                        Button(action: {
+                                            if selectedReasons.contains(reason) {
+                                                selectedReasons.remove(reason)
+                                            } else {
+                                                selectedReasons.insert(reason)
+                                            }
+                                        }) {
+                                            HStack {
+                                                Image(systemName: selectedReasons.contains(reason) ? "checkmark.square.fill" : "square")
+                                                Text(reason)
+                                            }
+                                        }
+                                        .foregroundColor(.primary)
+                                    }
+                                    
+                                    TextField("Other (optional)", text: $otherReason)
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    
+                                    HStack {
+                                        Button("Cancel") {
+                                            showReportSheet = false
+                                        }
+                                        Spacer()
+                                        Button("Submit") {
+                                            var message = selectedReasons.joined(separator: ", ")
+                                            if !otherReason.isEmpty {
+                                                message += (message.isEmpty ? "" : ", ") + otherReason
+                                            }
+                                            
+                                            Task {
+                                                let userName = UserDefaults.standard.string(forKey: "username") ?? "Anonymous"
+                                                await viewModel.reportReview(userName: userName, reviewId: review.id, message: message)
+                                            }
+                                            showReportSheet = false
+                                        }
+                                    }
+                                    .padding(.top, 10)
+                                }
+                                .padding()
+                            }
+                        }
+                    }
+                    if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !review.accommodations!.isEmpty) {
+                        if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !(review.accommodations ?? []).isEmpty) {
+                            Text(formattedMealAndAccommodations(meal: review.meal, accommodations: review.accommodations))
+                                .font(.footnote)
+                                .foregroundColor(.black)
+                                .fixedSize(horizontal: false, vertical: true) // Allow wrapping
+                                .fontWeight(.light)
+                        }
+                        
+                    }
+                    
+                    
+                    // Review Content
+                    Text(review.reviewContent)
+                        .font(.body)
                         .foregroundColor(.black)
-                    Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
-
-                HStack(spacing: 2) {
-                    ForEach(0..<5, id: \.self) { index in
-                        Image(systemName: index < review.rating ? "star.fill" : "star")
-                            .foregroundColor(index < review.rating ? .yellow : .gray)
+                        .lineLimit(2)
+                    
+                    // Upvote / Downvote
+                    HStack {
+                        Button(action: { viewModel.upvoteReview(review.id) }) {
+                            Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
+                                .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
+                                .font(.headline)
+                        }
+                        
+                        Text("\(review.upvotes - review.downvotes)")
+                            .font(.subheadline)
+                        
+                        Button(action: { viewModel.downvoteReview(review.id) }) {
+                            Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
+                                .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
+                                .font(.headline)
+                        }
+                    }
+                    .padding(.top, 3)
+                    .padding(.bottom, 5)
+                    if let reviewComments = viewModel.comments[review.id] {
+                        // Filter only business comments
+                        
+                        let businessComments = reviewComments.filter { $0.isBusiness }
+                        
+                        if !businessComments.isEmpty {
+                            Divider()
+                            
+                            ForEach(businessComments) { comment in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Business Owner")
+                                        .font(.caption)
+                                        .foregroundColor(.mainGreen)
+                                        .bold()
+                                    
+                                    Text(comment.commentContent)
+                                        .font(.body)
+                                        .foregroundColor(.black)
+                                }
+                                .padding(10)
+                                .background(Color.mainGreen.opacity(0.15))
+                                .cornerRadius(10)
+                            }
+                        }
+                    }
+                    
+                    if let ownerId = businessOwnerId {
+                        HStack {
+                            TextField("Reply to this review...", text: $newReply)
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                            Button(action: {
+                                viewModel.postBusinessReply(to: review.id, content: newReply, ownerId: ownerId)
+                                newReply = ""
+                            }) {
+                                Image(systemName: "paperplane.fill")
+                                    .foregroundColor(.mainGreen)
+                            }
+                        }
+                        .padding(.top, 4)
                     }
                 }
-
-                Text(review.reviewContent)
-                    .font(.body)
-                    .foregroundColor(.black)
-                    .lineLimit(2)
-                HStack {
-                    Text("votes: \(review.upvotes - review.downvotes)")
-                        .font(.subheadline)
+                .padding()
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(10)
+                .onAppear {
+                    viewModel.fetchComments(for: review.id)
                 }
-                .padding(.top, 3)
-                .padding(.bottom, 5)
             }
-            .padding()
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(10)
+            .buttonStyle(PlainButtonStyle())
         }
-
-        private func formattedDate(from timestamp: Double) -> String {
-            let date = Date(timeIntervalSince1970: timestamp)
-            let formatter = DateFormatter()
-            formatter.dateStyle = .medium
-            formatter.timeStyle = .short
-            return formatter.string(from: date)
-        }
+            
+            // Helper function for date formatting
+            private func formattedDate(from timestamp: Double) -> String {
+                let date = Date(timeIntervalSince1970: timestamp)
+                let formatter = DateFormatter()
+                formatter.dateStyle = .medium
+                formatter.timeStyle = .short
+                return formatter.string(from: date)
+            }
+            private func formattedMealAndAccommodations(meal: String?, accommodations: [Accommodation]?) -> String {
+                var parts: [String] = []
+                
+                if let meal = meal, !meal.isEmpty {
+                    parts.append(meal)
+                }
+                
+                if let accommodations = accommodations, !accommodations.isEmpty {
+                    let formattedAccommodations = accommodations.map { accom in
+                        accom.preferenceType == "Allergy" ? "\(accom.preference) Free" : accom.preference
+                    }.joined(separator: ", ")
+                    parts.append(formattedAccommodations)
+                }
+                
+                return parts.joined(separator: " | ")
+            }
+        
     }
+
     
     var buttonSection: some View {
         HStack(spacing: 10) {
