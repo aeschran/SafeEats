@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct OwnerBusinessDetailView: View {
-    let business: Business
+//    let business: Business
+    @State var business: Business
     @State private var showMapAlert = false
     @State private var showingCallConfirmation = false
     @State private var upvoteCount: Int = 10
@@ -20,6 +21,7 @@ struct OwnerBusinessDetailView: View {
     @State private var showDropdown: Bool = false
     @State private var showPreferencePicker: Bool = false
     @State private var showEditListingSheet = false
+
 
     let filterOptions: [String] = ["Most Recent", "Least Recent", "Highest Rating", "Lowest Rating", "Most Popular", "Least Popular"]
     let dietaryPreferences: [String] = ["Halal", "Kosher", "Vegetarian", "Vegan"]
@@ -365,7 +367,18 @@ struct OwnerBusinessDetailView: View {
                     .cornerRadius(10)
             }
             .sheet(isPresented: $showEditListingSheet) {
-                EditListingView(businessId: business.id, viewModel: ownerViewModel)
+                EditListingView(
+                    businessId: business.id,
+                    viewModel: ownerViewModel,
+                    onSave: {
+                        Task {
+                            await ownerViewModel.getBusinessInformation(businessId: business.id)
+                            if let updated = ownerViewModel.business {
+                                business = updated
+                            }
+                        }
+                    }
+                )
             }
         }
     }
@@ -460,36 +473,44 @@ struct OwnerBusinessDetailView: View {
             Text("Social Media")
                 .font(.title2)
                 .fontWeight(.semibold)
-            if let social = business.social_media,
-               social.instagram != nil || social.twitter != nil || social.facebook_id != nil {
-                if let ig = social.instagram, let url = URL(string: "https://instagram.com/\(ig)") {
-                    HStack {
-                        Image("Instagram")
-                            .resizable()
-                            .frame(width: 25, height: 25)
-                        Link(destination: url) {
-                            Text("@\(ig)")
-                                .foregroundColor(.mainGreen.darker())
+            HStack(spacing: 20) {
+                if let social = business.social_media,
+                   social.instagram != nil || social.twitter != nil || social.facebook_id != nil {
+                    if let ig = social.instagram, let url = URL(string: "https://instagram.com/\(ig)") {
+                        HStack {
+                            Link(destination: url) {
+                                Image("Instagram")
+                                    .resizable()
+                                    .frame(width: 30, height: 30)
+                            }
                         }
                     }
-                }
-                if let tw = social.twitter, let url = URL(string: "https://twitter.com/\(tw)") {
-                    HStack {
-                        Image("Twitter")
-                            .resizable()
-                            .frame(width: 25, height: 25)
-                        Link(destination: url) {
-                            Text("@\(tw)")
-                                .foregroundColor(.mainGreen.darker())
+                    if let tw = social.twitter, let url = URL(string: "https://twitter.com/\(tw)") {
+                        HStack {
+                            Link(destination: url) {
+                                Image("Twitter")
+                                    .resizable()
+                                    .frame(width: 25, height: 25)
+                            }
                         }
                     }
+                    if let fb = social.facebook_id, let url = URL(string: "https://facebook.com/\(fb)") {
+                        HStack {
+                            
+                            Link(destination: url) {
+                                Image("Facebook")
+                                    .resizable()
+                                    .frame(width: 25, height: 25)
+                            }
+                        }
+                    }
+                } else {
+                    Text("No social media available.")
                 }
-            } else {
-                Text("No social media available.")
             }
         }
     }
-
+    
     func openInAppleMaps(address: String) {
         let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
         if let url = URL(string: "http://maps.apple.com/?address=\(encodedAddress)") {

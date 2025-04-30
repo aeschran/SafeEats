@@ -20,6 +20,7 @@ struct EditListingView: View {
     @Environment(\.presentationMode) var presentationMode
     
     @State private var showSuccessMessage = false
+    var onSave: (() -> Void)? = nil
     
     private let fieldWidth: CGFloat = 265
     
@@ -69,7 +70,7 @@ struct EditListingView: View {
                     .padding(.top, 20)
                     .alert("Listing updated successfully!", isPresented: $showSuccessMessage) {
                         Button("OK") {
-                            
+                            onSave?()
                             presentationMode.wrappedValue.dismiss() // Navigate back to OwnerListingsView
                         }
                     }
