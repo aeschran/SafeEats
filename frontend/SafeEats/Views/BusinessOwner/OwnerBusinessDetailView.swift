@@ -155,6 +155,7 @@ struct OwnerBusinessDetailView: View {
                         ratingsSection
                         descriptionSection
                         menuSection
+                        businessHoursSection
                         addressSection
                         socialMediaSection
                     }
@@ -336,20 +337,20 @@ struct OwnerBusinessDetailView: View {
                     
                     // Upvote / Downvote
                     HStack {
-                        Button(action: { viewModel.upvoteReview(review.id) }) {
-                            Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
-                                .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
-                                .font(.headline)
-                        }
+//                        Button(action: { viewModel.upvoteReview(review.id) }) {
+//                            Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
+//                                .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
+//                                .font(.headline)
+//                        }
                         
-                        Text("\(review.upvotes - review.downvotes)")
+                        Text("votes: \(review.upvotes - review.downvotes)")
                             .font(.subheadline)
                         
-                        Button(action: { viewModel.downvoteReview(review.id) }) {
-                            Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
-                                .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
-                                .font(.headline)
-                        }
+//                        Button(action: { viewModel.downvoteReview(review.id) }) {
+//                            Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
+//                                .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
+//                                .font(.headline)
+//                        }
                     }
                     .padding(.top, 3)
                     .padding(.bottom, 5)
@@ -365,7 +366,7 @@ struct OwnerBusinessDetailView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Business Owner")
                                         .font(.caption)
-                                        .foregroundColor(.mainGreen)
+                                        .foregroundColor(.mainGreen.darker())
                                         .bold()
                                     
                                     Text(comment.commentContent)
@@ -393,7 +394,9 @@ struct OwnerBusinessDetailView: View {
                         }
                         .padding(.top, 4)
                     }
+                    
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding()
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(10)
@@ -629,6 +632,50 @@ struct OwnerBusinessDetailView: View {
         }
     }
     
+    var businessHoursSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Business Hours")
+                .font(.title2)
+                .fontWeight(.semibold)
+            
+            if let hours = business.hours {
+                HStack(alignment: .top) { // <- align top because now it might be multiple lines
+                    if let display = hours.display {
+                        let lines = display.components(separatedBy: ";").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            ForEach(lines, id: \.self) { line in
+                                Text(line)
+                                    .font(.body)
+                                    .foregroundColor(.mainGreen.darker())
+                            }
+                        }
+                    } else {
+                        Text("No business hours available.")
+                            
+                            .foregroundColor(.black)
+                    }
+                    
+                    Spacer()
+                    
+                    if let isOpen = hours.open_now {
+                        Text(isOpen ? "Open now" : "Closed")
+                            .font(.subheadline)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+//                            .background(isOpen ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
+                            .foregroundColor(isOpen ? .green : .red)
+                            .cornerRadius(8)
+                    }
+                }
+
+                   } else {
+                       Text("No business hours available")
+                           .foregroundColor(.black)
+                   }
+        }
+    }
+    
     var socialMediaSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Social Media")
@@ -641,8 +688,11 @@ struct OwnerBusinessDetailView: View {
                         HStack {
                             Link(destination: url) {
                                 Image("Instagram")
+                                    .renderingMode(.template)
                                     .resizable()
                                     .frame(width: 30, height: 30)
+                                    
+                                    .foregroundColor(Color.mainGreen)
                             }
                         }
                     }
@@ -650,8 +700,11 @@ struct OwnerBusinessDetailView: View {
                         HStack {
                             Link(destination: url) {
                                 Image("Twitter")
+                                    .renderingMode(.template)
                                     .resizable()
-                                    .frame(width: 25, height: 25)
+                                    .foregroundColor(Color.mainGreen)
+                                    
+                                    .frame(width: 26, height: 26)
                             }
                         }
                     }
@@ -660,7 +713,10 @@ struct OwnerBusinessDetailView: View {
                             
                             Link(destination: url) {
                                 Image("Facebook")
+                                    .renderingMode(.template)
                                     .resizable()
+                                    .foregroundColor(Color.mainGreen)
+                                    
                                     .frame(width: 25, height: 25)
                             }
                         }
