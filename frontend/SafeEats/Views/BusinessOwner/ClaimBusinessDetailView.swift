@@ -174,7 +174,6 @@ struct ClaimBusinessDetailView: View {
                     //                Spacer()
                 }
                 .onAppear {
-                    viewModel.fetchReviews(for: business.id)
                     if let data = UserDefaults.standard.data(forKey: "collections") {
                         let decoder = JSONDecoder()
                         if let loadedCollections = try? decoder.decode([Collection].self, from: data) {
@@ -188,6 +187,7 @@ struct ClaimBusinessDetailView: View {
                 }
                 .task {
                     await viewModel.fetchBusinessData(businessID: business.id)
+                    await viewModel.fetchReviews(for: business.id)
                 }
                 .padding(.top, 5)
             }
@@ -230,8 +230,10 @@ struct ClaimBusinessDetailView: View {
                 }
                 Spacer()
                 NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
-                    viewModel.updateAverageRating(businessId: business.id)
-                    viewModel.fetchReviews(for: business.id)// Reload reviews after submission
+                    Task {
+                        viewModel.updateAverageRating(businessId: business.id)
+                        await viewModel.fetchReviews(for: business.id)// Reload reviews after submission
+                    }
                     
                 }, businessId: business.id)) {
                     Text("Write a Review")

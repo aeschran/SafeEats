@@ -173,6 +173,13 @@ struct DetailedReviewView: View {
                                         Text(comment.commenterUsername)
                                             .font(.subheadline)
                                             .bold()
+                                        if (comment.isTrusted) {
+                                            Text(" Trusted Reviewer")
+                                                .font(.footnote)
+                                                .fontWeight(.semibold)
+                                                .italic(true)
+                                                .foregroundColor(.mainGreen)
+                                        }
                                         Spacer()
                                         Text(formattedDate(from: comment.commentTimestamp))
                                             .font(.caption2)

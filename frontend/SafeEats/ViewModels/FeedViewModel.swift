@@ -38,7 +38,7 @@ struct FriendReview: Identifiable, Codable {
     }
 }
 
-struct Accommodation: Codable {
+struct Accommodation: Codable, Hashable {
     let preferenceType: String
     let preference: String
 

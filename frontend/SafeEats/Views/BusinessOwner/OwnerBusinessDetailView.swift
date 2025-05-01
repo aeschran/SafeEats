@@ -162,7 +162,7 @@ struct OwnerBusinessDetailView: View {
                     reviewsSection
                 }
                 .onAppear {
-                    viewModel.fetchReviews(for: business.id)
+                    
                     business.dietary_restrictions?.forEach { restriction in
                         if restriction.preference_type == "Dietary Restriction" {
                             ownerViewModel.dietPref.append(restriction.preference)
@@ -175,6 +175,7 @@ struct OwnerBusinessDetailView: View {
                 }
                 .task {
                     await viewModel.fetchBusinessData(businessID: business.id)
+                    await viewModel.fetchReviews(for: business.id)
                 }
                 .padding(.top, 5)
             }

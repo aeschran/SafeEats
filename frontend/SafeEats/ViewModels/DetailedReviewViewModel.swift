@@ -114,6 +114,9 @@ class DetailedReviewViewModel: ObservableObject {
             
             do {
                 let (data, _) = try await URLSession.shared.data(from: url)
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("line 118: ", jsonString)
+                }
                 let decodedComments = try JSONDecoder().decode([Comment].self, from: data)
                 DispatchQueue.main.async {
                     self.comments = decodedComments.sorted { $0.commentTimestamp > $1.commentTimestamp }

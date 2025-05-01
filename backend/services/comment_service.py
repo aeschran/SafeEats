@@ -28,11 +28,15 @@ class CommentService(BaseService):
                         status_code=403,
                         detail="Business owner can only comment on reviews for businesses they own."
                     )
+            user = await self.db.users.find_one({"_id": ObjectId(comment_create.commenter_id)})
+            if not user:
+                raise HTTPException(status_code=404, detail="Commenter not found.")
 
             comment = Comment(
                 review_id=ObjectId(comment_create.review_id),
                 commenter_id=ObjectId(comment_create.commenter_id),
                 is_business=comment_create.is_business,
+                is_trusted=user["trusted_reviewer"] if "trusted_reviewer" in user else False,
                 comment_content=comment_create.comment_content,
             )
 
@@ -58,6 +62,7 @@ class CommentService(BaseService):
                     comment["review_id"] = str(comment["review_id"])
                     comment["commenter_id"] = str(comment["commenter_id"])
                     comment["commenter_username"] = name
+                    comment["is_trusted"] = False
                     print(comment)
                     business_comments.append(comment)
                 else:
@@ -67,6 +72,7 @@ class CommentService(BaseService):
                     comment["review_id"] = str(comment["review_id"])
                     comment["commenter_id"] = str(comment["commenter_id"])
                     comment["commenter_username"] = name
+                    comment["is_trusted"] = user.get("trusted_reviewer", False)
                     print(comment)
                     comments.append(comment)
             return business_comments + comments

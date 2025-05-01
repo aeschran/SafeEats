@@ -25,6 +25,8 @@ struct BusinessDetailView: View {
     
     @State var bookmarked: Bool = false
     @State var collectionID: String? = nil
+    @State var selectedFilters: [Accommodation: Bool] = [:]
+    @State var presentedReviews: [Review] = []
     
     func collectionsExcludingBusiness() -> [Collection] {
         for collection in $collections {
@@ -41,9 +43,40 @@ struct BusinessDetailView: View {
     //    let businessId = business.id
     @State private var selectedFilter: String = "Most Recent"
     @State private var showDropdown: Bool = false
+    @State private var selectedPrefs: [String] = []
     //    @Published var reviews: [Review] = []
     
     let filterOptions: [String] = ["Most Recent", "Least Recent", "Highest Rating", "Lowest Rating", "Most Popular", "Least Popular"]
+    
+    let dietPrefs: [String] = ["Peanut", "Dairy", "Gluten", "Shellfish", "Vegan", "Vegetarian", "Halal", "Kosher"]
+    
+    func getPreferenceName(accommodation: Accommodation) -> String {
+        return accommodation.preference
+    }
+    
+    func updatePrefsAndFilter(prefs: [String]) {
+        if (prefs.isEmpty) {
+            print(viewModel.reviews)
+            presentedReviews = viewModel.reviews
+            return
+        }
+        presentedReviews = viewModel.reviews.filter { review in
+            Set(prefs).isSubset(of: Set(review.accommodations?.map { accommodation in getPreferenceName(accommodation: accommodation)} ?? []))
+        }
+    }
+    
+//    func updatePrefsAndFilterAcc(prefs: [Accommodation]) {
+//        var newPrefs: [String] = []
+//        print("before for loop: ", prefs)
+//        for (_, accommodation) in prefs.enumerated() {
+//            newPrefs.append(accommodation.preference)
+//        }
+//        selectedPrefs = newPrefs
+//        print(selectedPrefs)
+//        presentedReviews = viewModel.reviews.filter { review in
+//            Set(prefs.map(\.self)).isSubset(of: Set(review.accommodations?.map(\.self) ?? []))
+//        }
+//    }
     
     var body: some View {
         NavigationStack {
@@ -168,10 +201,10 @@ struct BusinessDetailView: View {
                         addressSection
                         socialMediaSection
                         
-            
-                    NavigationLink(
-                                destination: BusinessSuggestionView(business: business))
-                    {
+                        
+                        NavigationLink(
+                            destination: BusinessSuggestionView(business: business))
+                        {
                             Text("Make a Suggestion")
                                 .font(.headline)
                                 .foregroundColor(.white)
@@ -191,7 +224,6 @@ struct BusinessDetailView: View {
                     //                Spacer()
                 }
                 .onAppear {
-                    viewModel.fetchReviews(for: business.id)
                     if let data = UserDefaults.standard.data(forKey: "collections") {
                         let decoder = JSONDecoder()
                         if let loadedCollections = try? decoder.decode([Collection].self, from: data) {
@@ -205,6 +237,12 @@ struct BusinessDetailView: View {
                 }
                 .task {
                     await viewModel.fetchBusinessData(businessID: business.id)
+                    await viewModel.getUserPreferences()
+                    await viewModel.fetchReviews(for: business.id)
+                    print(viewModel.selectedPrefs)
+                    selectedPrefs = viewModel.selectedPrefs
+                    updatePrefsAndFilter(prefs: selectedPrefs)
+                    
                 }
                 .padding(.top, 5)
             }
@@ -213,57 +251,182 @@ struct BusinessDetailView: View {
     
     private var reviewsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                VStack(alignment: .leading) {
-                    Text("Reviews")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    Menu {
-                        ForEach(filterOptions, id: \.self) { option in
-                            Button(action: {
-                                selectedFilter = option
-                                viewModel.sortReviews(by: option)
-                            }) {
-                                Text(option)
-                                
-                            }
-                        }
-                    } label: {
-                        HStack {
-                            Text(selectedFilter)
-                                .font(.subheadline)
-                                .foregroundColor(.black)
-                            
-                            Image(systemName: "chevron.down")
-                                .foregroundColor(.gray)
-                        }
-                        .padding(6)
-                        .background(Color.white)
-                        .cornerRadius(6)
-                        .shadow(radius: 1)
-                        .frame(width: 180)
-                        
-                    }
+            ReviewsHeaderView(
+                dietPrefs: dietPrefs,
+                selectedPrefs: $viewModel.selectedPrefs,
+                filterOptions: filterOptions,
+                selectedFilter: $selectedFilter,
+                viewModel: viewModel,
+                updatePrefsAndFilter: { prefs in updatePrefsAndFilter(prefs: prefs) }
+            )
+            
+            WriteReviewButtonView(
+                businessId: business.id,
+                viewModel: viewModel
+            )
+            
+            if (presentedReviews.isEmpty) {
+                Text("No reviews are available.")
+                    .frame(maxWidth: .infinity, alignment: .center)
+            } else {
+                ForEach(presentedReviews, id: \.id) { review in
+                    ReviewCardView(review: review, viewModel: viewModel)
                 }
-                Spacer()
-                NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
-                    viewModel.updateAverageRating(businessId: business.id)
-                    viewModel.fetchReviews(for: business.id)// Reload reviews after submission
-                    
-                }, businessId: business.id)) {
-                    Text("Write a Review")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.mainGreen)
-                        .cornerRadius(10)
-                }
-            }.padding(.bottom, 20)
-            ForEach(viewModel.reviews, id: \.id) { review in
-                ReviewCardView(review: review, viewModel: viewModel)
+            
             }
         }
         .padding(.horizontal, 30)
+    }
+    
+    struct ReviewsHeaderView: View {
+        let dietPrefs: [String]
+        @Binding var selectedPrefs: [String]
+        let filterOptions: [String]
+        @Binding var selectedFilter: String
+        let viewModel: BusinessDetailViewModel
+        @State var showFilterPopover: Bool = false
+        let updatePrefsAndFilter: ([String]) -> Void
+        
+        var body: some View {
+            VStack(alignment: .center) {
+                Text("Reviews")
+                    .font(.title)
+                    .fontWeight(.semibold)
+
+                Spacer(minLength: 20)
+
+                HStack {
+                    FilterBySection(
+                        selectedPrefs: $selectedPrefs,
+                        showFilterPopover: $showFilterPopover,
+                        dietPrefs: dietPrefs,
+                        updatePrefsAndFilter: { prefs in
+                            updatePrefsAndFilter(prefs)
+                        }
+                    )
+
+                    Spacer(minLength: 20)
+
+                    SortBySection(
+                        selectedFilter: $selectedFilter,
+                        filterOptions: filterOptions,
+                        viewModel: viewModel
+                    )
+                }
+            }
+        }
+    }
+    
+    struct FilterBySection: View {
+        @Binding var selectedPrefs: [String]
+        @Binding var showFilterPopover: Bool
+        let dietPrefs: [String]
+        let updatePrefsAndFilter: ([String]) -> Void
+
+        var body: some View {
+            VStack {
+                Text("Filter By:")
+
+                Button {
+                    showFilterPopover = true
+                } label: {
+                    HStack {
+                        Text(displayedFilterText)
+                            .font(.subheadline)
+                            .foregroundColor(.black)
+                            .lineLimit(1)
+                        Image(systemName: "chevron.down")
+                            .foregroundColor(.gray)
+                    }
+                    .padding(6)
+                    .background(Color.white)
+                    .cornerRadius(6)
+                    .shadow(radius: 1)
+                }
+                .popover(isPresented: $showFilterPopover) {
+                    FilterPopover(
+                        options: dietPrefs,
+                        selected: $selectedPrefs,
+                        isPresented: $showFilterPopover
+                    )
+                }
+                .onChange(of: selectedPrefs) { _, _ in
+                    updatePrefsAndFilter(selectedPrefs)
+                }
+            }
+            .padding(.leading)
+        }
+
+        private var displayedFilterText: String {
+            if selectedPrefs.isEmpty {
+                return "Nothing"
+            } else if selectedPrefs.count > 3 {
+                return selectedPrefs.prefix(3).joined(separator: ", ") + "..."
+            } else {
+                return selectedPrefs.joined(separator: ", ")
+            }
+        }
+    }
+
+    struct SortBySection: View {
+        @Binding var selectedFilter: String
+        let filterOptions: [String]
+        let viewModel: BusinessDetailViewModel
+
+        var body: some View {
+            VStack {
+                Text("Sort By:")
+                Menu {
+                    ForEach(filterOptions, id: \.self) { option in
+                        Button(option) {
+                            selectedFilter = option
+                            viewModel.sortReviews(by: option)
+                        }
+                    }
+                } label: {
+                    HStack {
+                        Text(selectedFilter)
+                            .font(.subheadline)
+                            .foregroundColor(.black)
+                        Image(systemName: "chevron.down")
+                            .foregroundColor(.gray)
+                    }
+                    .padding(6)
+                    .background(Color.white)
+                    .cornerRadius(6)
+                    .shadow(radius: 1)
+                    .frame(width: 130)
+                }
+            }
+            .padding(.leading)
+        }
+    }
+
+    struct WriteReviewButtonView: View {
+        let businessId: String
+        let viewModel: BusinessDetailViewModel
+
+        var body: some View {
+            NavigationLink(destination: CreateReviewView(
+                onReviewSubmitted: {
+                    Task {
+                        viewModel.updateAverageRating(businessId: businessId)
+                        await viewModel.fetchReviews(for: businessId)
+                    }
+                    
+                },
+                businessId: businessId
+            )) {
+                Text("Write a Review")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.mainGreen)
+                    .cornerRadius(10)
+                    .padding(.top, 10)
+            }
+        }
     }
     
     
@@ -786,6 +949,68 @@ struct BusinessDetailView: View {
             }
         }
     }
+
+struct FilterPopover: View {
+    let options: [String]
+    @Binding var selected: [String]
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Select Filters")
+                .font(.headline)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(options, id: \.self) { option in
+                        Toggle(isOn: Binding(
+                            get: { selected.contains(option) },
+                            set: { isOn in
+                                if isOn {
+                                    selected.append(option)
+                                } else {
+                                    selected.remove(at: selected.firstIndex(of: option) ?? -1)
+                                }
+                            }
+                        )) {
+                            Text(option)
+                        }
+                        .toggleStyle(CheckboxToggleStyle())
+                    }
+                }
+            }
+
+            Spacer(minLength: 10)
+
+            Button("Done") {
+                isPresented = false
+            }
+            .font(.headline)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.mainGreen)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+        }
+        .padding()
+        .frame(width: 300, height: 400)
+    }
+}
+
+struct CheckboxToggleStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Button(action: {
+            configuration.isOn.toggle()
+        }) {
+            HStack {
+                Image(systemName: configuration.isOn ? "checkmark.square" : "square")
+                    .foregroundColor(configuration.isOn ? .blue : .gray)
+                configuration.label
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
     
     //extension Business {
     //    static var sampleBusiness: Business {
