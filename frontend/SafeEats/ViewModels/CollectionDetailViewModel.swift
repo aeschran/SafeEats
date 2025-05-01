@@ -16,7 +16,7 @@ class CollectionDetailViewModel: ObservableObject {
     
     @Published var business: Business?
     
-    private let baseURL = "http://127.0.0.1:8000"
+    private let baseURL = "http://localhost:8000"
     
     func getBusinessInformation(businessId: String) async {
         guard let url = URL(string: "\(baseURL)/business_search/get/\(businessId)") else { return }

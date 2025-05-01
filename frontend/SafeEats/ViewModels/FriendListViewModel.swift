@@ -11,7 +11,7 @@ import Combine
 class FriendListViewModel: ObservableObject {
     @Published var friends: [Friend] = []
     
-    private let baseURL = "http://127.0.0.1:8000"
+    private let baseURL = "http://localhost:8000"
     @AppStorage("id") var id_: String?
     
     func fetchFriends() {

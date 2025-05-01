@@ -16,8 +16,8 @@ class ClaimBusinessViewModel: ObservableObject {
     @Published var verificationMessage: String? = nil
     @Published var isVerificationSuccessful = false
     
-    private let baseURL = "http://127.0.0.1:8000/business_owners/search"
-    private let baseURL2 = "http://127.0.0.1:8000/business_owners"
+    private let baseURL = "http://localhost:8000/business_owners/search"
+    private let baseURL2 = "http://localhost:8000/business_owners"
     @AppStorage("id") var id_: String?
     
     func fetchSearchResults() {

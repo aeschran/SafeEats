@@ -30,7 +30,7 @@ class AuthViewModel: ObservableObject {
     
     
     
-    private let baseURL = "http://127.0.0.1:8000"
+    private let baseURL = "http://localhost:8000"
     
     var isValid: Bool {
         !username.isEmpty && !password.isEmpty

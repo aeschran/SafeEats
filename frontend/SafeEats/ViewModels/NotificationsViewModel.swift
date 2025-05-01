@@ -25,7 +25,7 @@ class NotificationsViewModel: ObservableObject {
 
     @AppStorage("id") var id_:String?
     
-    private let baseURL = "http://127.0.0.1:8000"  // Replace with your actual backend URL
+    private let baseURL = "http://localhost:8000"  // Replace with your actual backend URL
     
     // Fetch Notifications from the Backend
     func fetchNotifications() {

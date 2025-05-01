@@ -79,7 +79,7 @@ class ProfileViewModel: ObservableObject {
     //            }
     //        }
     
-    private let baseURL = "http://127.0.0.1:8000"
+    private let baseURL = "http://localhost:8000"
     
     // Replace with your actual backend API URL
     

@@ -42,7 +42,7 @@ class MenuService(BaseService):
         norm = self.normalize(word)
         return self.conflict_map.get(norm, set())
 
-    async def process_image(self, image_path: str, business_id: str):
+    async def process_image(self, image_path: str, business_id: str, is_official: bool):
         with open(image_path, "rb") as image_file:
             image = Image.open(image_path)
         draw = ImageDraw.Draw(image)
@@ -77,16 +77,17 @@ class MenuService(BaseService):
         result = {
             "ocr_results": ocr_results,
             "image_url": output_image_path_s3,
-            "created_at": str(datetime.datetime.now())
+            "created_at": str(datetime.datetime.now()),
+            "is_official": is_official
         }
         # Save to database
-        await self.save_to_db(ObjectId(business_id), ocr_results, output_image_path_s3, result["created_at"])
+        await self.save_to_db(ObjectId(business_id), ocr_results, output_image_path_s3, result["created_at"], is_official)
         return result
     
-    async def save_to_db(self, business_id: str, ocr_results: list[OcrResult], image_url: str, created_at: str):
+    async def save_to_db(self, business_id: str, ocr_results: list[OcrResult], image_url: str, created_at: str, is_official: bool):
         """
         Save the OCR results to the database.
         """
-        menu = Menu(business_id=ObjectId(business_id), ocr_results=ocr_results, image_url=image_url, created_at=created_at)
+        menu = Menu(business_id=ObjectId(business_id), ocr_results=ocr_results, image_url=image_url, created_at=created_at, is_official=is_official)
         result = await self.db.menu.insert_one(menu.to_dict())
         return result

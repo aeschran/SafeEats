@@ -23,7 +23,7 @@ class OwnerBusinessDetailViewModel: ObservableObject {
         "Shellfish": 0
     ]
     
-    private let baseURL = "http://127.0.0.1:8000"
+    private let baseURL = "http://localhost:8000"
 
     func addPreferencesToBusiness(businessID: String) async {
         guard let url = URL(string: "\(baseURL)/businesses/\(businessID)/addPreferences") else { return }

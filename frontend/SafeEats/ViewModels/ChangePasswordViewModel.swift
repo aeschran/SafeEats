@@ -18,7 +18,7 @@ class ChangePasswordViewModel: ObservableObject {
     @Published var errorMessage : String?
     @AppStorage("username") var username: String?
     
-    private let baseUrl = "http://127.0.0.1:8000"
+    private let baseUrl = "http://localhost:8000"
     
     
     

@@ -74,7 +74,7 @@ class BusinessDetailViewModel: ObservableObject {
     
     @Published var comments: [String: [Comment]] = [:]  // Map reviewID -> comments
     
-    private let baseURL = "http://127.0.0.1:8000"
+    private let baseURL = "http://localhost:8000"
     
     
     
@@ -302,7 +302,7 @@ class BusinessDetailViewModel: ObservableObject {
             print("Error: User data is not available")
             return
         }
-        guard let url = URL(string: "http://127.0.0.1:8000/review/vote/") else { return }
+        guard let url = URL(string: "http://localhost:8000/review/vote/") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

@@ -19,7 +19,7 @@ class OwnerListingsViewModel: ObservableObject {
 
         
         isLoading = true
-        let urlString = "http://127.0.0.1:8000/business_owners/listings/\(id)"
+        let urlString = "http://localhost:8000/business_owners/listings/\(id)"
         
         guard let url = URL(string: urlString) else {
             print("Invalid URL")
