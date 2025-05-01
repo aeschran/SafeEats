@@ -27,7 +27,7 @@ class OCRViewModel: ObservableObject {
     }
     
     func uploadImage(_ image: UIImage, businessId: String, completion: @escaping () -> Void) {
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else { return }
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else { return}
         let url = URL(string: "http://localhost:8000/menu/upload")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -40,7 +40,7 @@ class OCRViewModel: ObservableObject {
         data.appendString("Content-Disposition: form-data; name=\"business_id\"\r\n\r\n")
         data.appendString("\(businessId)\r\n")
         data.appendString("--\(boundary)\r\n")
-        data.appendString("Content-Disposition: form-data; name=\"image\"; filename=\"menu.jpg\"\r\n")
+        data.appendString("Content-Disposition: form-data; name=\"file\"; filename=\"menu.jpg\"\r\n")
         data.appendString("Content-Type: image/jpeg\r\n\r\n")
         data.append(imageData)
         data.appendString("\r\n--\(boundary)--\r\n")

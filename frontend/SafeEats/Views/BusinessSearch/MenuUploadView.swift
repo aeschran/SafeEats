@@ -98,5 +98,5 @@ struct MenuUploadView: View {
 }
 
 #Preview {
-    MenuUploadView(isOfficial: false, businessId: "hello")
+    MenuUploadView(isOfficial: false, businessId: "67c0f434d995a74c126ecfd7")
 }
