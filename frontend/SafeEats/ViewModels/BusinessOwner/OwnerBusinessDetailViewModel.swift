@@ -24,6 +24,7 @@ class OwnerBusinessDetailViewModel: ObservableObject {
     ]
     
     private let baseURL = "http://localhost:8000"
+    @Published var business: Business?
 
     func addPreferencesToBusiness(businessID: String) async {
         guard let url = URL(string: "\(baseURL)/businesses/\(businessID)/addPreferences") else { return }
@@ -98,4 +99,3 @@ class OwnerBusinessDetailViewModel: ObservableObject {
         }
     }
 }
-
