@@ -176,7 +176,6 @@ struct ClaimBusinessDetailView: View {
                     //                Spacer()
                 }
                 .onAppear {
-                    viewModel.fetchReviews(for: business.id)
                     if let data = UserDefaults.standard.data(forKey: "collections") {
                         let decoder = JSONDecoder()
                         if let loadedCollections = try? decoder.decode([Collection].self, from: data) {
@@ -190,6 +189,7 @@ struct ClaimBusinessDetailView: View {
                 }
                 .task {
                     await viewModel.fetchBusinessData(businessID: business.id)
+                    await viewModel.fetchReviews(for: business.id)
                 }
                 .padding(.top, 5)
             }
@@ -229,20 +229,22 @@ struct ClaimBusinessDetailView: View {
                         .frame(width: 180)
                         
                     }
-                
-                
-//                NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
-//                    viewModel.updateAverageRating(businessId: business.id)
-//                    viewModel.fetchReviews(for: business.id)// Reload reviews after submission
-//                    
-//                }, businessId: business.id)) {
-//                    Text("Write a Review")
-//                        .font(.headline)
-//                        .foregroundColor(.white)
-//                        .padding()
-//                        .background(Color.mainGreen)
-//                        .cornerRadius(10)
-//                }
+                }
+                Spacer()
+                NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
+                    Task {
+                        viewModel.updateAverageRating(businessId: business.id)
+                        await viewModel.fetchReviews(for: business.id)// Reload reviews after submission
+                    }
+                    
+                }, businessId: business.id)) {
+                    Text("Write a Review")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.mainGreen)
+                        .cornerRadius(10)
+                }
             }.padding(.bottom, 20)
             ForEach(viewModel.reviews, id: \.id) { review in
                 ReviewCardView(review: review, viewModel: viewModel)

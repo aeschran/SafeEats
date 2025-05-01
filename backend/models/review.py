@@ -5,9 +5,10 @@ from typing import List, Optional
 from schemas.preference import PreferenceCreate
 
 class Review():
-    def __init__(self, review_content: str, rating: int, user_id: ObjectId, business_id: ObjectId, review_timestamp: float = None, upvotes = 0, downvotes = 0, meal: Optional[str] = None, accommodations: List[PreferenceCreate] = []):
+    def __init__(self, review_content: str, rating: int, user_id: ObjectId, business_id: ObjectId, review_timestamp: float = None, upvotes = 0, downvotes = 0, trusted_review = False, meal: Optional[str] = None, accommodations: List[PreferenceCreate] = []):
         self.user_id = user_id
         self.business_id = business_id
+        self.trusted_review = trusted_review
         self.review_timestamp = review_timestamp if review_timestamp is not None else time.time()
         self.review_content = review_content
         self.rating = rating
@@ -20,6 +21,7 @@ class Review():
         review_data = {
             "user_id": self.user_id,
             "business_id": self.business_id,
+            "trusted_review": self.trusted_review,
             "review_timestamp": self.review_timestamp,
             "review_content": self.review_content,
             "rating": self.rating,

@@ -44,6 +44,7 @@ struct Comment: Identifiable, Codable {
     let commenterID: String
     let commenterUsername: String
     let isBusiness: Bool
+    let isTrusted: Bool
     let commentContent: String
     let commentTimestamp: Double
 
@@ -53,6 +54,7 @@ struct Comment: Identifiable, Codable {
         case commenterID = "commenter_id"
         case commenterUsername = "commenter_username"
         case isBusiness = "is_business"
+        case isTrusted = "is_trusted"
         case commentContent = "comment_content"
         case commentTimestamp = "comment_timestamp"
     }
@@ -73,34 +75,27 @@ class BusinessDetailViewModel: ObservableObject {
     @Published var errorMessage: String?
     
     @Published var comments: [String: [Comment]] = [:]  // Map reviewID -> comments
+    @Published var preferences: [Accommodation] = []
+    @Published var selectedPrefs: [String] = []
     
     private let baseURL = "http://127.0.0.1:8000"
     
     
     
-    func fetchReviews(for businessId: String) {
-        guard let id = id_ else {
-            print("Error: User data is not available")
-            return
+    func fetchReviews(for businessId: String) async {
+        guard let id = id_,
+              let url = URL(string: "\(baseURL)/review/business/\(businessId)/\(id)") else { return }
+
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            let decoded = try JSONDecoder().decode([Review].self, from: data)
+
+            DispatchQueue.main.async {
+                self.reviews = decoded.sorted { $0.reviewTimestamp > $1.reviewTimestamp }
+            }
+        } catch {
+            print("Error fetching reviews:", error)
         }
-        print(businessId)
-        guard let url = URL(string: "\(baseURL)/review/business/\(businessId)/\(id)") else { return }
-        
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data, error == nil else {
-                print("Error fetching reviews:", error?.localizedDescription ?? "Unknown error")
-                return
-            }
-            
-            do {
-                let decodedReviews = try JSONDecoder().decode([Review].self, from: data)
-                DispatchQueue.main.async {
-                    self.reviews = decodedReviews.sorted { $0.reviewTimestamp > $1.reviewTimestamp }
-                }
-            } catch {
-                print("Error decoding reviews:", error)
-            }
-        }.resume()
     }
     
     func upvoteReview(_ reviewID: String) {
@@ -443,40 +438,73 @@ class BusinessDetailViewModel: ObservableObject {
     }
     
     func reportReview(userName: String, reviewId: String, message: String) async {
-    guard let url = URL(string: "\(baseURL)/review/report") else { return }
-    
-    var request = URLRequest(url: url)
-    request.httpMethod = "POST"
-    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    
-    let body: [String: Any] = [
-        "user_name": userName,
-        "review_id": reviewId,
-        "message": message
-    ]
-    
-    do {
-        request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
-    } catch {
-        DispatchQueue.main.async {
-            self.errorMessage = "Failed to encode report data"
+        guard let url = URL(string: "\(baseURL)/review/report") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        let body: [String: Any] = [
+            "user_name": userName,
+            "review_id": reviewId,
+            "message": message
+        ]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: body, options: [])
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to encode report data"
+            }
+            return
         }
-        return
-    }
-    
-    URLSession.shared.dataTask(with: request) { data, response, error in
-        DispatchQueue.main.async {
-            if let data = data {
-                do {
-                    let responseMessage = try JSONDecoder().decode(String.self, from: data)
-                    self.errorMessage = responseMessage
-                } catch {
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                if let data = data {
+                    do {
+                        let responseMessage = try JSONDecoder().decode(String.self, from: data)
+                        self.errorMessage = responseMessage
+                    } catch {
+                        self.errorMessage = "Failed to report review"
+                    }
+                } else {
                     self.errorMessage = "Failed to report review"
                 }
-            } else {
-                self.errorMessage = "Failed to report review"
+            }
+        }.resume()
+    }
+    
+    func getUserPreferences() async {
+        guard let id = id_,
+              let url = URL(string: "http://localhost:8000/profile/preferences/\(id)") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        do {
+            let (data, _) = try await URLSession.shared.data(for: request)
+
+            let userPreferences = try JSONDecoder().decode(UserPreferences.self, from: data)
+            let dietPrefs = userPreferences.dietary_restrictions
+
+            let accommodations = dietPrefs.map {
+                Accommodation(preferenceType: $0.preference_type, preference: $0.preference)
+            }
+
+            let prefs = dietPrefs.map(\.preference)
+
+            // Update on main thread
+            DispatchQueue.main.async {
+                self.preferences = accommodations
+                self.selectedPrefs = prefs
+            }
+
+        } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Failed to fetch preferences: \(error.localizedDescription)"
             }
         }
-    }.resume()
-}
+    }
 }

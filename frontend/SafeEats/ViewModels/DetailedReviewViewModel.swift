@@ -16,6 +16,7 @@ struct DetailedReview: Identifiable, Codable {
     let userID: String
     let businessID: String
     let userName: String
+    let trustedReview: Bool
     let businessName: String
     let reviewContent: String
     let rating: Int
@@ -39,6 +40,7 @@ struct DetailedReview: Identifiable, Codable {
         case upvotes
         case downvotes
         case reviewImage = "review_image"
+        case trustedReview = "trusted_review"
         case meal
         case accommodations
     }
@@ -114,6 +116,9 @@ class DetailedReviewViewModel: ObservableObject {
             
             do {
                 let (data, _) = try await URLSession.shared.data(from: url)
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("line 118: ", jsonString)
+                }
                 let decodedComments = try JSONDecoder().decode([Comment].self, from: data)
                 DispatchQueue.main.async {
                     self.comments = decodedComments.sorted { $0.commentTimestamp > $1.commentTimestamp }

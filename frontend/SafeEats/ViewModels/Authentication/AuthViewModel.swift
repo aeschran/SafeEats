@@ -25,6 +25,7 @@ class AuthViewModel: ObservableObject {
     @AppStorage("userType") var userType: String?
     @AppStorage("isUserCreated") var isCreated: Bool = false
     @AppStorage("loggedIn") var loggedIn: Bool = false
+    @AppStorage("trustedReviewer") var trustedReviewer: Bool = false
     
     
     
@@ -103,7 +104,8 @@ class AuthViewModel: ObservableObject {
                            let name = json["name"] as? String,
                            let email = json["email"] as? String,
                            let phone = json["phone"] as? String,
-                           let username = json["username"] as? String {
+                           let username = json["username"] as? String,
+                            let trustedReviewer = json["trusted_reviewer"] as? Bool {
                             DispatchQueue.main.async {
                                 self.id_ = id
                                 self.username_ = username
@@ -114,6 +116,7 @@ class AuthViewModel: ObservableObject {
                                 self.isAuthenticated = true
                                 self.createdProfile = true
                                 UserDefaults.standard.set(true, forKey: "loggedIn")
+                                UserDefaults.standard.set(trustedReviewer, forKey: "trustedReviewer")
                                 print("Success: registered")
                             }
                             
@@ -202,6 +205,7 @@ class AuthViewModel: ObservableObject {
                         self.isAuthenticated = true
                         self.createdProfile = false
                         UserDefaults.standard.set(true, forKey: "loggedIn")
+                        UserDefaults.standard.set(false, forKey: "trustedReviewer")
                         print("Success: registered")
                     }
                     loggedIn = true
@@ -401,6 +405,7 @@ class AuthViewModel: ObservableObject {
                         self.password = ""
                         self.errorMessage = nil
                         self.createdProfile = true
+                        self.trustedReviewer = false
                         self.clear_user_data()
                         print("Account successfully deleted")
                     }
@@ -492,6 +497,7 @@ class AuthViewModel: ObservableObject {
         self.errorMessage = nil
         self.createdProfile = false
         self.loggedIn = false
+        self.trustedReviewer = false
         
         DispatchQueue.main.async {
             

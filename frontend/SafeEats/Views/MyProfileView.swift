@@ -17,6 +17,8 @@ struct MyProfileView: View {
     @State var displayError: Bool = false
     
     @State private var showEditProfileSheet = false
+    
+    @AppStorage("trustedReviewer") var trustedReviewer: Bool = false
 
     
     func saveCollectionsToUserDefaults(_ collections: [Collection]) {
@@ -107,9 +109,20 @@ struct MyProfileView: View {
                     }.padding(5)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(viewModel.name)
-                            .font(.footnote)
-                            .fontWeight(.semibold)
+                        HStack {
+                            Text(viewModel.name)
+                                .font(.footnote)
+                                .fontWeight(.semibold)
+                            
+                            if (trustedReviewer) {
+                                Text("Trusted Reviewer")
+                                    .font(.footnote)
+                                    .fontWeight(.semibold)
+                                    .italic(true)
+                                    .foregroundColor(.mainGreen)
+                            }
+                        }
+                        
                         Text(viewModel.bio)
                             .font(.caption)
                         
@@ -270,11 +283,16 @@ struct ProfileReviewView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 12) {
-                ForEach(viewModel.reviews, id: \.reviewId) { review in
-                    ProfileReviewCard(review: review, onEdit: { editReview(review) },
-                                      onDelete: { deleteReview(review) })
-                    .padding(.horizontal, 6)
+            if (viewModel.reviews.isEmpty) {
+                Spacer()
+                Text("You have left no reviews.")
+            } else {
+                VStack(spacing: 12) {
+                    ForEach(viewModel.reviews, id: \.reviewId) { review in
+                        ProfileReviewCard(review: review, onEdit: { editReview(review) },
+                                          onDelete: { deleteReview(review) })
+                        .padding(.horizontal)
+                    }
                 }
             }
         }
@@ -337,90 +355,66 @@ struct ProfileReviewCard: View {
     var onDelete: () -> Void
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
+        NavigationLink(destination: DetailedReviewView(reviewId: review.reviewId)) {
+            ZStack(alignment: .topTrailing) {
                 HStack {
-                    
                     VStack(alignment: .leading, spacing: 8) {
                         Text(review.businessName)
-                        //                        .font(.headline)
-                        //                        .foregroundColor(.black)
-                            .lineLimit(1)
-                            .truncationMode(.tail) // Ensure it doesn't wrap too soon
-                        /*.frame(maxWidth: .infinity, alignment: .leading)*/
-                            .font(.system(size: 16, weight: .regular, design: .default))
+                            .font(.headline)
                             .foregroundColor(.black)
-                            .fontWeight(.semibold)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         
+                        Text(review.reviewContent)
+                            .font(.body)
                         
-                        
-                        //                    HStack {
-                        //                        ForEach(0..<review.rating, id: \.self) { _ in
-                        //                            Image(systemName: "star.fill")
-                        //                                .foregroundColor(.yellow)
-                        //                        }
-                        //                    }
-                        
-                        HStack(spacing: 2) {
-                            ForEach(0..<5, id: \.self) { index in
-                                Image(systemName: index < review.rating ? "star.fill" : "star")
-                                    .foregroundColor(index < review.rating ? .yellow : .gray)
+                        HStack {
+                            ForEach(0..<review.rating, id: \.self) { _ in
+                                Image(systemName: "star.fill")
+                                    .foregroundColor(.yellow)
                             }
                         }
-                        Text(review.reviewContent)
-                            .font(.system(size: 16, weight: .regular, design: .default))
-                            .foregroundColor(.black)
-                            .lineLimit(2)
                         
                         Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
                             .font(.caption)
                             .foregroundColor(.gray)
                     }
-                    //                .padding()
+                    .padding()
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    //                .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
-                    //                .frame(maxWidth: .infinity)
-                    Spacer()
-                    //                .padding(.horizontal, 2)
-                    
                 }
                 .padding()
-                
                 .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
                 .frame(maxWidth: .infinity)
-            }.buttonStyle(PlainButtonStyle())
-//            .padding(.horizontal, 2)
-//            .padding(.horizontal, 2)
-//            }.padding()
-//                
-//            .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
-//            .frame(maxWidth: .infinity)
 
-            // Overlay with edit and delete buttons
-            HStack(spacing: 5) {
-                Button(action: onEdit) {
-                    Image(systemName: "pencil")
-                        .foregroundColor(.mainGreen.darker())
-                        .padding(6)
-                        .background(Color.clear)
-                        .clipShape(Circle())
-                        .shadow(radius: 1)
-                }
+                // Overlay with edit and delete buttons
+                HStack(spacing: 10) {
+                    Button(action: onEdit) {
+                        Image(systemName: "pencil")
+                            .foregroundColor(.mainGreen)
+                            .padding(8)
+                            .background(Color.white)
+                            .clipShape(Circle())
+                            .shadow(radius: 1)
+                    }
 
-                Button(action: onDelete) {
-                    Image(systemName: "trash")
-                        .foregroundColor(.red)
-                        .padding(6)
-                        .background(Color.clear)
-                        .clipShape(Circle())
-                        .shadow(radius: 1)
+                    Button(action: onDelete) {
+                        Image(systemName: "trash")
+                            .foregroundColor(.red)
+                            .padding(8)
+                            .background(Color.white)
+                            .clipShape(Circle())
+                            .shadow(radius: 1)
+                    }
                 }
+                .padding()
             }
             .padding([.top, .trailing], 8)
             
         }
+        .buttonStyle(PlainButtonStyle()) // <- to prevent NavigationLink from applying weird blue highlight styling
     }
-
+    
     private func formattedDate(from timestamp: Double) -> String {
         let date = Date(timeIntervalSince1970: timestamp)
         let formatter = DateFormatter()
