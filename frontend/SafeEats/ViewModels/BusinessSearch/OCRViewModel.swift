@@ -16,7 +16,7 @@ class OCRViewModel: ObservableObject {
     func loadData(businessId: String) {
         let url = URL(string: "http://localhost:8000/menu/\(businessId)/")!
         URLSession.shared.dataTask(with: url) { data, _, _ in
-            guard let data else { return }
+            guard data != nil else { return }
             // decode the response
 //            let decoded = try? JSONDecoder().decode(OCRResponse.self, from: data)
 //            DispatchQueue.main.async {
