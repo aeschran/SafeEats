@@ -216,9 +216,9 @@ struct BusinessDetailView: View {
                         }
                         
                     }
-                    .padding([.bottom, .horizontal], 30)
+                    .padding([.bottom, .horizontal], 20)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    
+//                    Divider()
                     reviewsSection
                     
                     //                Spacer()
@@ -289,6 +289,7 @@ struct BusinessDetailView: View {
         
         var body: some View {
             VStack(alignment: .center) {
+                
                 Text("Reviews")
                     .font(.title)
                     .fontWeight(.semibold)
