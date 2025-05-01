@@ -78,4 +78,24 @@ class OwnerBusinessDetailViewModel: ObservableObject {
             }
         }.resume()
     }
+    
+    func getBusinessInformation(businessId: String) async {
+        guard let url = URL(string: "\(baseURL)/business_search/get/\(businessId)") else { return }
+        
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            if let jsonString = String(data: data, encoding: .utf8) {
+                
+            }
+            let decodedBusiness = try JSONDecoder().decode(Business.self, from: data)
+
+            DispatchQueue.main.async {
+                self.business = decodedBusiness
+            }
+
+        } catch {
+            print("Failed to fetch business information: \(error.localizedDescription)")
+        }
+    }
 }
+

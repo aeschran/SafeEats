@@ -17,10 +17,17 @@ class ReviewService(BaseService):
         
     async def create_review(self, review_create: ReviewCreate):
         try :
+            user = await self.db.users.find_one({"_id": ObjectId(review_create.user_id)})
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+            
+            print(user.get("trusted_reviewer", False))  # Debugging step
+            
             # review_image = review_create.review_image if review_create.review_image else None  # Ensure it's None if empty
             review = Review(
                 user_id=ObjectId(review_create.user_id),
                 business_id=ObjectId(review_create.business_id),
+                trusted_review= user.get("trusted_reviewer", False),  # Check if the user is a trusted reviewer
                 review_content=review_create.review_content,
                 rating=review_create.rating,
                 # review_image=review_image,
@@ -441,6 +448,7 @@ class ReviewService(BaseService):
         if review_image_cursor and review_image_cursor:
             review["review_image"] = review_image_cursor["review_image"]
             
-        review["_id"] = str(review["_id"]) 
+        review["_id"] = str(review["_id"])
+        review["trusted_review"] = user.get("trusted_reviewer", False)
         return review
 

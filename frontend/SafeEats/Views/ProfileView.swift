@@ -88,8 +88,7 @@ struct ProfileView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.vertical, 4)
                     
-                    HStack{
-                        
+                    HStack {
                         if viewModel.isFollowing {
                             Button(action: {
                                 showUnfollowAlert = true
@@ -108,42 +107,40 @@ struct ProfileView: View {
                                     title: Text("Unfollow"),
                                     message: Text("Are you sure you want to unfollow?"),
                                     primaryButton: .destructive(Text("Yes")) {
-                                        Task {
-                                            await viewModel.unfollowFriend()
-                                        }
+                                        Task { await viewModel.unfollowFriend() }
                                     },
                                     secondaryButton: .cancel()
                                 )
                             }
-                            
-                        } else if viewModel.isRequested {
+
+                        } else if viewModel.isRequested || didTap {
+                            // Disabled "Requested" state
                             Text("Requested")
-                                .foregroundColor(Color.black)
+                                .foregroundColor(.black)
                                 .padding()
                                 .font(.footnote)
                                 .fontWeight(.semibold)
-                                .frame(width:400, height: 34)
+                                .frame(width: 400, height: 34)
                                 .background(Color.mainGray)
                                 .cornerRadius(6)
+
                         } else {
                             Button(action: {
                                 didTap = true
-                                Task {
-                                    await viewModel.sendFriendRequest()
-                                }
-                                
+                                Task { await viewModel.sendFriendRequest() }
                             }) {
-                                Text(didTap ? "Requested" : "Follow")
-                                    .foregroundColor(didTap ? Color.black : Color.black)
+                                Text("Follow")
+                                    .foregroundColor(.black)
                                     .padding()
                                     .font(.footnote)
                                     .fontWeight(.semibold)
-                                    .frame(width:400, height: 34)
-                                    .background(didTap ? Color.mainGray : Color.mainGreen)
+                                    .frame(width: 400, height: 34)
+                                    .background(Color.mainGreen)
                                     .cornerRadius(6)
                             }
                         }
                     }
+
                     HStack {
                         Text("Reviews")
                             .font(.footnote)
@@ -283,15 +280,19 @@ struct OtherProfileReviewCard: View {
                     // Title: "{user} reviewed {business}"
                     HStack(spacing: 0) {
                         Text("\(review.userName) reviewed ")
-                            .font(.headline)
+//                            .font(.footnote)
+                            .font(.system(size: 16, weight: .regular, design: .default))
                             .foregroundColor(.black)
+                            .fontWeight(.semibold)
                         Text(review.businessName)
-                            .font(.headline)
+                            //.font(.footnote)
+                            .font(.system(size: 16, weight: .regular, design: .default))
                             .foregroundColor(.black)
                             .lineLimit(1)
                             .truncationMode(.tail) // Ensure it doesn't wrap too soon
                         /*.frame(maxWidth: .infinity, alignment: .leading)*/ // Extend as much as possible
                             .frame(maxWidth: 200, alignment: .leading)
+                            .fontWeight(.semibold)
                     }
                     
                     // Star Rating
@@ -304,12 +305,13 @@ struct OtherProfileReviewCard: View {
                     
                     // Review Content (Highlighted in black)
                     Text(review.reviewContent)
-                        .font(.body)
+                        .font(.system(size: 16, weight: .regular, design: .default))
+//                        .font(.footnote)
                         .foregroundColor(.black)
                         .lineLimit(2)
                     
                     // Timestamp
-                    Text("Reviewed on \(formattedDate(from: review.reviewTimestamp))")
+                    Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
                         .font(.caption)
                         .foregroundColor(.gray)
                     
@@ -321,6 +323,7 @@ struct OtherProfileReviewCard: View {
             .padding()
             .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
             .frame(maxWidth: .infinity)
+            .padding(.horizontal, 2)
         }
         .buttonStyle(PlainButtonStyle())
         

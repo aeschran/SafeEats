@@ -18,6 +18,7 @@ async def create_comment(comment_create: CommentCreate):
 @router.get("/{review_id}", response_model=List[CommentResponse])
 async def get_comments(review_id: str):
     comments = await comment_service.get_comments_for_review(review_id)
+    print(comments)
     return comments
 
 @router.delete("/{comment_id}", response_model=dict)

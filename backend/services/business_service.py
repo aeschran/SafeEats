@@ -76,13 +76,17 @@ class BusinessService(BaseService):
 
 
         owner_id = await self.get_owner_id_by_business_id(business_id)
+        website = await self.get_website_by_business_id(business_id)
+        tel = await self.get_tel_by_business_id(business_id)
+        social_media = await self.get_social_media_by_business_id(business_id)
+        
 
 
         updated_business = Business(
             name=business.name,
             owner_id=owner_id,  # ✅ Use existing owner_id
-            website=business.website,
-            tel=business.tel,
+            website=website,
+            tel=tel,
             description=business.description,
             cuisines=business.cuisines,
             menu=business.menu,
@@ -90,7 +94,7 @@ class BusinessService(BaseService):
             location=updated_location,
             dietary_restrictions=business.dietary_restrictions,
             avg_rating=business.avg_rating,
-            social_media=business.social_media,
+            social_media=social_media,
             price=business.price,
             hours=business.hours
         )
@@ -98,8 +102,10 @@ class BusinessService(BaseService):
         update_data = {k: v for k, v in updated_business.to_dict().items() if v is not None}
 
         # Flatten social_media to dict
-        if isinstance(update_data.get("social_media"), object):
-            update_data["social_media"] = update_data["social_media"]
+        social = update_data.get("social_media")
+        if hasattr(social, "model_dump"):
+            update_data["social_media"] = social.model_dump()
+
 
         if isinstance(update_data.get("hours"), object):
             update_data["hours"] = update_data["hours"]
@@ -247,6 +253,27 @@ class BusinessService(BaseService):
             raise ValueError("Business not found")
 
         return result.modified_count > 0
+    
+    async def get_website_by_business_id(self, business_id: str):
+        business_object_id = ObjectId(business_id)
+        business =  await self.db.businesses.find_one({"_id": business_object_id}, {"website": 1})
+        if business and "website" in business:
+            return business["website"]
+        return None
+    
+    async def get_tel_by_business_id(self, business_id: str):
+        business_object_id = ObjectId(business_id)
+        business =  await self.db.businesses.find_one({"_id": business_object_id}, {"tel": 1})
+        if business and "tel" in business:
+            return business["tel"]
+        return None
+    
+    async def get_social_media_by_business_id(self, business_id: str):
+        business_object_id = ObjectId(business_id)
+        business =  await self.db.businesses.find_one({"_id": business_object_id}, {"social_media": 1})
+        if business and "social_media" in business:
+            return business["social_media"]
+        return None
 
     
 

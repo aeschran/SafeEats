@@ -15,6 +15,7 @@ class CommentResponse(BaseModel):
     commenter_id: str
     commenter_username: str
     is_business: bool
+    is_trusted: bool
     comment_content: str
     comment_timestamp: float
 

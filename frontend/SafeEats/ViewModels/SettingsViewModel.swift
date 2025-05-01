@@ -183,6 +183,47 @@ class SettingsViewModel: ObservableObject {
             
         }
     }
+    
+    func applyForTrustedReviewer() async {
+        guard let id = id_ else {
+            print("Error: User data is not available")
+            return
+        }
+        
+        guard let url = URL(string: "\(baseUrl)/users/apply/\(id)") else {
+            print("Invalid URL")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("Error: No HTTP response")
+                return
+            }
+            
+            if httpResponse.statusCode == 200 {
+                print("Request sent successfully")
+                let jsonData = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+                print(jsonData!["message"])
+                let dataString = jsonData!["message"] as! String
+                self.successMessage = dataString
+            } else {
+                print("Error: Status code \(httpResponse.statusCode)")
+                let jsonData = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+                print(jsonData!["detail"])
+                let dataString = jsonData!["detail"] as! String
+                self.errorMessage = dataString
+            }
+            return
+        } catch {
+            self.errorMessage = "Error: \(error.localizedDescription)"
+        }
+    }
 }
 
 

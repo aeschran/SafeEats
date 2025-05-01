@@ -57,7 +57,7 @@ struct FriendReviewCard: View {
                         .lineLimit(2)
                     
                     // Timestamp
-                    Text("Reviewed on \(formattedDate(from: review.reviewTimestamp))")
+                    Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
                         .font(.caption)
                         .foregroundColor(.gray)
                     

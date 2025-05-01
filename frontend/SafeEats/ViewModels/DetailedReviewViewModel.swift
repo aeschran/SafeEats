@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import UIKit
+import SwiftUI
 
 
 struct DetailedReview: Identifiable, Codable {
@@ -15,6 +16,7 @@ struct DetailedReview: Identifiable, Codable {
     let userID: String
     let businessID: String
     let userName: String
+    let trustedReview: Bool
     let businessName: String
     let reviewContent: String
     let rating: Int
@@ -24,6 +26,7 @@ struct DetailedReview: Identifiable, Codable {
     var reviewImage: String?
     let meal: String?
     let accommodations: [Accommodation]?
+    
     
     enum CodingKeys: String, CodingKey {
         case id = "_id"  // Maps JSON "review_id" to Swift "id"
@@ -37,6 +40,7 @@ struct DetailedReview: Identifiable, Codable {
         case upvotes
         case downvotes
         case reviewImage = "review_image"
+        case trustedReview = "trusted_review"
         case meal
         case accommodations
     }
@@ -53,6 +57,7 @@ class DetailedReviewViewModel: ObservableObject {
     @Published var comments: [Comment] = []
     
     private let baseURL = "http://localhost:8000"
+    @AppStorage("id") var id_: String?
     
     func fetchDetailedReview(reviewID: String) {
         guard let url = URL(string: "http://localhost:8000/review/\(reviewID)") else {
@@ -112,6 +117,9 @@ class DetailedReviewViewModel: ObservableObject {
             
             do {
                 let (data, _) = try await URLSession.shared.data(from: url)
+                if let jsonString = String(data: data, encoding: .utf8) {
+                    print("line 118: ", jsonString)
+                }
                 let decodedComments = try JSONDecoder().decode([Comment].self, from: data)
                 DispatchQueue.main.async {
                     self.comments = decodedComments.sorted { $0.commentTimestamp > $1.commentTimestamp }
@@ -144,5 +152,26 @@ class DetailedReviewViewModel: ObservableObject {
             print("Error posting comment:", error)
         }
     }
+    
+    
+
+    func deleteComment(commentID: String, isBusiness: Bool) async {
+        guard let id = UserDefaults.standard.string(forKey: "id") else { return }
+        guard let url = URL(string: "\(baseURL)/comment/\(commentID)?user_id=\(id)&is_business=\(isBusiness)") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "DELETE"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if let httpResponse = response as? HTTPURLResponse {
+                print("Delete status: \(httpResponse.statusCode)")
+            }
+        } catch {
+            print("Error deleting comment:", error)
+        }
+    }
+
 
 }

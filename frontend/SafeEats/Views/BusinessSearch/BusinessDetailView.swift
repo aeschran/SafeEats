@@ -25,6 +25,8 @@ struct BusinessDetailView: View {
     
     @State var bookmarked: Bool = false
     @State var collectionID: String? = nil
+    @State var selectedFilters: [Accommodation: Bool] = [:]
+    @State var presentedReviews: [Review] = []
     
     func collectionsExcludingBusiness() -> [Collection] {
         for collection in $collections {
@@ -41,9 +43,40 @@ struct BusinessDetailView: View {
     //    let businessId = business.id
     @State private var selectedFilter: String = "Most Recent"
     @State private var showDropdown: Bool = false
+    @State private var selectedPrefs: [String] = []
     //    @Published var reviews: [Review] = []
     
     let filterOptions: [String] = ["Most Recent", "Least Recent", "Highest Rating", "Lowest Rating", "Most Popular", "Least Popular"]
+    
+    let dietPrefs: [String] = ["Peanut", "Dairy", "Gluten", "Shellfish", "Vegan", "Vegetarian", "Halal", "Kosher"]
+    
+    func getPreferenceName(accommodation: Accommodation) -> String {
+        return accommodation.preference
+    }
+    
+    func updatePrefsAndFilter(prefs: [String]) {
+        if (prefs.isEmpty) {
+            print(viewModel.reviews)
+            presentedReviews = viewModel.reviews
+            return
+        }
+        presentedReviews = viewModel.reviews.filter { review in
+            Set(prefs).isSubset(of: Set(review.accommodations?.map { accommodation in getPreferenceName(accommodation: accommodation)} ?? []))
+        }
+    }
+    
+//    func updatePrefsAndFilterAcc(prefs: [Accommodation]) {
+//        var newPrefs: [String] = []
+//        print("before for loop: ", prefs)
+//        for (_, accommodation) in prefs.enumerated() {
+//            newPrefs.append(accommodation.preference)
+//        }
+//        selectedPrefs = newPrefs
+//        print(selectedPrefs)
+//        presentedReviews = viewModel.reviews.filter { review in
+//            Set(prefs.map(\.self)).isSubset(of: Set(review.accommodations?.map(\.self) ?? []))
+//        }
+//    }
     
     var body: some View {
         NavigationStack {
@@ -168,10 +201,10 @@ struct BusinessDetailView: View {
                         addressSection
                         socialMediaSection
                         
-            
-                    NavigationLink(
-                                destination: BusinessSuggestionView(business: business))
-                    {
+                        
+                        NavigationLink(
+                            destination: BusinessSuggestionView(business: business))
+                        {
                             Text("Make a Suggestion")
                                 .font(.headline)
                                 .foregroundColor(.white)
@@ -183,15 +216,14 @@ struct BusinessDetailView: View {
                         }
                         
                     }
-                    .padding([.bottom, .horizontal], 30)
+                    .padding([.bottom, .horizontal], 20)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    
+//                    Divider()
                     reviewsSection
                     
                     //                Spacer()
                 }
                 .onAppear {
-                    viewModel.fetchReviews(for: business.id)
                     if let data = UserDefaults.standard.data(forKey: "collections") {
                         let decoder = JSONDecoder()
                         if let loadedCollections = try? decoder.decode([Collection].self, from: data) {
@@ -205,6 +237,12 @@ struct BusinessDetailView: View {
                 }
                 .task {
                     await viewModel.fetchBusinessData(businessID: business.id)
+                    await viewModel.getUserPreferences()
+                    await viewModel.fetchReviews(for: business.id)
+                    print(viewModel.selectedPrefs)
+                    selectedPrefs = viewModel.selectedPrefs
+                    updatePrefsAndFilter(prefs: selectedPrefs)
+                    
                 }
                 .padding(.top, 5)
             }
@@ -213,57 +251,183 @@ struct BusinessDetailView: View {
     
     private var reviewsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                VStack(alignment: .leading) {
-                    Text("Reviews")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                    Menu {
-                        ForEach(filterOptions, id: \.self) { option in
-                            Button(action: {
-                                selectedFilter = option
-                                viewModel.sortReviews(by: option)
-                            }) {
-                                Text(option)
-                                
-                            }
-                        }
-                    } label: {
-                        HStack {
-                            Text(selectedFilter)
-                                .font(.subheadline)
-                                .foregroundColor(.black)
-                            
-                            Image(systemName: "chevron.down")
-                                .foregroundColor(.gray)
-                        }
-                        .padding(6)
-                        .background(Color.white)
-                        .cornerRadius(6)
-                        .shadow(radius: 1)
-                        .frame(width: 180)
-                        
-                    }
+            ReviewsHeaderView(
+                dietPrefs: dietPrefs,
+                selectedPrefs: $viewModel.selectedPrefs,
+                filterOptions: filterOptions,
+                selectedFilter: $selectedFilter,
+                viewModel: viewModel,
+                updatePrefsAndFilter: { prefs in updatePrefsAndFilter(prefs: prefs) }
+            )
+            
+            WriteReviewButtonView(
+                businessId: business.id,
+                viewModel: viewModel
+            )
+            
+            if (presentedReviews.isEmpty) {
+                Text("No reviews are available.")
+                    .frame(maxWidth: .infinity, alignment: .center)
+            } else {
+                ForEach(presentedReviews, id: \.id) { review in
+                    ReviewCardView(review: review, viewModel: viewModel)
                 }
-                Spacer()
-                NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
-                    viewModel.updateAverageRating(businessId: business.id)
-                    viewModel.fetchReviews(for: business.id)// Reload reviews after submission
-                    
-                }, businessId: business.id)) {
-                    Text("Write a Review")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.mainGreen)
-                        .cornerRadius(10)
-                }
-            }.padding(.bottom, 20)
-            ForEach(viewModel.reviews, id: \.id) { review in
-                ReviewCardView(review: review, viewModel: viewModel)
+            
             }
         }
         .padding(.horizontal, 30)
+    }
+    
+    struct ReviewsHeaderView: View {
+        let dietPrefs: [String]
+        @Binding var selectedPrefs: [String]
+        let filterOptions: [String]
+        @Binding var selectedFilter: String
+        let viewModel: BusinessDetailViewModel
+        @State var showFilterPopover: Bool = false
+        let updatePrefsAndFilter: ([String]) -> Void
+        
+        var body: some View {
+            VStack(alignment: .center) {
+                
+                Text("Reviews")
+                    .font(.title)
+                    .fontWeight(.semibold)
+
+                Spacer(minLength: 20)
+
+                HStack {
+                    FilterBySection(
+                        selectedPrefs: $selectedPrefs,
+                        showFilterPopover: $showFilterPopover,
+                        dietPrefs: dietPrefs,
+                        updatePrefsAndFilter: { prefs in
+                            updatePrefsAndFilter(prefs)
+                        }
+                    )
+
+                    Spacer(minLength: 20)
+
+                    SortBySection(
+                        selectedFilter: $selectedFilter,
+                        filterOptions: filterOptions,
+                        viewModel: viewModel
+                    )
+                }
+            }
+        }
+    }
+    
+    struct FilterBySection: View {
+        @Binding var selectedPrefs: [String]
+        @Binding var showFilterPopover: Bool
+        let dietPrefs: [String]
+        let updatePrefsAndFilter: ([String]) -> Void
+
+        var body: some View {
+            VStack {
+                Text("Filter By:")
+
+                Button {
+                    showFilterPopover = true
+                } label: {
+                    HStack {
+                        Text(displayedFilterText)
+                            .font(.subheadline)
+                            .foregroundColor(.black)
+                            .lineLimit(1)
+                        Image(systemName: "chevron.down")
+                            .foregroundColor(.gray)
+                    }
+                    .padding(6)
+                    .background(Color.white)
+                    .cornerRadius(6)
+                    .shadow(radius: 1)
+                }
+                .popover(isPresented: $showFilterPopover) {
+                    FilterPopover(
+                        options: dietPrefs,
+                        selected: $selectedPrefs,
+                        isPresented: $showFilterPopover
+                    )
+                }
+                .onChange(of: selectedPrefs) { _, _ in
+                    updatePrefsAndFilter(selectedPrefs)
+                }
+            }
+            .padding(.leading)
+        }
+
+        private var displayedFilterText: String {
+            if selectedPrefs.isEmpty {
+                return "Nothing"
+            } else if selectedPrefs.count > 3 {
+                return selectedPrefs.prefix(3).joined(separator: ", ") + "..."
+            } else {
+                return selectedPrefs.joined(separator: ", ")
+            }
+        }
+    }
+
+    struct SortBySection: View {
+        @Binding var selectedFilter: String
+        let filterOptions: [String]
+        let viewModel: BusinessDetailViewModel
+
+        var body: some View {
+            VStack {
+                Text("Sort By:")
+                Menu {
+                    ForEach(filterOptions, id: \.self) { option in
+                        Button(option) {
+                            selectedFilter = option
+                            viewModel.sortReviews(by: option)
+                        }
+                    }
+                } label: {
+                    HStack {
+                        Text(selectedFilter)
+                            .font(.subheadline)
+                            .foregroundColor(.black)
+                        Image(systemName: "chevron.down")
+                            .foregroundColor(.gray)
+                    }
+                    .padding(6)
+                    .background(Color.white)
+                    .cornerRadius(6)
+                    .shadow(radius: 1)
+                    .frame(width: 130)
+                }
+            }
+            .padding(.leading)
+        }
+    }
+
+    struct WriteReviewButtonView: View {
+        let businessId: String
+        let viewModel: BusinessDetailViewModel
+
+        var body: some View {
+            NavigationLink(destination: CreateReviewView(
+                onReviewSubmitted: {
+                    Task {
+                        viewModel.updateAverageRating(businessId: businessId)
+                        await viewModel.fetchReviews(for: businessId)
+                    }
+                    
+                },
+                businessId: businessId
+            )) {
+                Text("Write a Review")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.mainGreen)
+                    .cornerRadius(10)
+                    .padding(.top, 10)
+            }
+        }
     }
     
     
@@ -285,203 +449,168 @@ struct BusinessDetailView: View {
         
         var body: some View {
             NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
-                VStack(alignment: .leading, spacing: 8) {
-                    // Username + Date
-                    HStack {
-                        Text("\(review.userName) ")
-                            .font(.headline)
-                            .foregroundColor(.black)
-                        
-                        Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    
-                    // Star Rating
-                    HStack(spacing: 2) {
-                        ForEach(0..<5, id: \.self) { index in
-                            Image(systemName: index < review.rating ? "star.fill" : "star")
-                                .foregroundColor(index < review.rating ? .yellow : .gray)
+                HStack {
+                    VStack(alignment: .leading, spacing: 8) {
+                        // Username + Date
+                        HStack {
+                            Text("\(review.userName) ")
+                                .font(.headline)
+                                .foregroundColor(.black)
+                            
+                            Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
+                                .font(.caption)
+                                .foregroundColor(.gray)
                         }
                         
-                        if (currentUsername != review.userName) {
-                            Button(action: { showReportSheet = true }) {
-                                Image(systemName: "exclamationmark.bubble.fill")
-                                    .foregroundColor(Color.customLightRed)
+                        // Star Rating
+                        HStack(spacing: 2) {
+                            ForEach(0..<5, id: \.self) { index in
+                                Image(systemName: index < review.rating ? "star.fill" : "star")
+                                    .foregroundColor(index < review.rating ? .yellow : .gray)
+                            }
+                            
+                            if (currentUsername != review.userName) {
+                                Button(action: { showReportSheet = true }) {
+                                    Image(systemName: "exclamationmark.bubble.fill")
+                                        .foregroundColor(Color.customLightRed)
+                                        .font(.headline)
+                                }
+                                .sheet(isPresented: $showReportSheet) {
+                                    VStack(alignment: .leading, spacing: 16) {
+                                        Text("Report Review")
+                                            .font(.title2)
+                                            .bold()
+                                        Text("Select reasons for reporting:")
+                                        
+                                        ForEach(["Inappropriate", "Spam", "Off-topic", "Harassment"], id: \.self) { reason in
+                                            Button(action: {
+                                                if selectedReasons.contains(reason) {
+                                                    selectedReasons.remove(reason)
+                                                } else {
+                                                    selectedReasons.insert(reason)
+                                                }
+                                            }) {
+                                                HStack {
+                                                    Image(systemName: selectedReasons.contains(reason) ? "checkmark.square.fill" : "square")
+                                                    Text(reason)
+                                                }
+                                            }
+                                            .foregroundColor(.primary)
+                                        }
+                                        
+                                        TextField("Other (optional)", text: $otherReason)
+                                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                                        
+                                        HStack {
+                                            Button("Cancel") {
+                                                showReportSheet = false
+                                            }
+                                            Spacer()
+                                            Button("Submit") {
+                                                var message = selectedReasons.joined(separator: ", ")
+                                                if !otherReason.isEmpty {
+                                                    message += (message.isEmpty ? "" : ", ") + otherReason
+                                                }
+                                                
+                                                Task {
+                                                    let userName = UserDefaults.standard.string(forKey: "username") ?? "Anonymous"
+                                                    await viewModel.reportReview(userName: userName, reviewId: review.id, message: message)
+                                                }
+                                                showReportSheet = false
+                                            }
+                                        }
+                                        .padding(.top, 10)
+                                    }
+                                    .padding()
+                                }
+                            }
+                        }
+                        if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !review.accommodations!.isEmpty) {
+                            if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !(review.accommodations ?? []).isEmpty) {
+                                Text(formattedMealAndAccommodations(meal: review.meal, accommodations: review.accommodations))
+                                    .font(.footnote)
+                                    .foregroundColor(.black)
+                                    .fixedSize(horizontal: false, vertical: true) // Allow wrapping
+                                    .fontWeight(.light)
+                            }
+                            
+                        }
+                        
+                        
+                        // Review Content
+                        Text(review.reviewContent)
+                            .font(.body)
+                            .foregroundColor(.black)
+                            .lineLimit(2)
+                        
+                        // Upvote / Downvote
+                        HStack {
+                            Button(action: { viewModel.upvoteReview(review.id) }) {
+                                Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
+                                    .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
                                     .font(.headline)
                             }
-                            .sheet(isPresented: $showReportSheet) {
-                                VStack(alignment: .leading, spacing: 16) {
-                                    Text("Report Review")
-                                        .font(.title2)
-                                        .bold()
-                                    Text("Select reasons for reporting:")
-                                    
-                                    ForEach(["Inappropriate", "Spam", "Off-topic", "Harassment"], id: \.self) { reason in
-                                        Button(action: {
-                                            if selectedReasons.contains(reason) {
-                                                selectedReasons.remove(reason)
-                                            } else {
-                                                selectedReasons.insert(reason)
-                                            }
-                                        }) {
-                                            HStack {
-                                                Image(systemName: selectedReasons.contains(reason) ? "checkmark.square.fill" : "square")
-                                                Text(reason)
-                                            }
-                                        }
-                                        .foregroundColor(.primary)
-                                    }
-                                    
-                                    TextField("Other (optional)", text: $otherReason)
-                                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                                    
-                                    HStack {
-                                        Button("Cancel") {
-                                            showReportSheet = false
-                                        }
-                                        Spacer()
-                                        Button("Submit") {
-                                            var message = selectedReasons.joined(separator: ", ")
-                                            if !otherReason.isEmpty {
-                                                message += (message.isEmpty ? "" : ", ") + otherReason
-                                            }
-                                            
-                                            Task {
-                                                let userName = UserDefaults.standard.string(forKey: "username") ?? "Anonymous"
-                                                await viewModel.reportReview(userName: userName, reviewId: review.id, message: message)
-                                            }
-                                            showReportSheet = false
-                                        }
-                                    }
-                                    .padding(.top, 10)
-                                }
-                                .padding()
+                            
+                            Text("\(review.upvotes - review.downvotes)")
+                                .font(.subheadline)
+                            
+                            Button(action: { viewModel.downvoteReview(review.id) }) {
+                                Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
+                                    .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
+                                    .font(.headline)
                             }
                         }
-                    }
-                    if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !review.accommodations!.isEmpty) {
-                        if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !(review.accommodations ?? []).isEmpty) {
-                            Text(formattedMealAndAccommodations(meal: review.meal, accommodations: review.accommodations))
-                                .font(.footnote)
-                                .foregroundColor(.black)
-                                .fixedSize(horizontal: false, vertical: true) // Allow wrapping
-                                .fontWeight(.light)
-                        }
-
-                    }
-                    
-                    
-                    // Review Content
-                    Text(review.reviewContent)
-                        .font(.body)
-                        .foregroundColor(.black)
-                        .lineLimit(2)
-                    
-                    // Upvote / Downvote
-                    HStack {
-                        Button(action: { viewModel.upvoteReview(review.id) }) {
-                            Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
-                                .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
-                                .font(.headline)
-                        }
-                        
-                        Text("\(review.upvotes - review.downvotes)")
-                            .font(.subheadline)
-                        
-                        Button(action: { viewModel.downvoteReview(review.id) }) {
-                            Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
-                                .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
-                                .font(.headline)
-                        }
-                    }
-                    .padding(.top, 3)
-                    .padding(.bottom, 5)
-                    if let reviewComments = viewModel.comments[review.id] {
-                        // Filter only business comments
-                        
-                        let businessComments = reviewComments.filter { $0.isBusiness }
-
-                        if !businessComments.isEmpty {
-                            Divider()
-
-                            ForEach(businessComments) { comment in
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("Business Owner")
-                                        .font(.caption)
-                                        .foregroundColor(.mainGreen)
-                                        .bold()
-                                    
-                                    Text(comment.commentContent)
-                                        .font(.body)
-                                        .foregroundColor(.black)
+                        .padding(.top, 3)
+                        .padding(.bottom, 5)
+                        if let reviewComments = viewModel.comments[review.id] {
+                            // Filter only business comments
+                            
+                            let businessComments = reviewComments.filter { $0.isBusiness }
+                            
+                            if !businessComments.isEmpty {
+                                Divider()
+                                
+                                ForEach(businessComments) { comment in
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text("Business Owner")
+                                            .font(.caption)
+                                            .foregroundColor(.mainGreen.darker())
+                                            .bold()
+                                        
+                                        Text(comment.commentContent)
+                                            .font(.body)
+                                            .foregroundColor(.black)
+                                    }
+                                    .padding(10)
+                                    .background(Color.mainGreen.opacity(0.15))
+                                    .cornerRadius(10)
                                 }
-                                .padding(10)
-                                .background(Color.mainGreen.opacity(0.15))
-                                .cornerRadius(10)
+                            } else {
+                                //                            Text("No comments yet.")
+                                //                                .font(.caption)
+                                //                                .foregroundColor(.gray)
+                                //                                .padding(.top, 5)
                             }
-                        } else {
-//                            Text("No comments yet.")
-//                                .font(.caption)
-//                                .foregroundColor(.gray)
-//                                .padding(.top, 5)
-                        }
-                    } else {
-//                        Text("No comments yet.")
-//                            .font(.caption)
-//                            .foregroundColor(.gray)
-//                            .padding(.top, 5)
-                    }
 
-                                
-                                // Comment list
-//                                if let reviewComments = viewModel.comments[review.id] {
-//                                    ForEach(reviewComments) { comment in
-//                                        VStack(alignment: .leading, spacing: 4) {
-//                                            Text(comment.commenterUsername)
-//                                                .font(.caption)
-//                                                .foregroundColor(.gray)
-//                                            
-//                                            Text(comment.commentContent)
-//                                                .font(.body)
-//                                                .foregroundColor(.black)
-//                                        }
-//                                        .padding(8)
-//                                        .background(Color.gray.opacity(0.15))
-//                                        .cornerRadius(8)
-//                                    }
-//                                } else {
-//                                    Text("No comments yet.")
-//                                        .font(.caption)
-//                                        .foregroundColor(.gray)
-//                                        .padding(.top, 5)
-//                                }
-                                
-                                // TextField to add a new comment
-//                                HStack {
-//                                    TextField("Add a comment...", text: $commentContent)
-//                                        .textFieldStyle(RoundedBorderTextFieldStyle())
-//                                    
-//                                    Button(action: {
-//                                        if !commentContent.isEmpty {
-//                                            viewModel.postComment(for: review.id, commentContent: commentContent, isBusiness: false)
-//                                            commentContent = "" // Clear field after posting
-//                                        }
-//                                    }) {
-//                                        Image(systemName: "paperplane.fill")
-//                                            .foregroundColor(.mainGreen)
-//                                    }
-//                                }
-//                                .padding(.top, 5)
-                            
-                            
+                        } 
+                        
+                        
+                        
+                    }
+                    .frame(alignment: .leading)
+                    Spacer()
+                    
+
                 }
                 .padding()
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(10)
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 2)
                 .onAppear {
                     viewModel.fetchComments(for: review.id)
                 }
+                .frame(maxWidth: .infinity)
             }
             .buttonStyle(PlainButtonStyle())
         }
@@ -694,31 +823,32 @@ struct BusinessDetailView: View {
                             ForEach(lines, id: \.self) { line in
                                 Text(line)
                                     .font(.body)
-                                    .foregroundColor(.mainGreen)
+                                    .foregroundColor(.mainGreen.darker())
                             }
+                        }
+                        Spacer()
+                        
+                        if let isOpen = hours.open_now {
+                            Text(isOpen ? "Open now" : "Closed")
+                                .font(.subheadline)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+    //                            .background(isOpen ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
+                                .foregroundColor(isOpen ? .green : .red)
+                                .cornerRadius(8)
                         }
                     } else {
                         Text("No business hours available.")
-                            .font(.subheadline)
-                            .foregroundColor(.mainGreen)
+                            
+                            .foregroundColor(.black)
                     }
                     
-                    Spacer()
                     
-                    if let isOpen = hours.open_now {
-                        Text(isOpen ? "Open now" : "Closed")
-                            .font(.subheadline)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-//                            .background(isOpen ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
-                            .foregroundColor(isOpen ? .green : .red)
-                            .cornerRadius(8)
-                    }
                 }
 
                    } else {
                        Text("No business hours available")
-                           .foregroundColor(.mainGreen)
+                           .foregroundColor(.black)
                    }
         }
     }
@@ -735,7 +865,10 @@ struct BusinessDetailView: View {
                         HStack {
                             Link(destination: url) {
                                 Image("Instagram")
+                                    .renderingMode(.template)
                                     .resizable()
+                                    .foregroundColor(Color.mainGreen)
+                                    
                                     .frame(width: 30, height: 30)
                             }
                         }
@@ -744,8 +877,11 @@ struct BusinessDetailView: View {
                         HStack {
                             Link(destination: url) {
                                 Image("Twitter")
+                                    .renderingMode(.template)
                                     .resizable()
-                                    .frame(width: 25, height: 25)
+                                    .foregroundColor(Color.mainGreen)
+                                    
+                                    .frame(width: 26, height: 26)
                             }
                         }
                     }
@@ -754,7 +890,10 @@ struct BusinessDetailView: View {
                             
                             Link(destination: url) {
                                 Image("Facebook")
+                                    .renderingMode(.template)
                                     .resizable()
+                                    .foregroundColor(Color.mainGreen)
+                                    
                                     .frame(width: 25, height: 25)
                             }
                         }
@@ -786,6 +925,68 @@ struct BusinessDetailView: View {
             }
         }
     }
+
+struct FilterPopover: View {
+    let options: [String]
+    @Binding var selected: [String]
+    @Binding var isPresented: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Select Filters")
+                .font(.headline)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(options, id: \.self) { option in
+                        Toggle(isOn: Binding(
+                            get: { selected.contains(option) },
+                            set: { isOn in
+                                if isOn {
+                                    selected.append(option)
+                                } else {
+                                    selected.remove(at: selected.firstIndex(of: option) ?? -1)
+                                }
+                            }
+                        )) {
+                            Text(option)
+                        }
+                        .toggleStyle(CheckboxToggleStyle())
+                    }
+                }
+            }
+
+            Spacer(minLength: 10)
+
+            Button("Done") {
+                isPresented = false
+            }
+            .font(.headline)
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(Color.mainGreen)
+            .foregroundColor(.white)
+            .cornerRadius(10)
+        }
+        .padding()
+        .frame(width: 300, height: 400)
+    }
+}
+
+struct CheckboxToggleStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        Button(action: {
+            configuration.isOn.toggle()
+        }) {
+            HStack {
+                Image(systemName: configuration.isOn ? "checkmark.square" : "square")
+                    .foregroundColor(configuration.isOn ? .blue : .gray)
+                configuration.label
+            }
+        }
+        .buttonStyle(.plain)
+    }
+}
     
     //extension Business {
     //    static var sampleBusiness: Business {

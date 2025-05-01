@@ -302,6 +302,8 @@ struct CreateProfileView: View {
                                 "preferences": preferences
                             ]
                             
+                            
+                            
                             viewModel.sendProfileDataToBackend(profileData)
                             //                            viewModel.createdProfile = true
                             showSuccessMessage = true
