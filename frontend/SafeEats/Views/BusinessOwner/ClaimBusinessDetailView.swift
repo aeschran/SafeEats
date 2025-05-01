@@ -16,9 +16,9 @@ struct ClaimBusinessDetailView: View {
     //    let phonenumber: String? = "8124552066"
     let rating: Double = 4.5
     
-//    @State private var upvoteCount: Int = 10  // Replace with actual count
-//    @State private var downvoteCount: Int = 3  // Replace with actual count
-//    @State private var userVote: Int? = nil
+    //    @State private var upvoteCount: Int = 10  // Replace with actual count
+    //    @State private var downvoteCount: Int = 3  // Replace with actual count
+    //    @State private var userVote: Int? = nil
     @State private var showCollectionPicker = false
     @StateObject private var viewModel = BusinessDetailViewModel()
     
@@ -196,62 +196,63 @@ struct ClaimBusinessDetailView: View {
         }
     }
     
+    
     private var reviewsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                    Text("Reviews")
-                        .font(.title2)
-                        .fontWeight(.semibold)
+                Text("Reviews")
+                    .font(.title2)
+                    .fontWeight(.semibold)
                 Spacer()
-                    Menu {
-                        ForEach(filterOptions, id: \.self) { option in
-                            Button(action: {
-                                selectedFilter = option
-                                viewModel.sortReviews(by: option)
-                            }) {
-                                Text(option)
-                                
-                            }
-                        }
-                    } label: {
-                        HStack {
-                            Text(selectedFilter)
-                                .font(.subheadline)
-                                .foregroundColor(.black)
+                Menu {
+                    ForEach(filterOptions, id: \.self) { option in
+                        Button(action: {
+                            selectedFilter = option
+                            viewModel.sortReviews(by: option)
+                        }) {
+                            Text(option)
                             
-                            Image(systemName: "chevron.down")
-                                .foregroundColor(.gray)
                         }
-                        .padding(6)
-                        .background(Color.white)
-                        .cornerRadius(6)
-                        .shadow(radius: 1)
-                        .frame(width: 180)
+                    }
+                } label: {
+                    HStack {
+                        Text(selectedFilter)
+                            .font(.subheadline)
+                            .foregroundColor(.black)
                         
+                        Image(systemName: "chevron.down")
+                            .foregroundColor(.gray)
                     }
-                }
-                Spacer()
-                NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
-                    Task {
-                        viewModel.updateAverageRating(businessId: business.id)
-                        await viewModel.fetchReviews(for: business.id)// Reload reviews after submission
-                    }
+                    .padding(6)
+                    .background(Color.white)
+                    .cornerRadius(6)
+                    .shadow(radius: 1)
+                    .frame(width: 180)
                     
-                }, businessId: business.id)) {
-                    Text("Write a Review")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.mainGreen)
-                        .cornerRadius(10)
                 }
-            }.padding(.bottom, 20)
-            ForEach(viewModel.reviews, id: \.id) { review in
-                ReviewCardView(review: review, viewModel: viewModel)
             }
-        }
-        .padding(.horizontal, 30)
+            Spacer()
+            NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
+                Task {
+                    viewModel.updateAverageRating(businessId: business.id)
+                    await viewModel.fetchReviews(for: business.id)// Reload reviews after submission
+                }
+                
+            }, businessId: business.id)) {
+                Text("Write a Review")
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .padding()
+                    .background(Color.mainGreen)
+                    .cornerRadius(10)
+            }
+        }.padding(.bottom, 20)
+        return ForEach(viewModel.reviews, id: \.id) { review in
+            ReviewCardView(review: review, viewModel: viewModel)
+        }.padding(.horizontal, 30)
     }
+        
+    
     
     
     
@@ -262,8 +263,8 @@ struct ClaimBusinessDetailView: View {
         @State private var userVote: Int? = nil
         
         
-            var body: some View {
-                NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
+        var body: some View {
+            NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
                 VStack(alignment: .leading, spacing: 8) {
                     // Username + Date
                     HStack {
@@ -303,20 +304,20 @@ struct ClaimBusinessDetailView: View {
                     
                     // Upvote / Downvote
                     HStack(spacing: 0) {
-//                        Button(action: { viewModel.upvoteReview(review.id) }) {
-//                            Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
-//                                .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
-//                                .font(.headline)
-//                        }
+                        //                        Button(action: { viewModel.upvoteReview(review.id) }) {
+                        //                            Image(systemName: review.userVote == 1 ? "arrow.up.circle.fill" : "arrow.up.circle")
+                        //                                .foregroundColor(review.userVote == 1 ? .mainGreen : .gray)
+                        //                                .font(.headline)
+                        //                        }
                         
                         Text("votes: \(review.upvotes - review.downvotes)")
                             .font(.subheadline)
                         
-//                        Button(action: { viewModel.downvoteReview(review.id) }) {
-//                            Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
-//                                .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
-//                                .font(.headline)
-//                        }
+                        //                        Button(action: { viewModel.downvoteReview(review.id) }) {
+                        //                            Image(systemName: review.userVote == -1 ? "arrow.down.circle.fill" : "arrow.down.circle")
+                        //                                .foregroundColor(review.userVote == -1 ? .mainGreen : .gray)
+                        //                                .font(.headline)
+                        //                        }
                     }
                     .padding(.top, 3)
                     .padding(.bottom, 5)
@@ -399,9 +400,9 @@ struct ClaimBusinessDetailView: View {
                 ProgressView()
                     .font(.title)
             }
-             Image(systemName: "star.fill")
-                 .foregroundColor(.yellow)
-                 .font(.system(size: 24))
+            Image(systemName: "star.fill")
+                .foregroundColor(.yellow)
+                .font(.system(size: 24))
             if let totalReviews = viewModel.total_reviews {
                 Text("(\(totalReviews))")
                     .font(.system(size: 24))
@@ -460,54 +461,54 @@ struct ClaimBusinessDetailView: View {
             }
         }
     }
-        
-        var descriptionSection: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Description")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                Text(business.description ?? "No description available.")
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+    
+    var descriptionSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Description")
+                .font(.title2)
+                .fontWeight(.semibold)
+            Text(business.description ?? "No description available.")
+                .fixedSize(horizontal: false, vertical: true)
         }
-        
-        var menuSection: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Menu")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                if let menu = business.menu, let url = URL(string: menu) {
-                    Link(destination: url) {
-                        Label("Visit Menu", systemImage: "menucard.fill")
-                    }
-                    .foregroundColor(Color.mainGreen.darker())
-                } else {
-                    Text("No menu available.")
+    }
+    
+    var menuSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Menu")
+                .font(.title2)
+                .fontWeight(.semibold)
+            if let menu = business.menu, let url = URL(string: menu) {
+                Link(destination: url) {
+                    Label("Visit Menu", systemImage: "menucard.fill")
                 }
+                .foregroundColor(Color.mainGreen.darker())
+            } else {
+                Text("No menu available.")
             }
         }
-        
-        var addressSection: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Address")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                if let address = business.address {
-                    Button(action: { showMapAlert = true }) {
-                        Label(address, systemImage: "map")
-                            .foregroundColor(Color.mainGreen.darker())
-                    }
-                    .buttonStyle(.plain)
-                    .confirmationDialog("Open in Maps", isPresented: $showMapAlert) {
-                        Button("Open in Maps") { openInAppleMaps(address: address) }
-                        Button("Cancel", role: .cancel) {}
-                    }
-                } else {
-                    Text("No address available.")
-                        .foregroundColor(Color.mainGreen)
+    }
+    
+    var addressSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Address")
+                .font(.title2)
+                .fontWeight(.semibold)
+            if let address = business.address {
+                Button(action: { showMapAlert = true }) {
+                    Label(address, systemImage: "map")
+                        .foregroundColor(Color.mainGreen.darker())
                 }
+                .buttonStyle(.plain)
+                .confirmationDialog("Open in Maps", isPresented: $showMapAlert) {
+                    Button("Open in Maps") { openInAppleMaps(address: address) }
+                    Button("Cancel", role: .cancel) {}
+                }
+            } else {
+                Text("No address available.")
+                    .foregroundColor(Color.mainGreen)
             }
         }
+    }
     
     var businessHoursSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -529,7 +530,7 @@ struct ClaimBusinessDetailView: View {
                         }
                     } else {
                         Text("No business hours available.")
-                            
+                        
                             .foregroundColor(.black)
                     }
                     
@@ -540,19 +541,19 @@ struct ClaimBusinessDetailView: View {
                             .font(.subheadline)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-//                            .background(isOpen ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
+                        //                            .background(isOpen ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
                             .foregroundColor(isOpen ? .green : .red)
                             .cornerRadius(8)
                     }
                 }
-
-                   } else {
-                       Text("No business hours available")
-                           .foregroundColor(.black)
-                   }
+                
+            } else {
+                Text("No business hours available")
+                    .foregroundColor(.black)
+            }
         }
     }
-        
+    
     var socialMediaSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Social Media")
@@ -568,7 +569,7 @@ struct ClaimBusinessDetailView: View {
                                     .renderingMode(.template)
                                     .resizable()
                                     .frame(width: 30, height: 30)
-                                    
+                                
                                     .foregroundColor(Color.mainGreen)
                             }
                         }
@@ -602,26 +603,27 @@ struct ClaimBusinessDetailView: View {
             }
         }
     }
-        func openInAppleMaps(address: String) {
-            let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-            if let url = URL(string: "http://maps.apple.com/?address=\(encodedAddress)") {
-                UIApplication.shared.open(url)
-            }
+    
+    func openInAppleMaps(address: String) {
+        let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        if let url = URL(string: "http://maps.apple.com/?address=\(encodedAddress)") {
+            UIApplication.shared.open(url)
         }
-        
-        
-        func callPhoneNumber(phonenumber: String?) {
-            if let phonenumber = phonenumber {
-                let sanitizedPhoneNumber = phonenumber.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
-                if let url = URL(string: "tel://\(sanitizedPhoneNumber)"),
-                   UIApplication.shared.canOpenURL(url) {
-                    UIApplication.shared.open(url)
-                } else {
-                    print("Invalid phone number: \(phonenumber)")
-                }
+    }
+    
+    
+    func callPhoneNumber(phonenumber: String?) {
+        if let phonenumber = phonenumber {
+            let sanitizedPhoneNumber = phonenumber.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+            if let url = URL(string: "tel://\(sanitizedPhoneNumber)"),
+               UIApplication.shared.canOpenURL(url) {
+                UIApplication.shared.open(url)
+            } else {
+                print("Invalid phone number: \(phonenumber)")
             }
         }
     }
+}
     
     //extension Business {
     //    static var sampleBusiness: Business {
@@ -645,6 +647,7 @@ struct ClaimBusinessDetailView: View {
     //}
     
     
-//#Preview {
-//    BusinessDetailView(business: Business(id: "1", name: "Test Business", website: "Hello.com", description: "Hey!", cuisines: [], menu: nil, address: "Yo mom's house", dietary_restrictions: []))
-//}
+    //#Preview {
+    //    BusinessDetailView(business: Business(id: "1", name: "Test Business", website: "Hello.com", description: "Hey!", cuisines: [], menu: nil, address: "Yo mom's house", dietary_restrictions: []))
+    //}
+
