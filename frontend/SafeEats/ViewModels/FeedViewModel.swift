@@ -54,6 +54,7 @@ class FeedViewModel: ObservableObject {
     @Published var isSearching = false
     @Published var reviews: [FriendReview] = []
     @AppStorage("id") var id_: String?
+    @Published var reviewsIsLoading = true
     
     
     func searchUsers() {
@@ -140,6 +141,7 @@ class FeedViewModel: ObservableObject {
 
                 DispatchQueue.main.async {
                     self.reviews = decodedReviews
+                    self.reviewsIsLoading = false
                     for review in self.reviews {
                         print(review.userName)
                         print(review.userId)
