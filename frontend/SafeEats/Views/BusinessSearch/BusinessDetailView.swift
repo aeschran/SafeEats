@@ -289,7 +289,6 @@ struct BusinessDetailView: View {
         
         var body: some View {
             VStack(alignment: .center) {
-                
                 Text("Reviews")
                     .font(.title)
                     .fontWeight(.semibold)
