@@ -46,7 +46,7 @@ struct BusinessCard: View {
                 
                 // Rating
                 HStack(spacing: 3) {
-                    if let avg_rating = viewModel.avg_rating {
+                    if let avg_rating = viewModel.avg_rating, viewModel.total_reviews != nil {
                         if avg_rating == 0.0 {
                             Text("No reviews")
                                 .font(.headline)
@@ -57,13 +57,8 @@ struct BusinessCard: View {
                                 .bold()
                             Image(systemName: "star.fill")
                                 .foregroundColor(.yellow)
-                            if let totalReviews = viewModel.total_reviews {
-                                Text("(\(totalReviews))")
-                                    .foregroundColor(.gray)
-                            } else {
-                                ProgressView()
-                                    .font(.system(size: 24))
-                            }
+                            Text("(\(viewModel.total_reviews!))")
+                                .foregroundColor(.gray)
                         }
                     } else {
                         ProgressView()
@@ -74,7 +69,6 @@ struct BusinessCard: View {
                         Text("•")
                         Text(business_price)
                     }
-                    
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
