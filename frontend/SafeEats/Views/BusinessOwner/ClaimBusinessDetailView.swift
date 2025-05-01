@@ -416,54 +416,54 @@ struct ClaimBusinessDetailView: View {
                 ProgressView()
                     .font(.system(size: 24))
             }
-            Spacer()
-            Button(action: {
-                showCollectionPicker = true
-                collections = collectionsExcludingBusiness()
-            }) {
-                Text("Add to Collection")
-            }
-            .font(.headline)
-            .foregroundColor(.white)
-            .padding()
-            .background(Color.mainGreen)
-            .cornerRadius(10)
-            .frame(width: 160, height: 80)
-            .sheet(isPresented: $showCollectionPicker) {
-                // Dummy UI for now; replace with your real collection picker view
-                VStack {
-                    Text("Choose a Collection")
-                        .font(.title2)
-                        .padding()
-                    
-                    //                    List {
-                    //                        Text("Favorites")
-                    //                        Text("Try Soon")
-                    //                        Text("Top Vegan")
-                    //                    }
-                    
-                    ForEach(collections, id: \.id) { collection in Button(action: {
-                        Task {
-                            await viewModel.addBusinessToCollection(collectionName: collection.name, businessID: business.id)
-                            showCollectionPicker = false
-                        }
-                    }) {
-                        Text(collection.name)
-                            .font(.footnote)
-                            .fontWeight(.semibold)
-                            .frame(width: 380, height: 68)
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(4)
-                    }
-                    }
-                    
-                    Button("Cancel") {
-                        showCollectionPicker = false
-                    }
-                    .padding()
-                }
-                
-            }
+//            Spacer()
+//            Button(action: {
+//                showCollectionPicker = true
+//                collections = collectionsExcludingBusiness()
+//            }) {
+//                Text("Add to Collection")
+//            }
+//            .font(.headline)
+//            .foregroundColor(.white)
+//            .padding()
+//            .background(Color.mainGreen)
+//            .cornerRadius(10)
+//            .frame(width: 160, height: 80)
+//            .sheet(isPresented: $showCollectionPicker) {
+//                // Dummy UI for now; replace with your real collection picker view
+//                VStack {
+//                    Text("Choose a Collection")
+//                        .font(.title2)
+//                        .padding()
+//                    
+//                    //                    List {
+//                    //                        Text("Favorites")
+//                    //                        Text("Try Soon")
+//                    //                        Text("Top Vegan")
+//                    //                    }
+//                    
+//                    ForEach(collections, id: \.id) { collection in Button(action: {
+//                        Task {
+//                            await viewModel.addBusinessToCollection(collectionName: collection.name, businessID: business.id)
+//                            showCollectionPicker = false
+//                        }
+//                    }) {
+//                        Text(collection.name)
+//                            .font(.footnote)
+//                            .fontWeight(.semibold)
+//                            .frame(width: 380, height: 68)
+//                            .background(Color.gray.opacity(0.2))
+//                            .cornerRadius(4)
+//                    }
+//                    }
+//                    
+//                    Button("Cancel") {
+//                        showCollectionPicker = false
+//                    }
+//                    .padding()
+//                }
+//                
+//            }
         }
     }
     
