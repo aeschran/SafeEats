@@ -2,11 +2,13 @@ import easyocr
 from PIL import Image, ImageDraw
 from services.base_service import BaseService
 from schemas.ocr_results import OcrResult
+from models.menu import Menu
 import re
 from collections import defaultdict
 import datetime
 from utils.upload_to_s3 import S3Client
 import os
+from bson import ObjectId
 
 class MenuService(BaseService):
     def __init__(self):
@@ -40,7 +42,7 @@ class MenuService(BaseService):
         norm = self.normalize(word)
         return self.conflict_map.get(norm, set())
 
-    async def process_image(self, image_path: str):
+    async def process_image(self, image_path: str, business_id: str):
         with open(image_path, "rb") as image_file:
             image = Image.open(image_path)
         draw = ImageDraw.Draw(image)
@@ -54,8 +56,9 @@ class MenuService(BaseService):
             for token in tokens:
                 conflict = self.match(token)
                 if conflict:
+                    clean_bbox = [[int(coord) for coord in point] for point in bbox]
                     ocr_results.append({
-                        "bbox": bbox,
+                        "bbox": clean_bbox,
                         "conflict": list(conflict)
                     })
                     
@@ -70,8 +73,20 @@ class MenuService(BaseService):
         # Clean up the local file
         os.remove(image_path)
         os.remove(output_image_path)
-        return {
+
+        result = {
             "ocr_results": ocr_results,
             "image_url": output_image_path_s3,
             "created_at": str(datetime.datetime.now())
         }
+        # Save to database
+        await self.save_to_db(ObjectId(business_id), ocr_results, output_image_path_s3, result["created_at"])
+        return result
+    
+    async def save_to_db(self, business_id: str, ocr_results: list[OcrResult], image_url: str, created_at: str):
+        """
+        Save the OCR results to the database.
+        """
+        menu = Menu(business_id=ObjectId(business_id), ocr_results=ocr_results, image_url=image_url, created_at=created_at)
+        result = await self.db.menu.insert_one(menu.to_dict())
+        return result
