@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Foundation
 
 struct BusinessDetailView: View {
     let business: Business
@@ -19,6 +20,7 @@ struct BusinessDetailView: View {
     @State private var downvoteCount: Int = 3  // Replace with actual count
     @State private var userVote: Int? = nil
     @State private var showCollectionPicker = false
+    @State private var isOpen = false
     @StateObject private var viewModel = BusinessDetailViewModel()
     
     @State private var collections: [Collection] = UserDefaults.standard.object(forKey: "collections") as? [Collection] ?? []
@@ -65,18 +67,18 @@ struct BusinessDetailView: View {
         }
     }
     
-//    func updatePrefsAndFilterAcc(prefs: [Accommodation]) {
-//        var newPrefs: [String] = []
-//        print("before for loop: ", prefs)
-//        for (_, accommodation) in prefs.enumerated() {
-//            newPrefs.append(accommodation.preference)
-//        }
-//        selectedPrefs = newPrefs
-//        print(selectedPrefs)
-//        presentedReviews = viewModel.reviews.filter { review in
-//            Set(prefs.map(\.self)).isSubset(of: Set(review.accommodations?.map(\.self) ?? []))
-//        }
-//    }
+    //    func updatePrefsAndFilterAcc(prefs: [Accommodation]) {
+    //        var newPrefs: [String] = []
+    //        print("before for loop: ", prefs)
+    //        for (_, accommodation) in prefs.enumerated() {
+    //            newPrefs.append(accommodation.preference)
+    //        }
+    //        selectedPrefs = newPrefs
+    //        print(selectedPrefs)
+    //        presentedReviews = viewModel.reviews.filter { review in
+    //            Set(prefs.map(\.self)).isSubset(of: Set(review.accommodations?.map(\.self) ?? []))
+    //        }
+    //    }
     
     var body: some View {
         NavigationStack {
@@ -218,12 +220,13 @@ struct BusinessDetailView: View {
                     }
                     .padding([.bottom, .horizontal], 20)
                     .frame(maxWidth: .infinity, alignment: .leading)
-//                    Divider()
+                    //                    Divider()
                     reviewsSection
                     
                     //                Spacer()
                 }
                 .onAppear {
+                    isOpen = isBusinessOpen(display: business.hours?.display ?? "Open Daily 9:00 AM-5:00 PM")
                     if let data = UserDefaults.standard.data(forKey: "collections") {
                         let decoder = JSONDecoder()
                         if let loadedCollections = try? decoder.decode([Collection].self, from: data) {
@@ -272,7 +275,7 @@ struct BusinessDetailView: View {
                 ForEach(presentedReviews, id: \.id) { review in
                     ReviewCardView(review: review, viewModel: viewModel)
                 }
-            
+                
             }
         }
         .padding(.horizontal, 30)
@@ -292,9 +295,9 @@ struct BusinessDetailView: View {
                 Text("Reviews")
                     .font(.title)
                     .fontWeight(.semibold)
-
+                
                 Spacer(minLength: 20)
-
+                
                 HStack {
                     FilterBySection(
                         selectedPrefs: $selectedPrefs,
@@ -304,9 +307,9 @@ struct BusinessDetailView: View {
                             updatePrefsAndFilter(prefs)
                         }
                     )
-
+                    
                     Spacer(minLength: 20)
-
+                    
                     SortBySection(
                         selectedFilter: $selectedFilter,
                         filterOptions: filterOptions,
@@ -322,11 +325,11 @@ struct BusinessDetailView: View {
         @Binding var showFilterPopover: Bool
         let dietPrefs: [String]
         let updatePrefsAndFilter: (Set<String>) -> Void
-
+        
         var body: some View {
             VStack {
                 Text("Filter By:")
-
+                
                 Button {
                     showFilterPopover = true
                 } label: {
@@ -356,7 +359,7 @@ struct BusinessDetailView: View {
             }
             .padding(.leading)
         }
-
+        
         private var displayedFilterText: String {
             if selectedPrefs.isEmpty {
                 return "Nothing"
@@ -367,12 +370,12 @@ struct BusinessDetailView: View {
             }
         }
     }
-
+    
     struct SortBySection: View {
         @Binding var selectedFilter: String
         let filterOptions: [String]
         let viewModel: BusinessDetailViewModel
-
+        
         var body: some View {
             VStack {
                 Text("Sort By:")
@@ -401,11 +404,11 @@ struct BusinessDetailView: View {
             .padding(.leading)
         }
     }
-
+    
     struct WriteReviewButtonView: View {
         let businessId: String
         let viewModel: BusinessDetailViewModel
-
+        
         var body: some View {
             NavigationLink(destination: CreateReviewView(
                 onReviewSubmitted: {
@@ -436,15 +439,15 @@ struct BusinessDetailView: View {
         let review: Review
         @ObservedObject var viewModel: BusinessDetailViewModel
         @State private var userVote: Int? = nil
-
+        
         // --- Report Sheet State ---
         @State private var showReportSheet = false
         @State private var selectedReasons: Set<String> = []
         @State private var otherReason: String = ""
         @AppStorage("username") private var currentUsername: String = ""
-
+        
         @State private var commentContent: String = ""
-
+        
         
         var body: some View {
             NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
@@ -590,8 +593,8 @@ struct BusinessDetailView: View {
                                 //                                .foregroundColor(.gray)
                                 //                                .padding(.top, 5)
                             }
-
-                        } 
+                            
+                        }
                         
                         
                         
@@ -599,7 +602,7 @@ struct BusinessDetailView: View {
                     .frame(alignment: .leading)
                     Spacer()
                     
-
+                    
                 }
                 .padding()
                 .background(Color.gray.opacity(0.1))
@@ -624,7 +627,7 @@ struct BusinessDetailView: View {
         }
         private func formattedMealAndAccommodations(meal: String?, accommodations: [Accommodation]?) -> String {
             var parts: [String] = []
-
+            
             if let meal = meal, !meal.isEmpty {
                 parts.append(meal)
             }
@@ -638,7 +641,7 @@ struct BusinessDetailView: View {
             
             return parts.joined(separator: " | ")
         }
-
+        
     }
     
     //        private func handleUpvote() {
@@ -758,54 +761,54 @@ struct BusinessDetailView: View {
             }
         }
     }
-        
-        var descriptionSection: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Description")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                Text(business.description ?? "No description available.")
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+    
+    var descriptionSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Description")
+                .font(.title2)
+                .fontWeight(.semibold)
+            Text(business.description ?? "No description available.")
+                .fixedSize(horizontal: false, vertical: true)
         }
-        
-        var menuSection: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Menu")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                if let menu = business.menu, let url = URL(string: menu) {
-                    Link(destination: url) {
-                        Label("Visit Menu", systemImage: "menucard.fill")
-                    }
-                    .foregroundColor(Color.mainGreen.darker())
-                } else {
-                    Text("No menu available.")
+    }
+    
+    var menuSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Menu")
+                .font(.title2)
+                .fontWeight(.semibold)
+            if let menu = business.menu, let url = URL(string: menu) {
+                Link(destination: url) {
+                    Label("Visit Menu", systemImage: "menucard.fill")
                 }
+                .foregroundColor(Color.mainGreen.darker())
+            } else {
+                Text("No menu available.")
             }
         }
-        
-        var addressSection: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Address")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                if let address = business.address {
-                    Button(action: { showMapAlert = true }) {
-                        Label(address, systemImage: "map")
-                            .foregroundColor(Color.mainGreen.darker())
-                    }
-                    .buttonStyle(.plain)
-                    .confirmationDialog("Open in Maps", isPresented: $showMapAlert) {
-                        Button("Open in Maps") { openInAppleMaps(address: address) }
-                        Button("Cancel", role: .cancel) {}
-                    }
-                } else {
-                    Text("No address available.")
-                        .foregroundColor(Color.mainGreen)
+    }
+    
+    var addressSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Address")
+                .font(.title2)
+                .fontWeight(.semibold)
+            if let address = business.address {
+                Button(action: { showMapAlert = true }) {
+                    Label(address, systemImage: "map")
+                        .foregroundColor(Color.mainGreen.darker())
                 }
+                .buttonStyle(.plain)
+                .confirmationDialog("Open in Maps", isPresented: $showMapAlert) {
+                    Button("Open in Maps") { openInAppleMaps(address: address) }
+                    Button("Cancel", role: .cancel) {}
+                }
+            } else {
+                Text("No address available.")
+                    .foregroundColor(Color.mainGreen)
             }
         }
+    }
     
     var businessHoursSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -826,29 +829,26 @@ struct BusinessDetailView: View {
                             }
                         }
                         Spacer()
-                        
-                        if let isOpen = hours.open_now {
-                            Text(isOpen ? "Open now" : "Closed")
-                                .font(.subheadline)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 4)
-    //                            .background(isOpen ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
-                                .foregroundColor(isOpen ? .green : .red)
-                                .cornerRadius(8)
-                        }
+                        Text(isOpen ? "Open now" : "Closed")
+                            .font(.subheadline)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                        //                            .background(isOpen ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
+                            .foregroundColor(isOpen ? .green : .red)
+                            .cornerRadius(8)
                     } else {
                         Text("No business hours available.")
-                            
+                        
                             .foregroundColor(.black)
                     }
                     
                     
                 }
-
-                   } else {
-                       Text("No business hours available")
-                           .foregroundColor(.black)
-                   }
+                
+            } else {
+                Text("No business hours available")
+                    .foregroundColor(.black)
+            }
         }
     }
     
@@ -867,7 +867,7 @@ struct BusinessDetailView: View {
                                     .renderingMode(.template)
                                     .resizable()
                                     .foregroundColor(Color.mainGreen)
-                                    
+                                
                                     .frame(width: 30, height: 30)
                             }
                         }
@@ -879,7 +879,7 @@ struct BusinessDetailView: View {
                                     .renderingMode(.template)
                                     .resizable()
                                     .foregroundColor(Color.mainGreen)
-                                    
+                                
                                     .frame(width: 26, height: 26)
                             }
                         }
@@ -892,7 +892,7 @@ struct BusinessDetailView: View {
                                     .renderingMode(.template)
                                     .resizable()
                                     .foregroundColor(Color.mainGreen)
-                                    
+                                
                                     .frame(width: 25, height: 25)
                             }
                         }
@@ -903,27 +903,169 @@ struct BusinessDetailView: View {
             }
         }
     }
-        
-        func openInAppleMaps(address: String) {
-            let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-            if let url = URL(string: "http://maps.apple.com/?address=\(encodedAddress)") {
-                UIApplication.shared.open(url)
-            }
+    
+    func openInAppleMaps(address: String) {
+        let encodedAddress = address.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+        if let url = URL(string: "http://maps.apple.com/?address=\(encodedAddress)") {
+            UIApplication.shared.open(url)
         }
-        
-        
-        func callPhoneNumber(phonenumber: String?) {
-            if let phonenumber = phonenumber {
-                let sanitizedPhoneNumber = phonenumber.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
-                if let url = URL(string: "tel://\(sanitizedPhoneNumber)"),
-                   UIApplication.shared.canOpenURL(url) {
-                    UIApplication.shared.open(url)
-                } else {
-                    print("Invalid phone number: \(phonenumber)")
-                }
+    }
+    
+    
+    func callPhoneNumber(phonenumber: String?) {
+        if let phonenumber = phonenumber {
+            let sanitizedPhoneNumber = phonenumber.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+            if let url = URL(string: "tel://\(sanitizedPhoneNumber)"),
+               UIApplication.shared.canOpenURL(url) {
+                UIApplication.shared.open(url)
+            } else {
+                print("Invalid phone number: \(phonenumber)")
             }
         }
     }
+    
+    func isBusinessOpen(display: String) -> Bool {
+        var now = Date()
+        now = Calendar.current.date(byAdding: .hour, value: -4, to: now)! // Adjust to local timezone if needed
+
+        let calendar = Calendar.current
+        var today = calendar.startOfDay(for: Date())
+//        today = calendar.date(byAdding: .hour, value: -4, to: today)!
+        var nowComponents = calendar.dateComponents([.hour, .minute], from: now)
+        var nowTime = calendar.date(bySettingHour: nowComponents.hour ?? 0, minute: nowComponents.minute ?? 0, second: 0, of: today)!
+        // subtract a day
+        nowTime = calendar.date(byAdding: .day, value: -1, to: nowTime)!
+
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        formatter.timeZone = TimeZone.current
+
+        if display.starts(with: "Open Daily") {
+            let rangeString = display.replacingOccurrences(of: "Open Daily", with: "").trimmingCharacters(in: .whitespaces)
+            let ranges = rangeString.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+
+            for range in ranges {
+                var newRange = range.replacingOccurrences(of: " - ", with: "-")
+                let parts = newRange.components(separatedBy: "-").map { $0.trimmingCharacters(in: .whitespaces) }
+                guard parts.count == 2,
+                      let start = formatter.date(from: parts[0]),
+                      let end = formatter.date(from: parts[1]) else { continue }
+
+                let startComponents = calendar.dateComponents([.hour, .minute], from: start)
+                let endComponents = calendar.dateComponents([.hour, .minute], from: end)
+
+                var startTime = calendar.date(bySettingHour: calendar.component(.hour, from: start),
+                                              minute: calendar.component(.minute, from: start),
+                                              second: 0,
+                                              of: today)!
+                startTime = calendar.date(byAdding: .hour, value: -4, to: startTime)!
+                var endTime = calendar.date(bySettingHour: calendar.component(.hour, from: end),
+                                          minute: calendar.component(.minute, from: end),
+                                          second: 0,
+                                          of: today)!
+                endTime = calendar.date(byAdding: .hour, value: -4, to: endTime)!
+
+
+                if startTime <= endTime {
+                    // Normal same-day range
+                    if nowTime >= startTime && nowTime <= endTime {
+                        return true
+                    }
+                } else {
+                    // Wraparound (e.g., 11 PM - 2 AM)
+                    if nowTime >= startTime || nowTime <= endTime {
+                        return true
+                    }
+                }
+            }
+
+            return false
+        }
+        else {
+            var nowComponents = calendar.dateComponents([.weekday, .hour, .minute], from: now)
+            guard let weekday = nowComponents.weekday else { return false }
+
+            let days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+
+            // Normalize display string
+            var newDisplay = display
+                .replacingOccurrences(of: "Thurs", with: "Thu")
+                .replacingOccurrences(of: "Thur", with: "Thu")
+                .replacingOccurrences(of: "Weds", with: "Wed")
+                .replacingOccurrences(of: "Tues", with: "Tue")
+                .replacingOccurrences(of: " - ", with: "-")
+
+            let rules = newDisplay.components(separatedBy: ";")
+
+            for rule in rules {
+                let trimmedRule = rule.trimmingCharacters(in: .whitespaces)
+                let parts = trimmedRule.components(separatedBy: " ")
+                guard parts.count >= 2 else { continue }
+
+                let dayRangeStr = parts[0]
+                let timesStr = parts[1...].joined(separator: " ")
+                let individualTimeRanges = timesStr.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+
+                // --- Expand active days ---
+                let dayParts = dayRangeStr.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+                var activeDays: Set<String> = []
+
+                for part in dayParts {
+                    if part.contains("-") {
+                        let bounds = part.components(separatedBy: "-").map { $0.trimmingCharacters(in: .whitespaces) }
+                        if bounds.count == 2,
+                           let startIndex = days.firstIndex(of: bounds[0]),
+                           let endIndex = days.firstIndex(of: bounds[1]) {
+                            let range = startIndex <= endIndex
+                                ? Array(startIndex...endIndex)
+                                : Array(startIndex..<7) + Array(0...endIndex)
+                            activeDays.formUnion(range.map { days[$0] })
+                        }
+                    } else if days.contains(part) {
+                        activeDays.insert(part)
+                    }
+                }
+
+                let today = days[weekday % days.count]
+                if activeDays.contains(today) {
+                    for timeRange in individualTimeRanges {
+                        let times = timeRange.components(separatedBy: "-").map { $0.trimmingCharacters(in: .whitespaces) }
+                        if times.count != 2 { continue }
+
+                        guard var start = formatter.date(from: times[0]),
+                              var end = formatter.date(from: times[1]) else { continue }
+                        
+                        start = Calendar.current.date(byAdding: .hour, value: -4, to: start)!
+                        end = Calendar.current.date(byAdding: .hour, value: -4, to: end)!
+
+                        var startComponents = calendar.dateComponents([.hour, .minute], from: start)
+                        var endComponents = calendar.dateComponents([.hour, .minute], from: end)
+                        let nowComponents = calendar.dateComponents([.hour, .minute], from: now)
+                        
+                        var startTime = calendar.startOfDay(for: now)
+                        startTime = calendar.date(byAdding: startComponents, to: startTime)!
+                        var endTime = calendar.startOfDay(for: now)
+                        endTime = calendar.date(byAdding: endComponents, to: endTime)!
+
+                        if startTime <= endTime {
+                            if nowTime >= startTime && nowTime <= endTime {
+                                return true
+                            }
+                        } else {
+                            // Overnight wrap
+                            if nowTime >= startTime || nowTime <= endTime {
+                                return true
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false
+        }
+        
+    }
+}
 
 struct FilterPopover: View {
     let options: [String]
