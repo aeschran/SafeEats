@@ -423,8 +423,10 @@ class ReviewService(BaseService):
         subject = f"{report_review.user_name} has reported a review"
         content = Content("text/plain", f"Review ID: {str(review['_id'])} \n\nReview Content: {review['review_content']}\n\nReporter: {report_review.user_name}\n\nReason for Reporting: {report_review.message}")
         mail = Mail(from_email, to_email, subject, content)
+        print(mail)
         try:
             response = sg.send(mail)
+            print(response.status_code)
         except:
             return None
         

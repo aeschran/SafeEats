@@ -23,7 +23,7 @@ class OwnerBusinessDetailViewModel: ObservableObject {
         "Shellfish": 0
     ]
     
-    private let baseURL = "http://localhost:8000"
+    private let baseURL = "https://b16d-46-110-43-50.ngrok-free.app"
     @Published var business: Business?
 
     func addPreferencesToBusiness(businessID: String) async {

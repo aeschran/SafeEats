@@ -22,7 +22,7 @@ class MyProfileViewModel: ObservableObject {
     @Published var collections: [Collection] = []
     @AppStorage("id") var id_ : String?
     
-    private let baseURL = "http://localhost:8000"
+    private let baseURL = "https://b16d-46-110-43-50.ngrok-free.app"
     
     // Replace with your actual backend API URL
     

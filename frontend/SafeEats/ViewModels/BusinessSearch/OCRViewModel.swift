@@ -16,7 +16,7 @@ class OCRViewModel: ObservableObject {
     @Published var originalImageHeight: Int?
 
     func loadData(businessId: String, completion: @escaping (Bool) -> Void) {
-        let url = URL(string: "http://localhost:8000/menu/get_menu/\(businessId)")!
+        let url = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/menu/get_menu/\(businessId)")!
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data else {
                 print("No data returned from server")
@@ -78,7 +78,7 @@ class OCRViewModel: ObservableObject {
     }
     
     func loadOfficialData(businessId: String, completion: @escaping (Bool) -> Void) {
-        let url = URL(string: "http://localhost:8000/menu/get_official_menu/\(businessId)")!
+        let url = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/menu/get_official_menu/\(businessId)")!
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data else {
                 print("No data returned from server")
@@ -142,7 +142,7 @@ class OCRViewModel: ObservableObject {
     func uploadImage(_ image: UIImage, businessId: String, completion: @escaping (Bool, TimeInterval) -> Void) {
         let startTime = Date()
         guard let imageData = image.jpegData(compressionQuality: 0.8) else { return}
-        let url = URL(string: "http://localhost:8000/menu/upload")!
+        let url = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/menu/upload")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
 
@@ -176,7 +176,7 @@ class OCRViewModel: ObservableObject {
     func uploadOfficialImage(_ image: UIImage, businessId: String, completion: @escaping (Bool, TimeInterval) -> Void) {
         let startTime = Date()
         guard let imageData = image.jpegData(compressionQuality: 0.8) else { return}
-        let url = URL(string: "http://localhost:8000/menu/upload_official")!
+        let url = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/menu/upload_official")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
 
@@ -204,7 +204,7 @@ class OCRViewModel: ObservableObject {
     
     func uploadMenuURL(_ url: String, businessId: String, completion: @escaping (Bool, TimeInterval) -> Void) {
         let startTime = Date()
-        let endpoint = URL(string: "http://localhost:8000/menu/upload_url")!
+        let endpoint = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/menu/upload_url")!
         var request = URLRequest(url: endpoint)
         request.httpMethod = "POST"
         request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")

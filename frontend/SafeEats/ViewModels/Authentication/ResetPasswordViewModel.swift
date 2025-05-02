@@ -21,7 +21,7 @@ class ResetPasswordViewModel: ObservableObject {
     
     init(accountType: AccountType) {
         self.accountType = accountType
-        self.baseURL = accountType == .businessOwnerAccount ? "http://localhost:8000/business_auth" : "http://localhost:8000/auth"
+        self.baseURL = accountType == .businessOwnerAccount ? "https://b16d-46-110-43-50.ngrok-free.app/business_auth" : "https://b16d-46-110-43-50.ngrok-free.app/auth"
         
     }
     

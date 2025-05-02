@@ -16,7 +16,7 @@ class CollectionDetailViewModel: ObservableObject {
     
     @Published var business: Business?
     
-    private let baseURL = "http://localhost:8000"
+    private let baseURL = "https://b16d-46-110-43-50.ngrok-free.app"
     
     func getBusinessInformation(businessId: String) async {
         guard let url = URL(string: "\(baseURL)/business_search/get/\(businessId)") else { return }

@@ -78,7 +78,7 @@ class BusinessDetailViewModel: ObservableObject {
     @Published var preferences: [Accommodation] = []
     @Published var selectedPrefs: Set<String> = []
     
-    private let baseURL = "http://localhost:8000"
+    private let baseURL = "https://b16d-46-110-43-50.ngrok-free.app"
     
     
     
@@ -327,7 +327,7 @@ class BusinessDetailViewModel: ObservableObject {
             print("Error: User data is not available")
             return
         }
-        guard let url = URL(string: "http://localhost:8000/review/vote/") else { return }
+        guard let url = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/review/vote/") else { return }
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -480,7 +480,7 @@ class BusinessDetailViewModel: ObservableObject {
     
     func getUserPreferences() async {
         guard let id = id_,
-              let url = URL(string: "http://localhost:8000/profile/preferences/\(id)") else { return }
+              let url = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/profile/preferences/\(id)") else { return }
 
         var request = URLRequest(url: url)
         request.httpMethod = "GET"

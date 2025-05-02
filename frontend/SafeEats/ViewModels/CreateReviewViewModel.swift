@@ -14,7 +14,7 @@ struct ReviewCreationResponse: Decodable {
 
 class CreateReviewViewModel: ObservableObject {
     @Published var reviews: [FriendReview] = []
-    private let baseURL = "http://localhost:8000"
+    private let baseURL = "https://b16d-46-110-43-50.ngrok-free.app"
     @AppStorage("id") var id_: String?
 
     func submitReview(businessId: String, reviewContent: String, rating: Int, image: UIImage?, mealName: String, selectedAccommodations: [String]) {

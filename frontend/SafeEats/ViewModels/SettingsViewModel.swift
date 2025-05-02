@@ -18,7 +18,7 @@ class SettingsViewModel: ObservableObject {
     
     private var existingPreferences: [String] = []
     
-    let baseUrl = "http://localhost:8000"
+    let baseUrl = "https://b16d-46-110-43-50.ngrok-free.app"
     
     init() {
         if tags.isEmpty {

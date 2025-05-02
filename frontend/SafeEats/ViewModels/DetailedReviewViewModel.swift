@@ -56,11 +56,11 @@ class DetailedReviewViewModel: ObservableObject {
     @Published var review: DetailedReview?
     @Published var comments: [Comment] = []
     
-    private let baseURL = "http://localhost:8000"
+    private let baseURL = "https://b16d-46-110-43-50.ngrok-free.app"
     @AppStorage("id") var id_: String?
     
     func fetchDetailedReview(reviewID: String) {
-        guard let url = URL(string: "http://localhost:8000/review/\(reviewID)") else {
+        guard let url = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/review/\(reviewID)") else {
             print("Invalid URL")
             return
         }

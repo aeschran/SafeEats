@@ -25,7 +25,7 @@ class NotificationsViewModel: ObservableObject {
 
     @AppStorage("id") var id_:String?
     
-    private let baseURL = "http://localhost:8000"  // Replace with your actual backend URL
+    private let baseURL = "https://b16d-46-110-43-50.ngrok-free.app"  // Replace with your actual backend URL
     
     // Fetch Notifications from the Backend
     func fetchNotifications() {
@@ -113,7 +113,7 @@ class NotificationsViewModel: ObservableObject {
 
 
     func acceptRequest(notificationId: String, recipientId: String, senderId: String) {
-        guard let url = URL(string: "http://localhost:8000/friends/accept") else { return }
+        guard let url = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/friends/accept") else { return }
         
         Task {
             do {
@@ -142,7 +142,7 @@ class NotificationsViewModel: ObservableObject {
     }
     
     func denyRequest(notificationId: String, recipientId: String, senderId: String) {
-        guard let url = URL(string: "http://localhost:8000/friends/deny") else { return }
+        guard let url = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/friends/deny") else { return }
         
         Task {
             do {

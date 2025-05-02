@@ -19,7 +19,7 @@ class FriendsViewModel {
     func fetchRequests() {
         
         
-        guard let url = URL(string: "http://localhost:8000/notifications/67be93f783402626a81f76da") else { return }
+        guard let url = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/notifications/67be93f783402626a81f76da") else { return }
         
         Task {
             do {
@@ -42,7 +42,7 @@ class FriendsViewModel {
     }
     
     func acceptRequest(_ request: NotificationResponse) {
-        guard let url = URL(string: "http://localhost:8000/friends/accept") else { return }
+        guard let url = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/friends/accept") else { return }
         
         Task {
             do {
@@ -64,7 +64,7 @@ class FriendsViewModel {
     }
     
     func denyRequest(_ request: NotificationResponse) {
-        guard let url = URL(string: "http://localhost:8000/friends/deny") else { return }
+        guard let url = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/friends/deny") else { return }
         
         Task {
             do {

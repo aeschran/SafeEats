@@ -68,7 +68,7 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
     }
     
     func fetchUserPreferences(userId: String) {
-        guard let url = URL(string: "http://localhost:8000/profile/preferences/\(userId)") else { return }
+        guard let url = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/profile/preferences/\(userId)") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
@@ -149,7 +149,7 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
         isLoading = true
         errorMessage = nil
         
-        guard let url = URL(string: "http://localhost:8000/business_search") else { return }
+        guard let url = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/business_search") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -213,7 +213,7 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
         isLoading = true
         errorMessage = nil
         
-        guard let url = URL(string: "http://localhost:8000/business_search/map") else { return }
+        guard let url = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/business_search/map") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -277,7 +277,7 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
         isLoading = true
         errorMessage = nil
         
-        guard let url = URL(string: "http://localhost:8000/business_search/random-business") else { return }
+        guard let url = URL(string: "https://b16d-46-110-43-50.ngrok-free.app/business_search/random-business") else { return }
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
