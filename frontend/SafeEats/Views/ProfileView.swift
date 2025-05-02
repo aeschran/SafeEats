@@ -78,9 +78,19 @@ struct ProfileView: View {
                     }.padding(5)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(viewModel.name)
-                            .font(.footnote)
-                            .fontWeight(.semibold)
+                        HStack {
+                            Text(viewModel.name)
+                                .font(.footnote)
+                                .fontWeight(.semibold)
+                            if viewModel.isTrusted {
+                                Text(" Trusted Reviewer")
+                                    .font(.footnote)
+                                    .fontWeight(.semibold)
+                                    .italic(true)
+                                    .foregroundColor(.mainGreen)
+                            }
+                        }
+                        
                         Text(viewModel.bio)
                             .font(.caption)
                         

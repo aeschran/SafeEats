@@ -43,7 +43,7 @@ struct BusinessDetailView: View {
     //    let businessId = business.id
     @State private var selectedFilter: String = "Most Recent"
     @State private var showDropdown: Bool = false
-    @State private var selectedPrefs: [String] = []
+    @State private var selectedPrefs: Set<String> = []
     //    @Published var reviews: [Review] = []
     
     let filterOptions: [String] = ["Most Recent", "Least Recent", "Highest Rating", "Lowest Rating", "Most Popular", "Least Popular"]
@@ -54,7 +54,7 @@ struct BusinessDetailView: View {
         return accommodation.preference
     }
     
-    func updatePrefsAndFilter(prefs: [String]) {
+    func updatePrefsAndFilter(prefs: Set<String>) {
         if (prefs.isEmpty) {
             print(viewModel.reviews)
             presentedReviews = viewModel.reviews
@@ -280,12 +280,12 @@ struct BusinessDetailView: View {
     
     struct ReviewsHeaderView: View {
         let dietPrefs: [String]
-        @Binding var selectedPrefs: [String]
+        @Binding var selectedPrefs: Set<String>
         let filterOptions: [String]
         @Binding var selectedFilter: String
         let viewModel: BusinessDetailViewModel
         @State var showFilterPopover: Bool = false
-        let updatePrefsAndFilter: ([String]) -> Void
+        let updatePrefsAndFilter: (Set<String>) -> Void
         
         var body: some View {
             VStack(alignment: .center) {
@@ -318,10 +318,10 @@ struct BusinessDetailView: View {
     }
     
     struct FilterBySection: View {
-        @Binding var selectedPrefs: [String]
+        @Binding var selectedPrefs: Set<String>
         @Binding var showFilterPopover: Bool
         let dietPrefs: [String]
-        let updatePrefsAndFilter: ([String]) -> Void
+        let updatePrefsAndFilter: (Set<String>) -> Void
 
         var body: some View {
             VStack {
@@ -927,7 +927,7 @@ struct BusinessDetailView: View {
 
 struct FilterPopover: View {
     let options: [String]
-    @Binding var selected: [String]
+    @Binding var selected: Set<String>
     @Binding var isPresented: Bool
 
     var body: some View {
@@ -942,9 +942,9 @@ struct FilterPopover: View {
                             get: { selected.contains(option) },
                             set: { isOn in
                                 if isOn {
-                                    selected.append(option)
+                                    selected.insert(option)
                                 } else {
-                                    selected.remove(at: selected.firstIndex(of: option) ?? -1)
+                                    selected.remove(option)
                                 }
                             }
                         )) {

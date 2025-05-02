@@ -59,6 +59,8 @@ class UserProfileService(BaseService):
         if not user_data:
             return None
         user_image = await self.db.user_profile_images.find_one({"user_id": str(_id)})
+        num_reviews = await self.db.user_reviews.count_documents({"user_id": ObjectId(_id)})
+        user_data["review_count"] = num_reviews
         user = ProfileResponse(**user_data)
         if user:
             if user_image:
@@ -70,10 +72,13 @@ class UserProfileService(BaseService):
     
     async def get_other_user_profile(self, _id: str, friend_id: str):
         user_data = await self.db.users.find_one({"_id": ObjectId(friend_id)}) 
+        print(user_data)
         if not user_data:
             return None
         user_image = await self.db.user_profile_images.find_one({"user_id": str(friend_id)})
-        user = OtherProfileResponse(**user_data)
+        num_reviews = await self.db.user_reviews.count_documents({"user_id": ObjectId(friend_id)})
+        user_data["review_count"] = num_reviews
+        user = OtherProfileResponse(**user_data, is_trusted=user_data.get("trusted_reviewer", False))
         friend_data = await self.db.friends.find_one({"user_id": ObjectId(_id), "friend_id": ObjectId(friend_id)})
         if not friend_data:
             friend_data = await self.db.friends.find_one({"user_id": ObjectId(friend_id), "friend_id": ObjectId(_id)})
@@ -81,6 +86,7 @@ class UserProfileService(BaseService):
         if not notifications_data:
             notifications_data = await self.db.notifications.find_one({"sender_id": ObjectId(friend_id), "recipient_id": ObjectId(_id), "type" : 1})
         if user:
+            print(user)
             if friend_data:
                 if user_image:
                     print("1")

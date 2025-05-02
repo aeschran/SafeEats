@@ -17,6 +17,7 @@ class ProfileViewModel: ObservableObject {
     @Published var imageBase64: UIImage? = nil
     @Published var isFollowing: Bool = false
     @Published var isRequested: Bool = false
+    @Published var isTrusted: Bool = false
     @Published var didTap: Bool = false
     @Published var reviews: [FriendReview] = []
     private var friendId: String
@@ -111,6 +112,7 @@ class ProfileViewModel: ObservableObject {
                     self.isFollowing = decodedProfile.isFollowing
                     //                    self.isRequested = decodeProfile.isRequested
                     self.isRequested = decodedProfile.isRequested
+                    self.isTrusted = decodedProfile.isTrusted
                     
                     // Decode Base64 Image
                     //                    if let imageData = Data(base64Encoded: decodedProfile.imageBase64),
@@ -242,6 +244,7 @@ struct ProfileResponse: Codable {
     let imageBase64: String?
     let isFollowing: Bool
     let isRequested: Bool
+    let isTrusted: Bool
     
     // If backend uses different naming conventions, we can map it here
     enum CodingKeys: String, CodingKey {
@@ -253,6 +256,7 @@ struct ProfileResponse: Codable {
         case imageBase64 = "image"
         case isFollowing = "is_following"
         case isRequested = "is_requested"
+        case isTrusted = "is_trusted"
     }
 }
 
