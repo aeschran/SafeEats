@@ -20,6 +20,7 @@ struct BusinessDetailView: View {
     @State private var userVote: Int? = nil
     @State private var showCollectionPicker = false
     @StateObject private var viewModel = BusinessDetailViewModel()
+    @StateObject private var ocrViewModel = OCRViewModel()
     
     @State private var collections: [Collection] = UserDefaults.standard.object(forKey: "collections") as? [Collection] ?? []
     
@@ -27,6 +28,7 @@ struct BusinessDetailView: View {
     @State var collectionID: String? = nil
     @State var selectedFilters: [Accommodation: Bool] = [:]
     @State var presentedReviews: [Review] = []
+    @State var hasMenu: Bool = false
     
     func collectionsExcludingBusiness() -> [Collection] {
         for collection in $collections {
@@ -234,6 +236,11 @@ struct BusinessDetailView: View {
                         }
                     }
                     viewModel.updateAverageRating(businessId: business.id)
+                    ocrViewModel.loadData(businessId: business.id) { success in
+                        if success {
+                            hasMenu = true
+                        }
+                    }
                 }
                 .task {
                     await viewModel.fetchBusinessData(businessID: business.id)
@@ -591,7 +598,7 @@ struct BusinessDetailView: View {
                                 //                                .padding(.top, 5)
                             }
 
-                        } 
+                        }
                         
                         
                         
@@ -787,10 +794,15 @@ struct BusinessDetailView: View {
                     .font(.title3)
                     .fontWeight(.semibold)
                 HStack {
-                    NavigationLink(destination: AnnotatedMenu(businessId: business.id)) {
-                        Label("View Annotated Menu", systemImage: "doc.text.magnifyingglass")
+                    if hasMenu {
+                        NavigationLink(destination: AnnotatedMenu(businessId: business.id)) {
+                            Label("View Annotated Menu", systemImage: "doc.text.magnifyingglass")
+                        }
+                        .foregroundColor(Color.mainGreen.darker())
+                    } else {
+                        Text("No uploaded menu available.")
+                            .foregroundColor(Color.mainGreen.darker())
                     }
-                    .foregroundColor(Color.mainGreen.darker())
                     NavigationLink(destination: MenuUploadView(isOfficial: false, businessId: business.id)) {
                         Label("Upload Menu", systemImage: "square.and.arrow.up")
                     }

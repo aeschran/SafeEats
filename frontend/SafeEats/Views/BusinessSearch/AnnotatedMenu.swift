@@ -105,7 +105,11 @@ struct AnnotatedMenu: View {
             }
         }
         .onAppear {
-            viewModel.loadData(businessId: businessId)
+            viewModel.loadData(businessId: businessId) { success in
+                if !success {
+                    print("Failed to load menu image and data")
+                }
+            }
         }
         .navigationTitle("Annotated Menu")
         .navigationBarTitleDisplayMode(.inline)

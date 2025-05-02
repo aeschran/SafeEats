@@ -15,7 +15,7 @@ class OCRViewModel: ObservableObject {
     @Published var originalImageWidth: Int?
     @Published var originalImageHeight: Int?
 
-    func loadData(businessId: String) {
+    func loadData(businessId: String, completion: @escaping (Bool) -> Void) {
         let url = URL(string: "http://localhost:8000/menu/get_menu/\(businessId)")!
         URLSession.shared.dataTask(with: url) { data, response, error in
             guard let data = data else {
@@ -27,34 +27,49 @@ class OCRViewModel: ObservableObject {
                 let decoded = try JSONDecoder().decode(OCRResponse.self, from: data)
                 print(decoded)
                 DispatchQueue.main.async {
-                    // Check if image_url is valid and non-empty
                     guard !decoded.image_url.isEmpty,
-                          let imageURL = URL(string: decoded.image_url),
-                          let imageData = try? Data(contentsOf: imageURL) else {
+                          let imageURL = URL(string: decoded.image_url) else {
                         print("No valid image URL returned")
-                        self.menuImage = nil
-                        self.boxes = []
+                        DispatchQueue.main.async {
+                            self.menuImage = nil
+                            self.boxes = []
+                            completion(false)
+                        }
                         return
                     }
-                    
-                    self.menuImage = UIImage(data: imageData)
-                    self.originalImageWidth = decoded.image_width
-                    self.originalImageHeight = decoded.image_height
-                    // Check if there are OCR results to process
-                    if decoded.ocr_results.isEmpty {
-                        print("No OCR bounding boxes returned")
-                        self.boxes = []
-                    } else {
-                        self.boxes = decoded.ocr_results.map { result in
-                            let minX = CGFloat(result.bbox.map { $0[0] }.min() ?? 0)
-                            let minY = CGFloat(result.bbox.map { $0[1] }.min() ?? 0)
-                            let maxX = CGFloat(result.bbox.map { $0[0] }.max() ?? 0)
-                            let maxY = CGFloat(result.bbox.map { $0[1] }.max() ?? 0)
-                            let rect = CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
-                            let conflictText = result.conflict?.joined(separator: ", ") ?? ""
-                            return BoundingBox(rect: rect, conflict: conflictText)
+
+                    URLSession.shared.dataTask(with: imageURL) { imageData, _, _ in
+                        guard let imageData = imageData,
+                              let image = UIImage(data: imageData) else {
+                            DispatchQueue.main.async {
+                                self.menuImage = nil
+                                self.boxes = []
+                                completion(false)
+                            }
+                            return
                         }
-                    }
+
+                        DispatchQueue.main.async {
+                            self.menuImage = image
+                            self.originalImageWidth = decoded.image_width
+                            self.originalImageHeight = decoded.image_height
+                            if decoded.ocr_results.isEmpty {
+                                print("No OCR bounding boxes returned")
+                                self.boxes = []
+                            } else {
+                                self.boxes = decoded.ocr_results.map { result in
+                                    let minX = CGFloat(result.bbox.map { $0[0] }.min() ?? 0)
+                                    let minY = CGFloat(result.bbox.map { $0[1] }.min() ?? 0)
+                                    let maxX = CGFloat(result.bbox.map { $0[0] }.max() ?? 0)
+                                    let maxY = CGFloat(result.bbox.map { $0[1] }.max() ?? 0)
+                                    let rect = CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
+                                    let conflictText = result.conflict?.joined(separator: ", ") ?? ""
+                                    return BoundingBox(rect: rect, conflict: conflictText)
+                                }
+                            }
+                            completion(true)
+                        }
+                    }.resume()
                 }
             } catch {
                 print("Failed to decode OCRResponse: \(error)")
