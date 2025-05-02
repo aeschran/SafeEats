@@ -99,7 +99,13 @@ struct BusinessSuggestionView: View {
                             .cornerRadius(12)
                     }
                     .disabled(suggestionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    
                 }
+                Button("Cancel") {
+                    dismiss()
+                }
+                .foregroundColor(.gray)
+                .frame(maxWidth: .infinity,alignment: .center)
                 
                 Spacer()
             }
