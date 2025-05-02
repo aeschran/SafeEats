@@ -76,7 +76,7 @@ class BusinessDetailViewModel: ObservableObject {
     
     @Published var comments: [String: [Comment]] = [:]  // Map reviewID -> comments
     @Published var preferences: [Accommodation] = []
-    @Published var selectedPrefs: [String] = []
+    @Published var selectedPrefs: Set<String> = []
     
     private let baseURL = "http://localhost:8000"
     
@@ -92,7 +92,10 @@ class BusinessDetailViewModel: ObservableObject {
 
             DispatchQueue.main.async {
                 self.reviews = decoded.sorted { $0.reviewTimestamp > $1.reviewTimestamp }
+                print("line 97: \(self.reviews)")
             }
+            
+            
         } catch {
             print("Error fetching reviews:", error)
         }
@@ -490,10 +493,14 @@ class BusinessDetailViewModel: ObservableObject {
             let dietPrefs = userPreferences.dietary_restrictions
 
             let accommodations = dietPrefs.map {
-                Accommodation(preferenceType: $0.preference_type, preference: $0.preference)
+                if $0.preference == "Peanuts" {
+                    Accommodation(preferenceType: "Allergy", preference: "Peanut")
+                } else {
+                    Accommodation(preferenceType: $0.preference_type, preference: $0.preference)
+                }
             }
 
-            let prefs = dietPrefs.map(\.preference)
+            let prefs = Set(accommodations.map(\.preference))
 
             // Update on main thread
             DispatchQueue.main.async {

@@ -29,12 +29,13 @@ class OtherProfileResponse(BaseModel):
     name: str
     bio: str
     friend_count: int
-    review_count: int
+    review_count: int = 0
     username: str
     image: str | None = None
     preferences: List[PreferenceCreate] = []
     is_following: bool | None = None
     is_requested: bool | None = None
+    is_trusted: bool = False
     # image: str
 
 class ProfileSearchResponse(BaseModel):
