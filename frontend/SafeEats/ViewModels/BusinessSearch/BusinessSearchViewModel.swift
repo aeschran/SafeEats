@@ -46,12 +46,15 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
     
     private var cancellables = Set<AnyCancellable>()
     private var locationManager = CLLocationManager()
+
+    private var lastSearchedLocation: CLLocation?
+    private let locationUpdateThreshold: CLLocationDistance = 500 // meters
     
     
     override init() {
         super.init()
         locationManager.delegate = self
-        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
         requestLocation()
         
         fetchUserPreferences(userId: UserDefaults.standard.string(forKey: "id") ?? "")
@@ -112,6 +115,20 @@ class BusinessSearchViewModel: NSObject, ObservableObject, CLLocationManagerDele
     // CLLocationManagerDelegate - Update location
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         guard let location = locations.last else { return }
+
+        let shouldSearch: Bool
+
+        if let last = lastSearchedLocation {
+            shouldSearch = location.distance(from: last) > locationUpdateThreshold
+        } else {
+            shouldSearch = true
+        }
+
+        guard shouldSearch else { return }
+
+        lastSearchedLocation = location
+        manager.stopUpdatingLocation()
+
         DispatchQueue.main.async {
             self.latitude = location.coordinate.latitude
             self.longitude = location.coordinate.longitude

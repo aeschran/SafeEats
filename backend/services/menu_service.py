@@ -1,5 +1,6 @@
+import numpy as np
 import easyocr
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 from services.base_service import BaseService
 from schemas.ocr_results import OcrResult
 from models.menu import Menu
@@ -44,9 +45,11 @@ class MenuService(BaseService):
 
     async def process_image(self, image_path: str, business_id: str, is_official: bool):
         with open(image_path, "rb") as image_file:
-            image = Image.open(image_path)
+            image = ImageOps.exif_transpose(Image.open(image_path))
+        print("Image opened successfully")
         draw = ImageDraw.Draw(image)
-        results = self.reader.readtext(image_path, detail=1)
+        results = self.reader.readtext(np.array(image), detail=1)
+        print("OCR results obtained successfully")
 
 
         ocr_results = []
@@ -107,17 +110,23 @@ class MenuService(BaseService):
         Get the unofficial menu for a specific business.
         """
         print(business_id)
-        result = await self.db.menu.find_one({"business_id": ObjectId(business_id), "is_official": False})
+        result = await self.db.menu.find_one(
+            {"business_id": ObjectId(business_id), "is_official": False},
+            sort=[("created_at", -1)]
+        )
         if not result:
             raise Exception("Menu not found")
         return result
     
     async def get_official_menu(self, business_id: str):
         """
-        Get the unofficial menu for a specific business.
+        Get the latest official menu for a specific business.
         """
         print(business_id)
-        result = await self.db.menu.find_one({"business_id": ObjectId(business_id), "is_official": True})
+        result = await self.db.menu.find_one(
+            {"business_id": ObjectId(business_id), "is_official": True},
+            sort=[("created_at", -1)]
+        )
         if not result:
             raise Exception("Menu not found")
         return result

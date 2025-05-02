@@ -417,6 +417,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "We need camera access to let you take photos of menus.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "\"We need your location to find nearby restaurants.\"";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "\"We need your location to find nearby restaurants.\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -452,6 +453,7 @@
 				DEVELOPMENT_TEAM = "";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSCameraUsageDescription = "We need camera access to let you take photos of menus.";
 				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "\"We need your location to find nearby restaurants.\"";
 				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "\"We need your location to find nearby restaurants.\"";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

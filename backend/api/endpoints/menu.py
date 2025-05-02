@@ -30,10 +30,12 @@ async def process_menu(business_id: str = Form(...), file: UploadFile = File(...
     Process the uploaded menu image and return OCR results.
     """
     try:
+        print("In upload unofficial menu")
         contents = await file.read()
         image_path = f"/tmp/{uuid.uuid4()}.jpg"
         with open(image_path, "wb") as image_file:
             image_file.write(contents)
+        print("did we get here")
         ocr_results = await menu_service.process_image(image_path, business_id, is_official=False)
         return {"message": "Image processed successfully"}
     except Exception as e:
