@@ -651,40 +651,6 @@ struct BusinessDetailView: View {
         
     }
     
-    //        private func handleUpvote() {
-    //            if userVote == 1 {
-    //                upvoteCount -= 1
-    //                userVote = nil
-    //            } else if userVote == -1 {
-    //                downvoteCount -= 1
-    //                upvoteCount += 1
-    //                userVote = 1
-    //            } else {
-    //                upvoteCount += 1
-    //                userVote = 1
-    //            }
-    //        }
-    //
-    //        private func handleDownvote() {
-    //            if userVote == -1 {
-    //                downvoteCount -= 1
-    //                userVote = nil
-    //            } else if userVote == 1 {
-    //                upvoteCount -= 1
-    //                downvoteCount += 1
-    //                userVote = -1
-    //            } else {
-    //                downvoteCount += 1
-    //                userVote = -1
-    //            }
-    //        }
-    
-    //    private func formattedDate(from timestamp: Double) -> String {
-    //        let date = Date(timeIntervalSince1970: timestamp)
-    //        let formatter = DateFormatter()
-    //        formatter.dateStyle = .medium
-    //        return formatter.string(from: date)
-    //    }
     var ratingsSection: some View {
         return HStack(alignment: .center, spacing: 5) {
             if let avg_rating = viewModel.avg_rating {
@@ -777,56 +743,57 @@ struct BusinessDetailView: View {
             Text(business.description ?? "No description available.")
                 .fixedSize(horizontal: false, vertical: true)
         }
+    }
         
-        var menuSection: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Official Menu")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                if let menu = business.menu, let url = URL(string: menu) {
-                    if menu.contains("safeeatsbucket1.s3.amazonaws.com/menus/") {
-                        NavigationLink(destination: AnnotatedMenu(official: true, businessId: business.id)) {
-                            Label("View Uploaded Menu", systemImage: "menucard")
-                        }
-                        .foregroundColor(Color.mainGreen.darker())
-                    } else {
-                        Link(destination: url) {
-                            Label("Visit Menu", systemImage: "menucard.fill")
-                        }
-                        .foregroundColor(Color.mainGreen.darker())
+    var menuSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Official Menu")
+                .font(.title2)
+                .fontWeight(.semibold)
+            if let menu = business.menu, let url = URL(string: menu) {
+                if menu.contains("safeeatsbucket1.s3.amazonaws.com/menus/") {
+                    NavigationLink(destination: AnnotatedMenu(official: true, businessId: business.id)) {
+                        Label("View Uploaded Menu", systemImage: "menucard")
                     }
+                    .foregroundColor(Color.mainGreen.darker())
                 } else {
-                    Text("No official menu available.")
-                }
-                Spacer()
-                Text("Uploaded Menu")
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                HStack {
-                    if hasMenu {
-                        NavigationLink(destination: AnnotatedMenu(official: false, businessId: business.id)) {
-                            Label("View Annotated Menu", systemImage: "doc.text.magnifyingglass")
-                        }
-                        .foregroundColor(Color.mainGreen.darker())
-                    } else {
-                        Text("No uploaded menu available.")
+                    Link(destination: url) {
+                        Label("Visit Menu", systemImage: "menucard.fill")
                     }
-                    NavigationLink(destination: MenuUploadView(isOfficial: false, businessId: business.id)) {
-                        Text("Upload Menu")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.mainGreen)
-                            .cornerRadius(10)
-                    }
+                    .foregroundColor(Color.mainGreen.darker())
                 }
-                .foregroundColor(Color.mainGreen.darker())
             } else {
-                Text("No menu available.")
+                Text("No official menu available.")
             }
+            Spacer()
+            Text("Uploaded Menu")
+                .font(.title3)
+                .fontWeight(.semibold)
+            HStack {
+                if hasMenu {
+                    NavigationLink(destination: AnnotatedMenu(official: false, businessId: business.id)) {
+                        Label("View Annotated Menu", systemImage: "doc.text.magnifyingglass")
+                    }
+                    .foregroundColor(Color.mainGreen.darker())
+                } else {
+                    Text("No uploaded menu available.")
+                }
+                NavigationLink(destination: MenuUploadView(isOfficial: false, businessId: business.id)) {
+                    Text("Upload Menu")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.mainGreen)
+                        .cornerRadius(10)
+                }
+            }
+            .foregroundColor(Color.mainGreen.darker())
+//        } else {
+//            Text("No menu available.")
         }
     }
+    
     
     var addressSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -974,16 +941,18 @@ struct BusinessDetailView: View {
         var nowComponents = calendar.dateComponents([.hour, .minute], from: now)
         var nowTime = calendar.date(bySettingHour: nowComponents.hour ?? 0, minute: nowComponents.minute ?? 0, second: 0, of: today)!
         // subtract a day
-        nowTime = calendar.date(byAdding: .day, value: -1, to: nowTime)!
+        nowTime = calendar.date(byAdding: .day, value: 0, to: nowTime)!
 
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
         formatter.timeZone = TimeZone.current
 
         if display.starts(with: "Open Daily") {
+            print("hi")
             let rangeString = display.replacingOccurrences(of: "Open Daily", with: "").trimmingCharacters(in: .whitespaces)
+            print(rangeString)
             let ranges = rangeString.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-
+            print(ranges)
             for range in ranges {
                 var newRange = range.replacingOccurrences(of: " - ", with: "-")
                 let parts = newRange.components(separatedBy: "-").map { $0.trimmingCharacters(in: .whitespaces) }
@@ -1005,15 +974,21 @@ struct BusinessDetailView: View {
                                           of: today)!
                 endTime = calendar.date(byAdding: .hour, value: -4, to: endTime)!
 
-
+                print(startTime)
+                print(endTime)
+                print(nowTime)
                 if startTime <= endTime {
                     // Normal same-day range
+                    print("almost")
                     if nowTime >= startTime && nowTime <= endTime {
+                        print("true")
                         return true
                     }
                 } else {
+                    print("almost2")
                     // Wraparound (e.g., 11 PM - 2 AM)
                     if nowTime >= startTime || nowTime <= endTime {
+                        print("true2")
                         return true
                     }
                 }
