@@ -94,11 +94,8 @@ struct MyProfileView: View {
                                         .font(.subheadline)
                                         .fontWeight(.semibold)
                                         .foregroundColor(.black)
-                                    //                                        .underline()
+
                                 }
-                                //                                Text("\(viewModel.friendCount)")
-                                //                                    .font(.subheadline)
-                                //                                    .fontWeight(.semibold)
                                 Text("Friends")
                                     .font(.caption)
                             }
@@ -283,18 +280,29 @@ struct ProfileReviewView: View {
 
     var body: some View {
         ScrollView {
-            if (viewModel.reviews.isEmpty) {
-                Spacer()
-                Text("You have left no reviews.")
-            } else {
-                VStack(spacing: 12) {
-                    ForEach(viewModel.reviews, id: \.reviewId) { review in
-                        ProfileReviewCard(review: review, onEdit: { editReview(review) },
-                                          onDelete: { deleteReview(review) })
-                        .padding(.horizontal)
+            LazyVStack(spacing: 16) {
+                if (viewModel.reviewsIsLoading == true) {
+                    ProgressView("Loading... ")
+                        .padding(.top, 40)
+                } else {
+                    if (viewModel.reviews.isEmpty) {
+                        Spacer()
+                        Text("You have left no reviews.")
+                            .foregroundColor(.gray)
+                            .padding(.top, 40)
+                    } else {
+                        LazyVStack(spacing: 12) {
+                            ForEach(viewModel.reviews, id: \.reviewId) { review in
+                                ProfileReviewCard(review: review, onEdit: { editReview(review) },
+                                                  onDelete: { deleteReview(review) })
+                                .padding(.horizontal, 6)
+                            }
+                        }
+                        
                     }
                 }
             }
+            .padding(.top, 8)
         }
         .onAppear {
             viewModel.fetchMyReviews()
@@ -315,7 +323,7 @@ struct ProfileReviewView: View {
                 
                 EditReviewView(viewModel: viewModel, businessId: review.businessId, review: review)
             } else {
-               Text("INVALID")
+               Text("Loading...")
             }
         }
     }
@@ -355,64 +363,95 @@ struct ProfileReviewCard: View {
     var onDelete: () -> Void
 
     var body: some View {
-        NavigationLink(destination: DetailedReviewView(reviewId: review.reviewId)) {
-            ZStack(alignment: .topTrailing) {
+        ZStack(alignment: .topTrailing) {
+            NavigationLink(destination: DetailedReviewView(reviewId: review.id)) {
                 HStack {
+                            
                     VStack(alignment: .leading, spacing: 8) {
                         Text(review.businessName)
-                            .font(.headline)
-                            .foregroundColor(.black)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        Text(review.reviewContent)
-                            .font(.body)
-                        
-                        HStack {
-                            ForEach(0..<review.rating, id: \.self) { _ in
-                                Image(systemName: "star.fill")
-                                    .foregroundColor(.yellow)
+
+                                    .lineLimit(1)
+                                    .truncationMode(.tail)
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(.black)
+                                    .fontWeight(.semibold)
+                                
+                                
+                                
+                                //                    HStack {
+                                //                        ForEach(0..<review.rating, id: \.self) { _ in
+                                //                            Image(systemName: "star.fill")
+                                //                                .foregroundColor(.yellow)
+                                //                        }
+                                //                    }
+                                HStack(spacing: 2) {
+                                    ForEach(0..<5, id: \.self) { index in
+                                        Image(systemName: index < review.rating ? "star.fill" : "star")
+                                            .foregroundColor(index < review.rating ? .yellow : .gray)
+                                    }
+                                }
+                                if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !review.accommodations!.isEmpty) {
+                                    if let meal = review.meal, !meal.isEmpty || (review.accommodations != nil && !(review.accommodations ?? []).isEmpty) {
+                                        Text(formattedMealAndAccommodations(meal: review.meal, accommodations: review.accommodations))
+                                            .font(.footnote)
+                                            .foregroundColor(.black)
+                                            .fixedSize(horizontal: false, vertical: true) // Allow wrapping
+                                            .fontWeight(.light)
+                                    }
+                                    
+                                }
+                                Text(review.reviewContent)
+                                    .font(.system(size: 16, weight: .regular))
+                                    .foregroundColor(.black)
+                                    .lineLimit(2)
+                                
+                                Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
                             }
+                            //                .padding()
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            //                .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+                            //                .frame(maxWidth: .infinity)
+                            Spacer()
+                            //                .padding(.horizontal, 2)
+                            
                         }
-                        
-                        Text("reviewed on \(formattedDate(from: review.reviewTimestamp))")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                .padding()
-                .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
-                .frame(maxWidth: .infinity)
+                        .padding()
+                                        
+                        .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+                        .frame(maxWidth: .infinity)
+                    }.buttonStyle(PlainButtonStyle())
+        //            .padding(.horizontal, 2)
+        //            .padding(.horizontal, 2)
+        //            }.padding()
+        //
+        //            .background(RoundedRectangle(cornerRadius: 10).fill(Color(.systemGray6)))
+        //            .frame(maxWidth: .infinity)
 
-                // Overlay with edit and delete buttons
-                HStack(spacing: 10) {
-                    Button(action: onEdit) {
-                        Image(systemName: "pencil")
-                            .foregroundColor(.mainGreen)
-                            .padding(8)
-                            .background(Color.white)
-                            .clipShape(Circle())
-                            .shadow(radius: 1)
+                    // Overlay with edit and delete buttons
+                    HStack(spacing: 5) {
+                        Button(action: onEdit) {
+                            Image(systemName: "pencil")
+                                .foregroundColor(.mainGreen.darker())
+                                .padding(6)
+                                .background(Color.clear)
+                                .clipShape(Circle())
+                                .shadow(radius: 1)
+                        }
+                        Button(action: onDelete) {
+                            Image(systemName: "trash")
+                                .foregroundColor(.red)
+                                .padding(6)
+                                .background(Color.clear)
+                                .clipShape(Circle())
+                                .shadow(radius: 1)
+                        }
                     }
-
-                    Button(action: onDelete) {
-                        Image(systemName: "trash")
-                            .foregroundColor(.red)
-                            .padding(8)
-                            .background(Color.white)
-                            .clipShape(Circle())
-                            .shadow(radius: 1)
-                    }
-                }
-                .padding()
+                    .padding([.top, .trailing], 8)
+                                    
             }
-            .padding([.top, .trailing], 8)
-            
-        }
-        .buttonStyle(PlainButtonStyle()) // <- to prevent NavigationLink from applying weird blue highlight styling
+        
     }
     
     private func formattedDate(from timestamp: Double) -> String {
@@ -421,6 +460,22 @@ struct ProfileReviewCard: View {
         formatter.dateStyle = .medium
         formatter.timeStyle = .short
         return formatter.string(from: date)
+    }
+    private func formattedMealAndAccommodations(meal: String?, accommodations: [Accommodation]?) -> String {
+        var parts: [String] = []
+
+        if let meal = meal, !meal.isEmpty {
+            parts.append(meal)
+        }
+        
+        if let accommodations = accommodations, !accommodations.isEmpty {
+            let formattedAccommodations = accommodations.map { accom in
+                accom.preferenceType == "Allergy" ? "\(accom.preference) Free" : accom.preference
+            }.joined(separator: ", ")
+            parts.append(formattedAccommodations)
+        }
+        
+        return parts.joined(separator: " | ")
     }
 }
 

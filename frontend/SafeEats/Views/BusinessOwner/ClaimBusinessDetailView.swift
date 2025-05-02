@@ -200,58 +200,63 @@ struct ClaimBusinessDetailView: View {
     private var reviewsSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Reviews")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                Spacer()
-                Menu {
-                    ForEach(filterOptions, id: \.self) { option in
-                        Button(action: {
-                            selectedFilter = option
-                            viewModel.sortReviews(by: option)
-                        }) {
-                            Text(option)
-                            
+                                Text("Reviews")
+                                    .font(.title2)
+                                    .fontWeight(.semibold)
+                            Spacer()
+                                Menu {
+                                    ForEach(filterOptions, id: \.self) { option in
+                                        Button(action: {
+                                            selectedFilter = option
+                                            viewModel.sortReviews(by: option)
+                                        }) {
+                                            Text(option)
+                                            
+                                        }
+                                    }
+                                } label: {
+                                    HStack {
+                                        Text(selectedFilter)
+                                            .font(.subheadline)
+                                            .foregroundColor(.black)
+                                        
+                                        Image(systemName: "chevron.down")
+                                            .foregroundColor(.gray)
+                                    }
+                                    .padding(6)
+                                    .background(Color.white)
+                                    .cornerRadius(6)
+                                    .shadow(radius: 1)
+                                    .frame(width: 180)
+            }
+//            Spacer()
+//            NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
+//                Task {
+//                    viewModel.updateAverageRating(businessId: business.id)
+//                    await viewModel.fetchReviews(for: business.id)// Reload reviews after submission
+//                }
+//                
+//            }, businessId: business.id)) {
+//                Text("Write a Review")
+//                    .font(.headline)
+//                    .foregroundColor(.white)
+//                    .padding()
+//                    .background(Color.mainGreen)
+//                    .cornerRadius(10)
+//            }
+            }.padding(.bottom, 20)
+                        ForEach(viewModel.reviews, id: \.id) { review in
+                            ReviewCardView(review: review, viewModel: viewModel)
                         }
                     }
-                } label: {
-                    HStack {
-                        Text(selectedFilter)
-                            .font(.subheadline)
-                            .foregroundColor(.black)
-                        
-                        Image(systemName: "chevron.down")
-                            .foregroundColor(.gray)
-                    }
-                    .padding(6)
-                    .background(Color.white)
-                    .cornerRadius(6)
-                    .shadow(radius: 1)
-                    .frame(width: 180)
-                    
+                    .padding(.horizontal, 30)
                 }
-            }
-            Spacer()
-            NavigationLink(destination: CreateReviewView(onReviewSubmitted: {
-                Task {
-                    viewModel.updateAverageRating(businessId: business.id)
-                    await viewModel.fetchReviews(for: business.id)// Reload reviews after submission
-                }
-                
-            }, businessId: business.id)) {
-                Text("Write a Review")
-                    .font(.headline)
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(Color.mainGreen)
-                    .cornerRadius(10)
-            }
-        }.padding(.bottom, 20)
-        return ForEach(viewModel.reviews, id: \.id) { review in
-            ReviewCardView(review: review, viewModel: viewModel)
-        }.padding(.horizontal, 30)
-    }
-        
+//        }.padding(.bottom, 20)
+//        return ForEach(viewModel.reviews, id: \.id) { review in
+//            ReviewCardView(review: review, viewModel: viewModel)
+//        }.padding(.horizontal, 30)
+//    }
+//        
     
     
     
@@ -411,54 +416,54 @@ struct ClaimBusinessDetailView: View {
                 ProgressView()
                     .font(.system(size: 24))
             }
-            Spacer()
-            Button(action: {
-                showCollectionPicker = true
-                collections = collectionsExcludingBusiness()
-            }) {
-                Text("Add to Collection")
-            }
-            .font(.headline)
-            .foregroundColor(.white)
-            .padding()
-            .background(Color.mainGreen)
-            .cornerRadius(10)
-            .frame(width: 160, height: 80)
-            .sheet(isPresented: $showCollectionPicker) {
-                // Dummy UI for now; replace with your real collection picker view
-                VStack {
-                    Text("Choose a Collection")
-                        .font(.title2)
-                        .padding()
-                    
-                    //                    List {
-                    //                        Text("Favorites")
-                    //                        Text("Try Soon")
-                    //                        Text("Top Vegan")
-                    //                    }
-                    
-                    ForEach(collections, id: \.id) { collection in Button(action: {
-                        Task {
-                            await viewModel.addBusinessToCollection(collectionName: collection.name, businessID: business.id)
-                            showCollectionPicker = false
-                        }
-                    }) {
-                        Text(collection.name)
-                            .font(.footnote)
-                            .fontWeight(.semibold)
-                            .frame(width: 380, height: 68)
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(4)
-                    }
-                    }
-                    
-                    Button("Cancel") {
-                        showCollectionPicker = false
-                    }
-                    .padding()
-                }
-                
-            }
+//            Spacer()
+//            Button(action: {
+//                showCollectionPicker = true
+//                collections = collectionsExcludingBusiness()
+//            }) {
+//                Text("Add to Collection")
+//            }
+//            .font(.headline)
+//            .foregroundColor(.white)
+//            .padding()
+//            .background(Color.mainGreen)
+//            .cornerRadius(10)
+//            .frame(width: 160, height: 80)
+//            .sheet(isPresented: $showCollectionPicker) {
+//                // Dummy UI for now; replace with your real collection picker view
+//                VStack {
+//                    Text("Choose a Collection")
+//                        .font(.title2)
+//                        .padding()
+//                    
+//                    //                    List {
+//                    //                        Text("Favorites")
+//                    //                        Text("Try Soon")
+//                    //                        Text("Top Vegan")
+//                    //                    }
+//                    
+//                    ForEach(collections, id: \.id) { collection in Button(action: {
+//                        Task {
+//                            await viewModel.addBusinessToCollection(collectionName: collection.name, businessID: business.id)
+//                            showCollectionPicker = false
+//                        }
+//                    }) {
+//                        Text(collection.name)
+//                            .font(.footnote)
+//                            .fontWeight(.semibold)
+//                            .frame(width: 380, height: 68)
+//                            .background(Color.gray.opacity(0.2))
+//                            .cornerRadius(4)
+//                    }
+//                    }
+//                    
+//                    Button("Cancel") {
+//                        showCollectionPicker = false
+//                    }
+//                    .padding()
+//                }
+//                
+//            }
         }
     }
     
