@@ -771,7 +771,7 @@ struct BusinessDetailView: View {
         
         var menuSection: some View {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Menu")
+                Text("Official Menu")
                     .font(.title2)
                     .fontWeight(.semibold)
                 if let menu = business.menu, let url = URL(string: menu) {
@@ -780,9 +780,25 @@ struct BusinessDetailView: View {
                     }
                     .foregroundColor(Color.mainGreen.darker())
                 } else {
-                    Text("No menu available.")
+                    Text("No official menu available.")
                 }
+                Spacer()
+                Text("Uploaded Menu")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                HStack {
+                    NavigationLink(destination: AnnotatedMenu(businessId: business.id)) {
+                        Label("View Annotated Menu", systemImage: "doc.text.magnifyingglass")
+                    }
+                    .foregroundColor(Color.mainGreen.darker())
+                    NavigationLink(destination: MenuUploadView(isOfficial: false, businessId: business.id)) {
+                        Label("Upload Menu", systemImage: "square.and.arrow.up")
+                    }
+                    .foregroundColor(Color.mainGreen.darker())
+                }
+                
             }
+            
         }
         
         var addressSection: some View {

@@ -5,6 +5,8 @@ class MenuResponse(BaseModel):
     ocr_results: list[OcrResult]
     image_url: str
     created_at: str
+    image_width: int
+    image_height: int
     is_official: bool = Field(default=False)
 
     class Config:

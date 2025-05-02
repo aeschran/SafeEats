@@ -34,6 +34,31 @@ async def process_menu(business_id: str = Form(...), file: UploadFile = File(...
         with open(image_path, "wb") as image_file:
             image_file.write(contents)
         ocr_results = await menu_service.process_image(image_path, business_id, is_official=False)
+        print(ocr_results)
         return MenuResponse(**ocr_results)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.post("/upload_url")
+async def process_menu_url(business_id: str = Form(...), url: str = Form(...)):
+    """
+    Process the uploaded menu image URL and return OCR results.
+    """
+    try:
+        url_results = await menu_service.save_url_to_db(url, business_id)
+        return {"message": "URL saved successfully", "url_results": url_results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@router.get("/get_menu/{business_id}")
+async def get_menu(business_id: str):
+    """
+    Get the menu for a specific business.
+    """
+    try:
+        menu = await menu_service.get_unofficial_menu(business_id)
+        if not menu:
+            raise HTTPException(status_code=404, detail="Menu not found")
+        return MenuResponse(**menu)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

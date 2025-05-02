@@ -17,7 +17,7 @@ class MenuService(BaseService):
             raise Exception("Database connection failed.")
         self.reader = easyocr.Reader(['en'], gpu=False)  # Initialize the OCR reader
         self.keywords = {
-            "halal": {"pork", "frog", "ham", "carrion", "beer", "wine", "pig"},
+            "halal": {"pork", "frog", "ham", "carrion", "beer", "wine", "pig", "bacon"},
             "vegetarian": {"meat", "fish", "chicken", "pork", "beef", "seafood", "ham", "steak", "duck", "lamb", "poultry", "turkey", "rabbit", "squid", "octopus", "crab", "lobster", "shrimp", "shellfish", "salmon", "tuna", "goat", "veal", "bacon", "sausage", "chorizo", "pepperoni", "salami", "prosciutto", "venison"},
             "vegan": {"egg", "milk", "buttermilk", "cheese", "butter", "yogurt", "honey", "gelatin", "cream", "mayonnaise", "sour cream", "whey", "meat", "fish", "chicken", "pork", "beef", "seafood", "ham", "steak", "duck", "lamb", "poultry", "turkey", "rabbit", "squid", "octopus", "crab", "lobster", "shrimp", "shellfish", "salmon", "tuna", "goat", "veal", "bacon", "sausage", "chorizo", "pepperoni", "salami", "prosciutto", "venison",},
             "gluten_free": {"wheat", "barley", "bread", "pasta", "cereal", "cake", "cookies", "crackers", "beer", "malt", "bun"},
@@ -78,16 +78,42 @@ class MenuService(BaseService):
             "ocr_results": ocr_results,
             "image_url": output_image_path_s3,
             "created_at": str(datetime.datetime.now()),
+            "image_width": image.width,
+            "image_height": image.height,
             "is_official": is_official
         }
+        print("made it here")
         # Save to database
-        await self.save_to_db(ObjectId(business_id), ocr_results, output_image_path_s3, result["created_at"], is_official)
+        await self.save_to_db(ObjectId(business_id), ocr_results, output_image_path_s3, result["created_at"], image.width, image.height, is_official)
         return result
     
-    async def save_to_db(self, business_id: str, ocr_results: list[OcrResult], image_url: str, created_at: str, is_official: bool):
+    async def save_url_to_db(self, url: str, business_id: str):
+        """
+        Save the image URL to the database.
+        """
+        result = await self.db.businesses.find_one({"_id": ObjectId(business_id)})
+        if not result:
+            raise Exception("Business not found")
+        await self.db.businesses.update_one(
+            {"_id": ObjectId(business_id)},
+            {"$set": {"menu": url}}
+        )
+        return {"message": "URL saved successfully"}
+    
+    async def get_unofficial_menu(self, business_id: str):
+        """
+        Get the unofficial menu for a specific business.
+        """
+        print(business_id)
+        result = await self.db.menu.find_one({"business_id": ObjectId(business_id), "is_official": False})
+        if not result:
+            raise Exception("Menu not found")
+        return result
+    
+    async def save_to_db(self, business_id: str, ocr_results: list[OcrResult], image_url: str, created_at: str, image_width: int, image_height: int, is_official: bool):
         """
         Save the OCR results to the database.
         """
-        menu = Menu(business_id=ObjectId(business_id), ocr_results=ocr_results, image_url=image_url, created_at=created_at, is_official=is_official)
+        menu = Menu(business_id=ObjectId(business_id), ocr_results=ocr_results, image_url=image_url, created_at=created_at, image_width=image_width, image_height=image_height, is_official=is_official)
         result = await self.db.menu.insert_one(menu.to_dict())
         return result
