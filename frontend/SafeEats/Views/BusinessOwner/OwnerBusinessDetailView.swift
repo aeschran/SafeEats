@@ -17,10 +17,12 @@ struct OwnerBusinessDetailView: View {
     @State private var userVote: Int? = nil
     @StateObject private var viewModel = BusinessDetailViewModel()
     @StateObject private var ownerViewModel = OwnerBusinessDetailViewModel()
+    @StateObject private var ocrViewModel = OCRViewModel()
     @State private var selectedFilter: String = "Most Recent"
     @State private var showDropdown: Bool = false
     @State private var showPreferencePicker: Bool = false
     @State private var showEditListingSheet = false
+    @State private var hasMenu = false
 
 
     let filterOptions: [String] = ["Most Recent", "Least Recent", "Highest Rating", "Lowest Rating", "Most Popular", "Least Popular"]
@@ -175,6 +177,11 @@ struct OwnerBusinessDetailView: View {
                         ownerViewModel.enabled[restriction.preference] = 1
                     }
                     viewModel.updateAverageRating(businessId: business.id)
+                    ocrViewModel.loadOfficialData(businessId: business.id) { success in
+                        if success {
+                            hasMenu = true
+                        }
+                    }
                 }
                 .task {
                     await viewModel.fetchBusinessData(businessID: business.id)
@@ -600,13 +607,36 @@ struct OwnerBusinessDetailView: View {
             Text("Menu")
                 .font(.title2)
                 .fontWeight(.semibold)
-            if let menu = business.menu, let url = URL(string: menu) {
-                Link(destination: url) {
-                    Label("Visit Menu", systemImage: "menucard.fill")
+            HStack {
+                if let menu = business.menu, let url = URL(string: menu) {
+                    if menu.contains("safeeatsbucket1.s3.amazonaws.com/menus/") {
+                        NavigationLink(destination: AnnotatedMenu(official: true, businessId: business.id)) {
+                            Label("View Uploaded Menu", systemImage: "menucard")
+                        }
+                        .foregroundColor(Color.mainGreen.darker())
+                    } else {
+                        Link(destination: url) {
+                            Label("Visit Menu", systemImage: "menucard.fill")
+                        }
+                        .foregroundColor(Color.mainGreen.darker())
+                    }
+                } else if hasMenu {
+                    NavigationLink(destination: AnnotatedMenu(official: true, businessId: business.id)) {
+                        Label("View Uploaded Menu", systemImage: "menucard")
+                    }
+                    .foregroundColor(Color.mainGreen.darker())
+                } else {
+                    Text("No menu available.")
                 }
-                .foregroundColor(Color.mainGreen.darker())
-            } else {
-                Text("No menu available.")
+                NavigationLink(destination: OfficialMenuUploadView(isOfficial: true, businessId: business.id)) {
+                    Text("Upload Menu")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.mainGreen)
+                        .cornerRadius(10)
+                }
             }
         }
     }

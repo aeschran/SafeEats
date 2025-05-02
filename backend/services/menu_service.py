@@ -82,10 +82,12 @@ class MenuService(BaseService):
             "image_height": image.height,
             "is_official": is_official
         }
-        print("made it here")
         # Save to database
         await self.save_to_db(ObjectId(business_id), ocr_results, output_image_path_s3, result["created_at"], image.width, image.height, is_official)
-        return result
+        print("Image processed and saved to database successfully.")
+        if is_official:
+            await self.save_url_to_db(output_image_path_s3, business_id)
+        return True
     
     async def save_url_to_db(self, url: str, business_id: str):
         """
@@ -106,6 +108,16 @@ class MenuService(BaseService):
         """
         print(business_id)
         result = await self.db.menu.find_one({"business_id": ObjectId(business_id), "is_official": False})
+        if not result:
+            raise Exception("Menu not found")
+        return result
+    
+    async def get_official_menu(self, business_id: str):
+        """
+        Get the unofficial menu for a specific business.
+        """
+        print(business_id)
+        result = await self.db.menu.find_one({"business_id": ObjectId(business_id), "is_official": True})
         if not result:
             raise Exception("Menu not found")
         return result

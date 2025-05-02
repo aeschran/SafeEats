@@ -10,6 +10,7 @@ import SwiftUI
 
 struct AnnotatedMenu: View {
     @StateObject private var viewModel = OCRViewModel()
+    var official: Bool
     var businessId: String
 
     var body: some View {
@@ -105,9 +106,17 @@ struct AnnotatedMenu: View {
             }
         }
         .onAppear {
-            viewModel.loadData(businessId: businessId) { success in
-                if !success {
-                    print("Failed to load menu image and data")
+            if official {
+                viewModel.loadOfficialData(businessId: businessId) { success in
+                    if !success {
+                        print("Failed to load menu image and data")
+                    }
+                }
+            } else {
+                viewModel.loadData(businessId: businessId) { success in
+                    if !success {
+                        print("Failed to load menu image and data")
+                    }
                 }
             }
         }

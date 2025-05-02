@@ -19,6 +19,8 @@ struct OfficialMenuUploadView: View {
     @StateObject private var viewModel = OCRViewModel()
     @State var isOfficial: Bool
     @State private var menuUrl: String = ""
+    @State private var showUploadAlert = false
+    @State private var uploadSuccess = false
 
     var businessId: String
 
@@ -49,6 +51,10 @@ struct OfficialMenuUploadView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(height: 250)
+                    Text("Does this look good?")
+                        .multilineTextAlignment(.center)
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
                 }
 
                 Button("Take Photo") {
@@ -74,17 +80,28 @@ struct OfficialMenuUploadView: View {
                     Button("Upload Menu") {
                         isUploading = true
                         if let image = selectedImage {
-                            viewModel.uploadOfficialImage(image, businessId: businessId) {
+                            viewModel.uploadOfficialImage(selectedImage!, businessId: businessId) { success, duration in
                                 isUploading = false
+                                uploadSuccess = success
+                                showUploadAlert = true
+                                print("Upload \(success ? "succeeded" : "failed") in \(String(format: "%.2f", duration)) seconds")
                             }
                         } else {
-                            viewModel.uploadMenuURL(menuUrl, businessId: businessId) {
+                            viewModel.uploadMenuURL(menuUrl, businessId: businessId) { success, duration in
                                 isUploading = false
+                                uploadSuccess = success
+                                showUploadAlert = true
+                                print("Upload \(success ? "succeeded" : "failed") in \(String(format: "%.2f", duration)) seconds")
                             }
                         }
                     }
                     .disabled(isUploading)
                     .buttonStyle(SafeEatsButtonStyle())
+                    if isUploading {
+                        ProgressView("Uploading...")
+                            .progressViewStyle(CircularProgressViewStyle())
+                            .padding()
+                    }
                 }
             }
         }
@@ -93,6 +110,13 @@ struct OfficialMenuUploadView: View {
                 isImagePickerPresented: $showImagePicker,
                 image: $selectedImage,
                 sourceType: .constant(isCamera ? .camera : .photoLibrary)
+            )
+        }
+        .alert(isPresented: $showUploadAlert) {
+            Alert(
+                title: Text(uploadSuccess ? "Upload Successful" : "Upload Failed"),
+                message: Text(uploadSuccess ? "The menu was uploaded successfully." : "There was a problem uploading the menu. Please try again."),
+                dismissButton: .default(Text("OK"))
             )
         }
     }

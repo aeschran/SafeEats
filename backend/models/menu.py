@@ -8,7 +8,7 @@ class Menu:
         self.created_at = created_at
         self.image_width = image_width
         self.image_height = image_height
-        self.is_official = False
+        self.is_official = is_official
 
     def to_dict(self):
         return {

@@ -782,10 +782,17 @@ struct BusinessDetailView: View {
                     .font(.title2)
                     .fontWeight(.semibold)
                 if let menu = business.menu, let url = URL(string: menu) {
-                    Link(destination: url) {
-                        Label("Visit Menu", systemImage: "menucard.fill")
+                    if menu.contains("safeeatsbucket1.s3.amazonaws.com/menus/") {
+                        NavigationLink(destination: AnnotatedMenu(official: true, businessId: business.id)) {
+                            Label("View Uploaded Menu", systemImage: "menucard")
+                        }
+                        .foregroundColor(Color.mainGreen.darker())
+                    } else {
+                        Link(destination: url) {
+                            Label("Visit Menu", systemImage: "menucard.fill")
+                        }
+                        .foregroundColor(Color.mainGreen.darker())
                     }
-                    .foregroundColor(Color.mainGreen.darker())
                 } else {
                     Text("No official menu available.")
                 }
@@ -795,22 +802,24 @@ struct BusinessDetailView: View {
                     .fontWeight(.semibold)
                 HStack {
                     if hasMenu {
-                        NavigationLink(destination: AnnotatedMenu(businessId: business.id)) {
+                        NavigationLink(destination: AnnotatedMenu(official: false, businessId: business.id)) {
                             Label("View Annotated Menu", systemImage: "doc.text.magnifyingglass")
                         }
                         .foregroundColor(Color.mainGreen.darker())
                     } else {
                         Text("No uploaded menu available.")
-                            .foregroundColor(Color.mainGreen.darker())
                     }
                     NavigationLink(destination: MenuUploadView(isOfficial: false, businessId: business.id)) {
-                        Label("Upload Menu", systemImage: "square.and.arrow.up")
+                        Text("Upload Menu")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.mainGreen)
+                            .cornerRadius(10)
                     }
-                    .foregroundColor(Color.mainGreen.darker())
                 }
-                
             }
-            
         }
         
         var addressSection: some View {
