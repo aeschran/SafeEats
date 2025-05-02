@@ -202,25 +202,25 @@ class UserService(BaseService):
             raise HTTPException(status_code=404, detail="User not found")
         
         reviews = await self.db.user_reviews.find({"user_id": ObjectId(_id)}).to_list(100)
-        if len(reviews) < 15:
+        if len(reviews) < 3:
             raise HTTPException(status_code=400, detail="You do not have enough reviews to apply for trusted reviewer.")
         
-        restaurant_ids = set()
-        total_upvotes = 0
-        total_votes = 0
-        for review in reviews:
-            restaurant_ids.add(review["business_id"])
-            total_upvotes += review["upvotes"]
-            total_votes += review["upvotes"] + review["downvotes"]
+        # restaurant_ids = set()
+        # total_upvotes = 0
+        # total_votes = 0
+        # for review in reviews:
+        #     restaurant_ids.add(review["business_id"])
+        #     total_upvotes += review["upvotes"]
+        #     total_votes += review["upvotes"] + review["downvotes"]
 
-        if len(restaurant_ids) < 10:
-            raise HTTPException(status_code=400, detail="You have not reviewed enough unique restaurants to apply for trusted reviewer.")
+        # if len(restaurant_ids) < 10:
+        #     raise HTTPException(status_code=400, detail="You have not reviewed enough unique restaurants to apply for trusted reviewer.")
         
-        if total_votes < 20:
-            raise HTTPException(status_code=400, detail="You do not have enough votes to apply for trusted reviewer.")
+        # if total_votes < 20:
+        #     raise HTTPException(status_code=400, detail="You do not have enough votes to apply for trusted reviewer.")
         
-        if total_upvotes / total_votes < 0.7:
-            raise HTTPException(status_code=400, detail="Your average upvote rating is too low to apply for trusted reviewer.")
+        # if total_upvotes / total_votes < 0.7:
+        #     raise HTTPException(status_code=400, detail="Your average upvote rating is too low to apply for trusted reviewer.")
         
         # TODO: maybe go back and update all reviews to be trusted reviewer reviews
         
