@@ -126,11 +126,9 @@ struct EditProfileView: View {
                     }
                     .padding(.top, 10)
                     .alert("Your profile has been updated!", isPresented: $showSuccessMessage) {
-                        Button("OK") { navigateToLandingPage = true }
+                        Button("OK") { dismiss() }
                     }
-                    .navigationDestination(isPresented: $navigateToLandingPage) {
-                        MyProfileView().navigationBarBackButtonHidden(true)
-                    }
+                    
                 }
                 .padding()
                 .sheet(isPresented: $isImagePickerPresented) {
