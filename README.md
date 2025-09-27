@@ -66,8 +66,6 @@ AWS_BUCKET_NAME="safeeats-menus"
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
-> Keep secrets out of version control. The repo currently contains a hard-coded Dropbox token in `backend/db/connect_dropbox.py`; replace it with environment-driven configuration before production use.
-
 ### Install & Run
 ```bash
 cd backend
